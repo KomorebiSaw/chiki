@@ -1,0 +1,7 @@
+*.pyc
+*.swp
+build
+chiki.egg-info
+dist
+docs/_build
+media/node_modules
