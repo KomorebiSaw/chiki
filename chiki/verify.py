@@ -5,16 +5,21 @@ import string
 from cStringIO import StringIO
 from flask import current_app, session, request, make_response
 from wheezy.captcha import image
+from .settings import FONT_ROOT
 
 __all__ = [
-	'VerifyManager', 'get_verify_code', 'on_validate_code',
+	'VerifyManager', 'get_verify_code', 'validate_code',
 ]
 
 _keys = set()
 _codes = string.uppercase + string.digits
 
-FONT_PATH = os.path.dirname(__file__)
-FONTS = [os.path.join(FONT_PATH, 'fonts/ERASDEMI.TTF')]
+FONTS = [
+	os.path.join(FONT_ROOT, '1.ttf'),
+	os.path.join(FONT_ROOT, '2.ttf'),
+	os.path.join(FONT_ROOT, '3.ttf'),
+	os.path.join(FONT_ROOT, '4.ttf'),
+]
 BG_COLORS = ['#ffffff', '#fbfbfb', '#fdfeff']
 TEXT_COLORS = ['#39f', '#3f9', '#93f', '#9f3', '#f93', '#f39']
 
@@ -38,13 +43,12 @@ class VerifyManager(object):
 			return code2image(code)
 
 
-def get_verify_code(key, refresh=False):
+def get_verify_code(key, refresh=False, code_len=4):
 	_keys.add(key)
 
 	if 'verify_codes' not in session:
 		session['verify_codes'] = {}
-
-	code_len = current_app.config.get('VERIFY_CODE_LEN', 4)
+		
 	codes = session['verify_codes']
 	if key not in codes or refresh:
 		codes[key] = {
@@ -55,7 +59,7 @@ def get_verify_code(key, refresh=False):
 	return codes[key]['code'], codes[key]['times']
 
 
-def on_validate_code(key):
+def validate_code(key):
 	if 'verify_codes' not in session:
 		session['verify_codes'] = {}
 
@@ -65,7 +69,7 @@ def on_validate_code(key):
 
 
 def code2image(code):
-	size = current_app.config.get('VERIFY_CODE_FONT_SIZE', 40)
+	size = current_app.config.get('VERIFY_CODE_FONT_SIZE', 36)
 	drawer = image.captcha(
 		drawings=[
 			image.background(random.choice(BG_COLORS)),

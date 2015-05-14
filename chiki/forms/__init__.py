@@ -2,3 +2,4 @@
 from .fields import *
 from .forms import *
 from .validators import *
+from .widgets import *

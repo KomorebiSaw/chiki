@@ -1,7 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 from wtforms.compat import string_types
-from wtforms.validators import Email, Regexp
+from wtforms.validators import Email, Regexp, ValidationError
+
+__all__ = [
+	'Strip', 'Lower', 'Upper', 'Length', 'DataRequired', 'Email', 'Regexp',
+]
 
 
 class Strip(object):
@@ -42,16 +46,16 @@ class Length(object):
 	def __call__(self, form, field):
 		_len = field.data and len(field.data) or 0
 		if _len < self.min:
-			raise ValueError(self.min_message % dict(
-					label=field.label,
+			raise ValidationError(self.min_message % dict(
+					label=field.label.text,
 					min=self.min,
 					max=self.max,
 					length=_len,
 				)
 			)
 		elif self.max != -1 and _len > self.max:
-			raise ValueError(self.max_message % dict(
-					label=field.label,
+			raise ValidationError(self.max_message % dict(
+					label=field.label.text,
 					min=self.min,
 					max=self.max,
 					length=_len,
@@ -60,6 +64,7 @@ class Length(object):
 
 
 class DataRequired(object):
+
 	field_flags = ('required', )
 
 	def __init__(self, message='%(label)s不能为空'):
@@ -67,4 +72,4 @@ class DataRequired(object):
 
 	def __call__(self, form, field):
 		if not field.data or isinstance(field.data, string_types) and not field.data.strip():
-			raise ValueError(self.message % dict(label=field.label.text))
+			raise ValidationError(self.message % dict(label=field.label.text))

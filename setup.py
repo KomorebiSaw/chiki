@@ -19,6 +19,13 @@ def grep(attrname):
 	strval, = re.findall(pattern, file_text)
 	return strval
 
+def get_data_files(*dirs):
+	results = []
+	for src_dir in dirs:
+		for root, dirs, files in os.walk(src_dir):
+			results.append((root, map(lambda f:root + "/" + f, files)))
+	return results
+
 
 setup(
 	name='chiki',
@@ -29,6 +36,7 @@ setup(
 	description='Common libs of flask web develop',
 	packages=find_packages(),
 	include_package_data=True,
+	data_files=get_data_files('data'),
 	zip_safe=False,
 	platforms='any',
 	install_requires=[

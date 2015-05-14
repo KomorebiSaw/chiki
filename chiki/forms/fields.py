@@ -1,18 +1,13 @@
 # coding: utf-8
-import time
-import datetime
 from flask import current_app
-from wtforms import fields, widgets, validators
-from wtforms.fields import Field, HiddenField, TextField
-from .widgets import VerifyCode, UEditor
-from ..verify import get_verify_code, on_validate_code
-
+from wtforms.fields import Field, StringField, SelectField, DateTimeField
+from wtforms.widgets import RadioInput
+from .widgets import VerifyCode, UEditor, KListWidget
+from ..verify import get_verify_code, validate_code
 
 __all__ = [
 	'VerifyCodeField', 'KDateField', 'KRadioField', 'UEditorField',
 ]
-
-_unset_value = ''
 
 
 class VerifyCodeField(Field):
@@ -20,12 +15,13 @@ class VerifyCodeField(Field):
 	widget = VerifyCode()
 
 	def __init__(self, label=None, key='verify_code', 
-			hidden=False, invalid_times=2, **kwargs):
+			hidden=False, invalid_times=1, code_len=0, **kwargs):
 		super(VerifyCodeField, self).__init__(label, **kwargs)
 		self.key = key
 		self.invalid_times = invalid_times
 		self.hidden = hidden
-		self.code, self.times = get_verify_code(key)
+		self.code_len = code_len if code_len > 0 else current_app.config.get('VERIFY_CODE_LEN', 4)
+		self.code, self.times = get_verify_code(key, code_len=self.code_len)
 		self._refresh = False
 
 	def process_data(self, value):
@@ -48,44 +44,26 @@ class VerifyCodeField(Field):
 
 	def validate(self, field, extra_validators=tuple()):
 		self.errors = list(self.process_errors)
+		if self.data.lower() != self.code.lower():
+			self.times += 1
+			validate_code(self.key)
+			self.errors.append(u'验证码错误')
+
 		if self.times >= self.invalid_times:
 			self._refresh = True
-			self.code, self.times = get_verify_code(self.key, refresh=True)
+			self.code, self.times = get_verify_code(self.key, 
+				refresh=True, code_len=self.code_len)
 			self.errors.append(u'验证码已失效')
-		if self.data.lower() != self.code.lower():
-			on_validate_code(self.key)
-			self.errors.append(u'验证码错误')
+
 		return len(self.errors) == 0
 
 
-class KListWidget(object):
-	def __init__(self, html_tag='ul', sub_tag='li', sub_startswith='sub_', prefix_label=True):
-		self.html_tag = html_tag
-		self.sub_tag = sub_tag
-		self.sub_startswith = sub_startswith
-		self.prefix_label = prefix_label
-
-	def __call__(self, field, **kwargs):
-		kwargs.setdefault('id', field.id)
-		sub_kwargs = dict((k[4:],v) for k, v in kwargs.iteritems() if k.startswith(self.sub_startswith))
-		kwargs = dict(filter(lambda x: not x[0].startswith(self.sub_startswith), kwargs.iteritems()))
-		sub_html = '%s %s' % (self.sub_tag, widgets.html_params(**sub_kwargs))
-		html = ['<%s %s>' % (self.html_tag, widgets.html_params(**kwargs))]
-		for subfield in field:
-			if self.prefix_label:
-				html.append('<%s>%s %s</%s>' % (sub_html, subfield.label, subfield(), self.sub_tag))
-			else:
-				html.append('<%s>%s %s</%s>' % (sub_html, subfield(), subfield.label, self.sub_tag))
-		html.append('</%s>' % self.html_tag)
-		return widgets.HTMLString(''.join(html))
-
-
-class KRadioField(fields.SelectField):
+class KRadioField(SelectField):
 	widget = KListWidget(html_tag='div', sub_tag='label', prefix_label=False)
-	option_widget = widgets.RadioInput()
+	option_widget = RadioInput()
 
 
-class KDateField(fields.DateTimeField):
+class KDateField(DateTimeField):
 
 	def __init__(self, label=None, validators=None, format='%Y-%m-%d', allow_null=False, **kwargs):
 		super(KDateField, self).__init__(label, validators, format, **kwargs)
@@ -114,5 +92,5 @@ class KDateField(fields.DateTimeField):
 					raise ValueError(self.gettext('Invalid date/time input'))
 
 
-class UEditorField(fields.StringField):
+class UEditorField(StringField):
 	widget = UEditor()
