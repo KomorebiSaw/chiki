@@ -47,8 +47,4 @@ class SessionMixin(object):
 		return self
 
 
-class Model(sql.Model, SessionMixin):
-	pass
-
-
-sql.Model = Model
+sql.Model = (sql.Model, SessionMixin)
