@@ -3,7 +3,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.migrate import Migrate
 
 sql = SQLAlchemy()
-migrate = Migrate(db=sql)
+migrate = Migrate()
 
 
 class SessionMixin(object):
@@ -45,6 +45,3 @@ class SessionMixin(object):
 		sql.session.delete(self)
 		sql.session.commit()
 		return self
-
-
-sql.Model = (sql.Model, SessionMixin)
