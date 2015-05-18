@@ -2,6 +2,7 @@
 import datetime
 from flask import Flask as _Flask
 from flask.json import JSONEncoder as _JSONEncoder
+from flask.ext.restful.representations.json import settings
 from werkzeug.datastructures import ImmutableDict
 
 __all__ = [
@@ -17,6 +18,9 @@ class JSONEncoder(_JSONEncoder):
 		if isinstance(obj, datetime.datetime):
 			return obj.strftime('%Y-%m-%d %H:%M:%S')
 		return _JSONEncoder.default(self, obj)
+
+
+settings['cls'] = JSONEncoder
 
 
 class Flask(_Flask):
