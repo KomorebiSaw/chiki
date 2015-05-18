@@ -1,9 +1,10 @@
 # coding: utf-8
-from flask import Flask, current_app, Response, render_template
+from flask import current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
 from .jinja import init_jinja
 from .logger import init_logger
+from ._flask import Flask
 
 __all__ = [
 	"init_app", 'init_api', "init_admin",
