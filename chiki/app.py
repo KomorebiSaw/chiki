@@ -52,12 +52,14 @@ def before_request():
 		return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
 
 
-def init_app(init, config=None, template_folder='templates', index=False, error=True):
+def init_app(init, config=None, pyfile=None, 
+		template_folder='templates', index=False, error=True):
 	""" 创建应用 """
 
 	app = Flask(__name__, template_folder=template_folder)
-	if config:
-		app.config.from_object(config)
+	if config: app.config.from_object(config)
+	if pyfile: app.config.from_pyfile(pyfile)
+	if app.config.get('ENVVAR'): app.config.from_envvar(app.config['ENVVAR'])
 
 	app.static_folder = app.config.get('STATIC_FOLDER')
 		
@@ -77,14 +79,16 @@ def init_app(init, config=None, template_folder='templates', index=False, error=
 	return app
 
 
-def init_api(init, config=None, template_folder='templates', index=False, error=False):
-	return init_app(init, config, template_folder, index, error)
+def init_api(init, config=None, pyfile=None, 
+		template_folder='templates', index=False, error=False):
+	return init_app(init, config, pyfile, template_folder, index, error)
 
 
-def init_admin(init, config=None, template_folder='templates', index=True, error=True):
+def init_admin(init, config=None, pyfile=None, 
+		template_folder='templates', index=True, error=True):
 	""" 创建后台管理应用 """
 
-	app = init_app(init, config, template_folder, index, error)
+	app = init_app(init, config, pyfile, template_folder, index, error)
 
 	@app.before_request
 	def _before_request():
