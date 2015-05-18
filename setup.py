@@ -36,7 +36,7 @@ setup(
 	description='Common libs of flask web develop',
 	packages=find_packages(),
 	include_package_data=True,
-	data_files=get_data_files('data'),
+	#data_files=get_data_files('data'),
 	zip_safe=False,
 	platforms='any',
 	install_requires=[
