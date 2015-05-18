@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 from flask import current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
@@ -59,7 +60,10 @@ def init_app(init, config=None, pyfile=None,
 	app = Flask(__name__, template_folder=template_folder)
 	if config: app.config.from_object(config)
 	if pyfile: app.config.from_pyfile(pyfile)
-	if app.config.get('ENVVAR'): app.config.from_envvar(app.config['ENVVAR'])
+
+	ENVVAR = app.config.get('ENVVAR')
+	if ENVVAR and os.environ.get(ENVVAR): 
+		app.config.from_envvar(app.config['ENVVAR'])
 
 	app.static_folder = app.config.get('STATIC_FOLDER')
 		
