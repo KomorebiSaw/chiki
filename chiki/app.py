@@ -1,12 +1,12 @@
 # coding: utf-8
 from flask import Flask, current_app, Response, render_template
-from flask import abort, request
+from flask import abort, request, redirect
 from flask.ext.babelex import Babel
 from .jinja import init_jinja
-from .logger import init_logger as _init_logger
+from .logger import init_logger
 
 __all__ = [
-	"init_app", "init_admin",
+	"init_app", 'init_api', "init_admin",
 ]
 
 
@@ -18,13 +18,6 @@ def init_babel(app):
 	@babel.localeselector
 	def get_locale():
 		return 'zh_Hans_CN'
-
-
-def init_logger(app):
-	""" 初始化日志功能 """
-
-	if not app.debug:
-		_init_logger(app)
 
 
 def init_error_handler(app):
@@ -48,16 +41,17 @@ def before_request():
 
 	if not request.path.startswith('/admin') \
 			and not request.path.startswith('/uploads') \
-			and not request.path.startswith('/static'):
+			and not request.path.startswith('/static') \
+			and request.path != '/':
 		return abort(403)
 
 	auth = request.authorization
-	if not (auth and auth.username == current_app.config['USERNAME'] \
-			and auth.password == current_app.config['PASSWORD']):
+	if not (auth and auth.username == current_app.config['ADMIN_USERNAME'] \
+			and auth.password == current_app.config['ADMIN_PASSWORD']):
 		return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
 
 
-def init_app(init, config=None, template_folder='templates'):
+def init_app(init, config=None, template_folder='templates', index=False, error=True):
 	""" 创建应用 """
 
 	app = Flask(__name__, template_folder=template_folder)
@@ -70,14 +64,26 @@ def init_app(init, config=None, template_folder='templates'):
 	init_babel(app)
 	init_jinja(app)
 	init_logger(app)
-	init_error_handler(app)
+
+	if error:
+		init_error_handler(app)
+
+	if index:
+		@app.route('/')
+		def index():
+			return redirect(app.config.get('INDEX_REDIRECT'))
+
 	return app
 
 
-def init_admin(init, config=None, template_folder='templates'):
+def init_api(init, config=None, template_folder='templates', index=False, error=False):
+	return init_app(init, config, template_folder, index, error)
+
+
+def init_admin(init, config=None, template_folder='templates', index=True, error=True):
 	""" 创建后台管理应用 """
 
-	app = init_app(init, config, template_folder)
+	app = init_app(init, config, template_folder, index, error)
 
 	@app.before_request
 	def _before_request():

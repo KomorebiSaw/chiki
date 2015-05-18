@@ -18,7 +18,10 @@ class Logger(object):
 			self.init_app(app)
 
 	def init_app(self, app):
-		config = app.config['LOGGING']
+		config = app.config.get('LOGGING')
+		if not config:
+			return
+			
 		config_mail = config.get('SMTP')
 		if config_mail: #如果存在smtp配置
 			app.logger.info('Add SMTP Logging Handler')

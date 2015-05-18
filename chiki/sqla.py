@@ -8,6 +8,10 @@ migrate = Migrate()
 
 class SessionMixin(object):
 
+	def __init__(self, **kwargs):
+		for k, v in kwargs.iteritems():
+			setattr(self, k, v)
+
 	def to_dict(self, *columns, **kwargs):
 		dct = {}
 		if not columns:

@@ -1,14 +1,16 @@
 # coding: utf-8
-from mongoengine.fields import IntField, LongField, DecimalField
-from mongoengine.fields import FloatField, ReferenceField
+from flask import current_app, redirect
+from flask.ext.admin import AdminIndexView, expose
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
 from flask.ext.admin._compat import string_types
+from mongoengine.fields import IntField, LongField, DecimalField
+from mongoengine.fields import FloatField, ReferenceField
 from .convert import KModelConverter
 from .filters import KFilterConverter
 
 __all__ = [
-	"ModelView", "SModelView",
+	"ModelView", "SModelView", "IndexView",
 ]
 
 
@@ -107,8 +109,15 @@ class SModelView(_SModelView):
 	def __init__(self, model, session,
 			name=None, category=None, endpoint=None, url=None, static_folder=None,
 			menu_class_name=None, menu_icon_type=None, menu_icon_value=None):
-		if hasattr(model, 'labels'):
-			self.column_labels = model.labels
+		if hasattr(model, 'LABELS'):
+			self.column_labels = model.LABELS
 		super(SModelView, self).__init__(model, session, name=name, category=category, 
 			endpoint=endpoint, url=url, static_folder=static_folder, menu_class_name=menu_class_name,
 			menu_icon_type=menu_icon_type, menu_icon_value=menu_icon_value)
+
+
+class IndexView(AdminIndexView):
+
+	@expose('/')
+	def index(self):
+		return redirect(current_app.config.get('INDEX_REDIRECT'))
