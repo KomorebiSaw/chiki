@@ -52,5 +52,6 @@ setup(
 		'Pillow==2.7.0',
 		'Flask-SQLAlchemy==2.0',
 		'Flask-Migrate==1.3.0',
+		'watchdog',
     ],
 )
