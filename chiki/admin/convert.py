@@ -1,7 +1,7 @@
 # coding: utf-8
 from flask.ext.admin.contrib.mongoengine.form import CustomModelConverter
 from flask.ext.mongoengine.wtf import orm
-from ..wtf.fields import FileField, ImageField, AreaField
+from ..forms.fields import FileField, ImageField, AreaField
 
 
 class KModelConverter(CustomModelConverter):

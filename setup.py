@@ -41,7 +41,6 @@ setup(
 	platforms='any',
 	install_requires=[
 		'Flask==0.10.1',
-		'Flask-Admin==1.1.0',
 		'Flask-BabelEx==0.9.2',
 		'flask-mongoengine==0.7.1',
 		'Flask-WTF==0.11',

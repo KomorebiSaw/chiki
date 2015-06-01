@@ -1,12 +1,18 @@
 # coding: utf-8
+from datetime import datetime
 from flask import current_app
 from wtforms.fields import Field, StringField, SelectField, DateTimeField
+from wtforms.fields import FileField as _FileField
 from wtforms.widgets import RadioInput
+from wtforms.validators import ValidationError
+from wtforms.utils import unset_value
 from .widgets import VerifyCode, UEditor, KListWidget
+from .widgets import FileInput, ImageInput, AreaInput
 from ..verify import get_verify_code, validate_code
 
 __all__ = [
 	'VerifyCodeField', 'KDateField', 'KRadioField', 'UEditorField',
+	'FileField', 'ImageField', 'AreaField',
 ]
 
 
@@ -75,14 +81,14 @@ class KDateField(DateTimeField):
 		else:
 			if self.data and type(self.data) in (str, unicode):
 				return self.data
-			return self.data and time.strftime(self.format, time.localtime(self.data)) or ''
+			return self.data and self.data.strftime(self.format) or ''
 
 	def process_formdata(self, valuelist):
 		if valuelist:
 			date_str = ' '.join(valuelist)
 			if date_str:
 				try:
-					self.data = time.strptime(date_str, self.format)
+					self.data = datetime.strptime(date_str, self.format)
 				except ValueError:
 					self.data = None
 					raise ValueError(self.gettext('Invalid date/time input'))
@@ -94,3 +100,59 @@ class KDateField(DateTimeField):
 
 class UEditorField(StringField):
 	widget = UEditor()
+
+
+class FileField(_FileField):
+
+	widget = FileInput()
+
+	def __init__(self, size=None, allows=None, **kwargs):
+		self.size = size
+		self.allows = allows
+		super(FileField, self).__init__(**kwargs)
+
+	def pre_validate(self, form, extra_validators=tuple()):
+		if not self.data:
+			return
+
+		format = self.data.filename.split('.')[-1]
+		if self.allows and format not in self.allows:
+			raise ValidationError(u'%s 格式不支持上传' % format)
+
+		if self.size and value.upload.content_length > self.size:
+			raise ValidationError(u'文件太大(%d/%d)' % (self.size, value.upload.content_length))
+
+
+class ImageField(FileField):
+
+	widget = ImageInput()
+
+
+class AreaField(Field):
+
+	widget = AreaInput()
+
+	def process(self, formdata, data=unset_value):
+		self.process_errors = []
+		if data is unset_value:
+			try:
+				data = self.default()
+			except TypeError:
+				data = self.default
+
+		self.object_data = data
+
+		try:
+			self.process_data(data)
+		except ValueError as e:
+			self.process_errors.append(e.args[0])
+
+		if formdata:
+			area = []
+			for field in ['province', 'city', 'county']:
+				name = '%s_%s' % (self.name, field)
+				data = formdata.get(name, '').strip()
+				if data:
+					area.append(data)
+			if len(area) == 3:
+				self.data = '|'.join(area)

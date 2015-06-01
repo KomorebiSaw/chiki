@@ -1,10 +1,11 @@
 # coding: utf-8
 import os
-from flask import current_app, Response, render_template
+from flask import Blueprint, current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
 from .jinja import init_jinja
 from .logger import init_logger
+from .settings import TEMPLATE_ROOT
 from ._flask import Flask
 
 __all__ = [
@@ -40,12 +41,6 @@ def init_error_handler(app):
 
 def before_request():
 	""" Admin 权限验证 """
-
-	if not request.path.startswith('/admin') \
-			and not request.path.startswith('/uploads') \
-			and not request.path.startswith('/static') \
-			and request.path != '/':
-		return abort(403)
 
 	auth = request.authorization
 	if not (auth and auth.username == current_app.config['ADMIN_USERNAME'] \
@@ -97,5 +92,9 @@ def init_admin(init, config=None, pyfile=None,
 	@app.before_request
 	def _before_request():
 		return before_request()
+
+	blueprint = Blueprint('xadmin', __name__, 
+		template_folder=TEMPLATE_ROOT)
+	app.register_blueprint(blueprint)
 
 	return app

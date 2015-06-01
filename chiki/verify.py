@@ -9,6 +9,7 @@ from .settings import FONT_ROOT
 
 __all__ = [
 	'VerifyManager', 'get_verify_code', 'validate_code',
+	'init_verify',
 ]
 
 _keys = set()
@@ -89,3 +90,8 @@ def code2image(code):
 	response = make_response(buf.getvalue())
 	response.headers['Content-Type'] = 'image/gif'
 	return response
+
+
+def init_verify(app):
+	verify = VerifyManager()
+	verify.init_app(app)

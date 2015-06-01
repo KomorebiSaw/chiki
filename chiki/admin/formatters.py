@@ -1,25 +1,74 @@
 # coding: utf-8
-import time
-from xml.sax.saxutils import escape, quoteattr
-from ..jinja import markup
+from xml.sax.saxutils import escape as _escape, quoteattr
+from ..jinja import markup, markupper
+from ..utils import datetime2best, time2best
 
 
-def format_span(text, short):
+def quote(*args):
+	return tuple(quoteattr(x) for x in args)
+
+
+def escape(*args):
+	return tuple(_escape(x) for x in args)
+
+
+def get_span(text, short):
 	if text.startswith('http://'):
-		return markup('<a href=%s title=%s target="_blank">%s</a>' % (
-			quoteattr(text), quoteattr(text), escape(short)))
-	return markup('<span title=%s>%s</span>' % (quoteattr(text), escape(short)))
+		return '<a href=%s title=%s target="_blank">%s</a>' % (
+			quote(text, text) + escape(short))
+	return '<span title=%s>%s</span>' % (quote(text) + escape(short))
 
 
-def format_len(max_len):
+def formatter(func):
 	def wrapper(view, context, model, name):
 		if hasattr(model.__class__, name):
 			data = unicode(getattr(model, name))
-			if len(data) > max_len + 1:
-				return format_span(data, data[:max_len] + '...')
-			return data
+			return markup(func(data))
 		return ''
 	return wrapper
+
+
+def formatter_model(func):
+	def wrapper(view, context, model, name):
+		return markup(func(model))
+	return wrapper
+
+
+def formatter_len(max_len):
+	@formatter
+	def wrapper(data):
+		if len(data) > max_len + 1:
+			return get_span(data, data[:max_len] + '...')
+		return data
+	return wrapper
+
+
+def formatter_icon(func=None, height=40):
+	@formatter_model
+	def icon(model):
+		tpl = u'''
+			<a href=%%s target="_blank">
+				<img src=%%s style="max-height: %dpx; margin: -6px">
+			</a>
+		''' % height
+		url = func(model)
+		return tpl % quote(url, url)
+	return icon
+
+
+@formatter
+def format_time(t):
+	return str(t).split('.')[0]
+
+
+@formatter
+def format_date(t):
+	return str(t).split(' ')[0]
+
+
+@formatter
+def format_best(t):
+	return get_span(str(t).split('.')[0], datetime2best(t))
 
 
 def format_choices(view, context, model, name):
@@ -28,62 +77,8 @@ def format_choices(view, context, model, name):
 		data = getattr(model, name)
 		choices = field.choices
 		if choices:
-			for key, value in choices:
-				if key == data:
-					return value
-	return ''
+			return dict(choices).get(data, data)
 
-
-def format_time(view, context, model, name):
-	if hasattr(model, name):
-		return str(getattr(model, name)).split('.')[0]
-	return ''
-
-
-def format_date(view, context, model, name):
-	if hasattr(model, name):
-		return str(getattr(model, name)).split(' ')[0]
-	return ''
-
-
-def format_best(view, context, model, name):
-	if hasattr(model, name):
-		attr = getattr(model, name)
-		return format_span(str(attr).split('.')[0], datetime2best(attr))
-	return ''
-
-
-def datetime2best(input):
-	return time2best(time.mktime(input.timetuple()))
-
-
-def time2best(input):
-	now = max(time.time(), input) + 8 * 3600
-	tmp = input + 8 * 3600
-	if tmp + 86400 < now // 86400 * 86400:
-		if time.strftime('%Y', time.localtime(input)) == time.strftime('%Y', time.localtime()):
-			return time.strftime('%m.%d', time.localtime(input))
-		return time.strftime(u'%y年%m月', time.localtime(input))
-	elif tmp < now // 86400 * 86400:
-		return u'昨天'
-
-	offset = now - tmp
-	hours = offset // 3600
-	if hours > 0:
-		if hours >= 12: 
-			hours = 12
-		elif hours > 6:
-			hours = hours // 2 * 2
-		return u'%s小时前' % int(hours)
-
-	minutes = offset // 60
-	if minutes > 1:
-		if minutes >= 30:
-			minutes = 30
-		elif minutes >= 10:
-			minutes = minutes // 10 * 10
-		elif minutes >= 5:
-			minutes = 5
-		return u'%s分钟前' % int(minutes)
-
-	return u'刚刚'
+@markupper
+def type_best(view, t):
+	return get_span(str(t).split('.')[0], datetime2best(t))

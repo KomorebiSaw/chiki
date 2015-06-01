@@ -1,9 +1,10 @@
 # coding: utf-8
-from flask import current_app
+from flask import current_app, get_flashed_messages
 from jinja2 import Markup
 
 __all__ = [
-	'markup', 'first_error', 'JinjaManager', 'init_jinja',
+	'markup', 'markupper', 'first_error', 
+	'JinjaManager', 'init_jinja',
 ]
 
 
@@ -11,6 +12,12 @@ def markup(html):
 	return Markup(html) if current_app.jinja_env.autoescape else html
 
 
+def markupper(func):
+	def wrapper(*args, **kwargs):
+		return markup(func(*args, **kwargs))
+	return wrapper
+
+	
 def first_error(form):
 	for field in form:
 		if field.errors:
@@ -46,10 +53,30 @@ class JinjaManager(object):
 	def line2br_filter(self, text):
 		return markup(text.replace('\n', '<br>'))
 
-	def kform_filter(self, form):
+	def kform_filter(self, form, label=3):
+		label_class = 'control-label col-sm-%d' % label
+		field_div = '<div class="col-sm-%d">' % (12 - label)
 		out = []
 		for field in form:
-			out.append(self.kfield_filter(field))
+			if field.type not in['CSRFTokenField', 'HiddenField']:
+				out.append('<div class="form-group">')
+				out.append(field.label(class_=label_class))
+				out.append(field_div)
+				if field.type == 'KRadioField':
+					out.append(field(sub_class='radio-inline'))
+				elif field.type == 'KCheckboxField':
+					out.append(field(sub_class='checkbox-inline'))
+				else:
+					if hasattr(field, 'addon'):
+						out.append('<div class="input-group">')
+						out.append(field(class_='form-control', data_label=field.label.text))
+						out.append('<span class="input-group-addon">%s</span>' % field.addon)
+						out.append('</div>')
+					else:
+						out.append(field(class_='form-control', data_label=field.label.text))
+				out.append('</div></div>')
+			else:
+				out.append(field())
 		return markup(''.join(out))
 
 	def kfield_filter(self, field, **kwargs):
@@ -103,6 +130,10 @@ class JinjaManager(object):
 		error = first_error(form)
 		if error:
 			return self.alert_msg(error, style)
+
+		messages = get_flashed_messages(with_categories=True)
+		if messages:
+			return self.alert_msg(messages[-1][1], messages[-1][0] or 'danger')
 		return ''
 
 
