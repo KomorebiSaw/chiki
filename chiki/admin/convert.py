@@ -8,11 +8,11 @@ class KModelConverter(CustomModelConverter):
 
 	@orm.converts('XFileField')
 	def conv_kfile(self, model, field, kwargs):
-		return FileField(size=field.size, allows=field.allows, **kwargs)
+		return FileField(max_size=field.max_size, allows=field.allows, **kwargs)
 
 	@orm.converts('XImageField')
 	def conv_kimage(self, model, field, kwargs):
-		return ImageField(size=field.size, allows=field.allows, **kwargs)
+		return ImageField(max_size=field.max_size, allows=field.allows, **kwargs)
 
 	@orm.converts('AreaField')
 	def conv_area(self, model, field, kwargs):

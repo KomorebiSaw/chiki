@@ -102,16 +102,23 @@ class FileInput(object):
 
 	template = """
 		<div>
-			<i class="icon-file"></i>%(name)s %(size)dk
+			<i class="icon-file"></i>%(filename)s
+		</div>
+		<div class="checkbox">
+		    <label>
+				<input name="%(name)s-delete" type="checkbox" value="true"> 删除
+			</label>
 		</div>
 	"""
 
 	def __call__(self, field, **kwargs):
 		kwargs.setdefault('id', field.id)
+		kwargs.pop('class', None)
+		kwargs.setdefault('style', 'margin: 10px 0;')
 
 		placeholder = ''
 		if field.data and field.data.filename:
-			placeholder = self.template % dict(name=field.data.filename, size=0)
+			placeholder = self.template % dict(name=field.name, filename=field.data.filename)
 
 		return HTMLString('%s<input %s>' % (placeholder, 
 			html_params(name=field.name, type='file', **kwargs)))
@@ -120,17 +127,30 @@ class FileInput(object):
 class ImageInput(object):
 
 	template = """
-		<div class="image-thumbnail">
-			<img src="%(thumb)s">
+		<a href="%(thumb)s" target="_blank">
+			<div class="image-thumbnail">
+				<img src="%(thumb)s">
+			</div>
+		</a>
+		<div class="checkbox">
+		    <label>
+				<input name="%(name)s-delete" type="checkbox" value="true"> 删除 %(filename)s
+			</label>
 		</div>
 	"""
 
 	def __call__(self, field, **kwargs):
 		kwargs.setdefault('id', field.id)
+		kwargs.pop('class', None)
+		kwargs.setdefault('style', 'margin: 10px 0;')
 
 		placeholder = ''
-		if field.data and hasattr(field.data, 'url') and field.data.url:
-			placeholder = self.template % dict(thumb=field.data.url)
+		if field.data and hasattr(field.data, 'link') and field.data.link:
+			placeholder = self.template % dict(
+				thumb=field.data.link, 
+				name=field.name,
+				filename=field.data.filename,
+			)
 
 		return HTMLString('%s<input %s>' % (placeholder, 
 			html_params(name=field.name, type='file', **kwargs)))

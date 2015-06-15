@@ -26,3 +26,4 @@ def abort(code, **kwargs):
 M(COMMON_START=20000)
 M(SERVER_ERROR='系统出错')
 M(ACCESS_DENIED='非法操作')
+M(ARGS_ERROR='参数错误')

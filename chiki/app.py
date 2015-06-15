@@ -43,8 +43,11 @@ def before_request():
 	""" Admin 权限验证 """
 
 	auth = request.authorization
-	if not (auth and auth.username == current_app.config['ADMIN_USERNAME'] \
-			and auth.password == current_app.config['ADMIN_PASSWORD']):
+	username = current_app.config.get('ADMIN_USERNAME')
+	password = current_app.config.get('ADMIN_PASSWORD')
+	if username and not (auth 
+			and auth.username == username 
+			and auth.password == password):
 		return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
 
 
