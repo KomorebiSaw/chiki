@@ -74,7 +74,7 @@ class Api(_Api):
                 fallback_mediatype = fallback_mediatype
             )
         else:
-            if code == 400:
+            if code == 400 and current_app.config.get('CHANGE_400_TO_200', True):
                 code = 200
             resp = self.make_response(data, code, headers)
 
