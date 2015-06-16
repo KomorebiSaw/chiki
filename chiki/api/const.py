@@ -20,7 +20,7 @@ def M(**kwargs):
 
 
 def abort(code, **kwargs):
-	_abort(200, code=code, key=_keys[code], msg=_msgs[code], **kwargs)
+	_abort(400, code=code, key=_keys[code], msg=_msgs[code], **kwargs)
 
 
 M(COMMON_START=20000)
