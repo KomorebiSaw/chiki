@@ -1,5 +1,6 @@
 # coding: utf-8
 from xml.sax.saxutils import escape as _escape, quoteattr
+from ..iptools import parse_ip
 from ..jinja import markup, markupper
 from ..utils import datetime2best, time2best
 
@@ -56,6 +57,17 @@ def formatter_icon(func=None, height=40):
 			return tpl % quote(url, url)
 		return ''
 	return icon
+
+
+def formatter_ip(url=None):
+	@formatter
+	def wrapper(ip):
+		text = parse_ip(ip)
+		if url:
+			url = url(ip) if callable(url) else url % dict(ip=ip)
+			return '<a href=%s title=%s target="_blank">%s</a>' % (
+				quote(url, ip) + escape(text))
+		return '<span title=%s>%s</span>' % (quote(ip) + escape(text))
 
 
 @formatter
