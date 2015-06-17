@@ -64,10 +64,11 @@ def formatter_ip(url=None):
 	def wrapper(ip):
 		text = parse_ip(ip)
 		if url:
-			url = url(ip) if callable(url) else url % dict(ip=ip)
+			href = url(ip) if callable(url) else url % dict(ip=ip)
 			return '<a href=%s title=%s target="_blank">%s</a>' % (
-				quote(url, ip) + escape(text))
+				quote(href, ip) + escape(text))
 		return '<span title=%s>%s</span>' % (quote(ip) + escape(text))
+	return wrapper
 
 
 @formatter
