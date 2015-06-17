@@ -52,7 +52,9 @@ def formatter_icon(func=None, height=40):
 			</a>
 		''' % height
 		url = func(model)
-		return tpl % quote(url, url)
+		if url:
+			return tpl % quote(url, url)
+		return ''
 	return icon
 
 
