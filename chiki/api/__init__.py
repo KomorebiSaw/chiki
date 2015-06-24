@@ -8,7 +8,7 @@ from flask.ext.restful.utils import error_data
 from werkzeug.http import HTTP_STATUS_CODES
 
 __all__ = [
-	'api', 'success',
+    'api', 'success',
 ]
 
 
@@ -87,4 +87,8 @@ api = Api()
 
 
 def success(**kwargs):
-	return dict(code=0, key='SUCCESS', data=kwargs)
+    if kwargs.get('__external'):
+        kwargs.setdefault('code', 0)
+        kwargs.setdefault('key', 'SUCCESS')
+        return dict(**kwargs)
+    return dict(code=0, key='SUCCESS', data=kwargs)

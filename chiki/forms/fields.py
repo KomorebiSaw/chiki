@@ -1,6 +1,8 @@
 # coding: utf-8
+import itertools
 from datetime import datetime
 from flask import current_app
+from flask.ext.admin.model.fields import InlineFieldList
 from wtforms.fields import Field, StringField, SelectField, DateTimeField
 from wtforms.fields import FileField as _FileField
 from wtforms.widgets import RadioInput
@@ -9,10 +11,11 @@ from wtforms.utils import unset_value
 from .widgets import VerifyCode, UEditor, KListWidget
 from .widgets import FileInput, ImageInput, AreaInput
 from ..verify import get_verify_code, validate_code
+from ..mongoengine.fields import FileProxy
 
 __all__ = [
     'VerifyCodeField', 'KDateField', 'KRadioField', 'UEditorField',
-    'FileField', 'ImageField', 'AreaField',
+    'FileField', 'ImageField', 'AreaField', 'ListField',
 ]
 
 
@@ -198,3 +201,24 @@ class AreaField(Field):
                     area.append(data)
             if len(area) == 3:
                 self.data = '|'.join(area)
+
+
+class ListField(InlineFieldList):
+
+    def populate_obj(self, obj, name):
+        values = getattr(obj, name, None) or []
+        _fake = type(str('_fake'), (object, ), {})
+
+        output = []
+        value_len = len(values)
+        for field in self.entries:
+            if not self.should_delete(field):
+                index = int(field.name.split('-')[-1])
+                data = values[index] if index < value_len else None
+                fake_obj = _fake()
+                fake_obj.data = data
+                field.populate_obj(fake_obj, 'data')
+                if not fake_obj.data and isinstance(data, FileProxy):
+                    data.remove()
+                output.append(fake_obj.data)
+        setattr(obj, name, output)

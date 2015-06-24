@@ -4,10 +4,10 @@
     {{ super() }}
     <style>
     {% if admin_view.column_center_list %}
-    	{% for column in admin_view.column_center_list %}
-    		.col-{{ column }},
-    	{% endfor %}
-    	.col-center { text-align: center; }
+        {% for column in admin_view.column_center_list %}
+            .col-{{ column }},
+        {% endfor %}
+        .col-center { text-align: center; }
     {% endif %}
     </style>
 {% endblock %}
