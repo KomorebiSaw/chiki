@@ -23,8 +23,8 @@ def get_span(text, short):
 def formatter(func):
     def wrapper(view, context, model, name):
         if hasattr(model.__class__, name):
-            data = unicode(getattr(model, name))
-            return markup(func(data))
+            data = unicode(getattr(model, name) or '')
+            return markup(func(data) or '')
         return ''
     return wrapper
 
@@ -62,12 +62,13 @@ def formatter_icon(func=None, height=40):
 def formatter_ip(url=None):
     @formatter
     def wrapper(ip):
-        text = parse_ip(ip)
-        if url:
-            href = url(ip) if callable(url) else url % dict(ip=ip)
-            return '<a href=%s title=%s target="_blank">%s</a>' % (
-                quote(href, ip) + escape(text))
-        return '<span title=%s>%s</span>' % (quote(ip) + escape(text))
+        if ip:
+            text = parse_ip(ip)
+            if url:
+                href = url(ip) if callable(url) else url % dict(ip=ip)
+                return '<a href=%s title=%s target="_blank">%s</a>' % (
+                    quote(href, ip) + escape(text))
+            return '<span title=%s>%s</span>' % (quote(ip) + escape(text))
     return wrapper
 
 

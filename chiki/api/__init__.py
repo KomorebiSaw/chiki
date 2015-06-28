@@ -1,4 +1,5 @@
 # coding: utf-8
+import re
 import sys
 import difflib
 from flask import current_app, request
