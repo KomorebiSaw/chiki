@@ -79,8 +79,14 @@ class OSSFile(BaseFile):
             conf['secret_access_key'],
         )
 
-    def get_link(self, name, **kwargs):
-        return self.conf['link'] % name
+    def get_link(self, name, width=0, height=0, ystart=0, yend=0):
+        link = self.conf['link'] % name
+        if width == 0 or height == 0:
+            return link + '@95Q.jpg'
+        if ystart == 0 or yend == 0:
+            return link + '@%dw_%dh_1e_1c_95Q.jpg' % (width, height) 
+        return '@0-%d-0-%da_%dw_%dh_1e_1c_95Q.jpg' % (width, height, ystart, yend)
+
 
     def get(self, name):
         res = self.oss.get_object(self.conf['bucket'], name)

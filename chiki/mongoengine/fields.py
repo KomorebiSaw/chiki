@@ -44,6 +44,9 @@ class FileProxy(object):
         self.filename = ''
         self.process(value)
 
+    def __nonzero__(self):
+        return True if self.filename else False
+
     @property
     def path(self):
         return self.instance.get_path(self.filename)
@@ -52,8 +55,9 @@ class FileProxy(object):
     def link(self):
         return self.instance.get_link(self.filename)
 
-    def get_link(self, **kwargs):
-        return self.instance.get_link(self.filename, **kwargs)
+    def get_link(self, width=0, height=0, ystart=0, yend=0):
+        return self.instance.get_link(self.filename, 
+            width=width, height=height, ystart=ystart, yend=yend)
 
     @property
     def content(self):

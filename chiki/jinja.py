@@ -1,6 +1,7 @@
 # coding: utf-8
 from flask import current_app, get_flashed_messages
 from jinja2 import Markup
+from xml.sax.saxutils import escape
 
 __all__ = [
     'markup', 'markupper', 'first_error', 
@@ -38,6 +39,7 @@ class JinjaManager(object):
     def filters(self):
         return dict(
             line2br=self.line2br_filter,
+            text2html=self.text2html_filter,
             kform=self.kform_filter,
             kfiled=self.kfield_filter,
             kform_inline=self.kform_inline_filter,
@@ -51,7 +53,16 @@ class JinjaManager(object):
         )
 
     def line2br_filter(self, text):
-        return markup(text.replace('\n', '<br>'))
+        return markup(escape(text).replace('\n', '<br>'))
+
+    def text2html_filter(self, text):
+        out = ['']
+        for line in text.splitlines():
+            if not line.strip():
+                out.append('')
+                continue
+            out[-1] += escape(line) + '<br>'
+        return markup(''.join(u'<p>%s</p>' % x for x in filter(lambda x: x.strip, out)))
 
     def kform_filter(self, form, label=3):
         label_class = 'control-label col-sm-%d' % label

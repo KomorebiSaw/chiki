@@ -3,6 +3,7 @@ import itertools
 from datetime import datetime
 from flask import current_app
 from flask.ext.admin.model.fields import InlineFieldList
+from flask.ext.mongoengine.wtf.fields import ModelSelectMultipleField as _ModelSelectMultipleField
 from wtforms.fields import Field, StringField, SelectField, DateTimeField
 from wtforms.fields import FileField as _FileField
 from wtforms.widgets import RadioInput
@@ -15,7 +16,8 @@ from ..mongoengine.fields import FileProxy
 
 __all__ = [
     'VerifyCodeField', 'KDateField', 'KRadioField', 'UEditorField',
-    'FileField', 'ImageField', 'AreaField', 'ListField',
+    'FileField', 'ImageField', 'AreaField', 'ListField', 
+    'ModelSelectMultipleField',
 ]
 
 
@@ -222,3 +224,11 @@ class ListField(InlineFieldList):
                     data.remove()
                 output.append(fake_obj.data)
         setattr(obj, name, output)
+
+
+class ModelSelectMultipleField(_ModelSelectMultipleField):
+    
+    def pre_validate(self, form):
+        if not self.allow_blank:
+            if not self.data:
+                raise ValidationError(_(u'Not a valid choice'))
