@@ -16,9 +16,10 @@ class Uploads(object):
 
     def init_app(self, app):
         conf = app.config.get(self.config)
-        @app.route(conf['link'] % '<path:filename>')
-        def uploads(filename):
-            return send_from_directory(conf['path'], filename)
+        if conf['type'] == 'local':
+            @app.route(conf['link'] % '<path:filename>')
+            def uploads(filename):
+                return send_from_directory(conf['path'], filename)
 
 
 def init_uploads(app, config='UPLOADS'):

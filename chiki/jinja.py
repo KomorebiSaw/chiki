@@ -4,7 +4,7 @@ from jinja2 import Markup
 from xml.sax.saxutils import escape
 
 __all__ = [
-    'markup', 'markupper', 'first_error', 
+    'markup', 'markupper', 'first_error', 'text2html',
     'JinjaManager', 'init_jinja',
 ]
 
@@ -23,6 +23,16 @@ def first_error(form):
     for field in form:
         if field.errors:
             return field.errors[0]
+
+
+def text2html(text):
+    out = ['']
+    for line in text.splitlines():
+        if not line.strip():
+            out.append('')
+            continue
+        out[-1] += escape(line) + '<br>'
+    return ''.join(u'<p>%s</p>' % x for x in filter(lambda x: x.strip, out))
 
 
 class JinjaManager(object):
@@ -56,13 +66,7 @@ class JinjaManager(object):
         return markup(escape(text).replace('\n', '<br>'))
 
     def text2html_filter(self, text):
-        out = ['']
-        for line in text.splitlines():
-            if not line.strip():
-                out.append('')
-                continue
-            out[-1] += escape(line) + '<br>'
-        return markup(''.join(u'<p>%s</p>' % x for x in filter(lambda x: x.strip, out)))
+        return markup(text2html(text))
 
     def kform_filter(self, form, label=3):
         label_class = 'control-label col-sm-%d' % label

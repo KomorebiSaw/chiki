@@ -11,3 +11,14 @@
     {% endif %}
     </style>
 {% endblock %}
+
+{% block tail %}
+    {{ super() }}
+    {% if admin_view.show_popover %}
+    <script type="text/javascript">
+    $(function () {
+      $('[data-toggle="popover"]').popover()
+    })
+    </script>
+    {% endif %}
+{% endblock %}

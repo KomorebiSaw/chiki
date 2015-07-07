@@ -27,6 +27,8 @@ class ModelView(_ModelView):
     column_type_formatters = _ModelView.column_type_formatters or dict()
     column_type_formatters[datetime] = type_best
 
+    show_popover = False
+
     def __init__(self, model, name=None,
             category=None, endpoint=None, url=None, static_folder=None,
             menu_class_name=None, menu_icon_type=None, menu_icon_value=None):

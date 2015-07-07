@@ -20,6 +20,13 @@ def get_span(text, short):
     return '<span title=%s>%s</span>' % (quote(text) + escape(short))
 
 
+def popover(content, short=None, title=None, placement='right'):
+    short = title if short is None else short
+    return '<a href="javascript:;" data-container="body" data-toggle="popover" ' \
+            'data-trigger="focus" data-placement=%s title=%s data-content=%s data-html="true">%s</a>' % (
+            quote(placement, title or '', content) + escape(short))
+
+
 def formatter(func):
     def wrapper(view, context, model, name):
         if hasattr(model.__class__, name):
@@ -35,13 +42,36 @@ def formatter_model(func):
     return wrapper
 
 
-def formatter_len(max_len):
+def formatter_len(max_len=20):
     @formatter
     def wrapper(data):
         if len(data) > max_len + 1:
             return get_span(data, data[:max_len] + '...')
         return data
     return wrapper
+
+
+def formatter_text(func, max_len=20):
+    @formatter_model
+    def span(model):
+        short, text = func(model)
+        short = short[:max_len] + '...' if len(short) > max_len + 1 else short
+        return get_span(text, short)
+    return span
+
+
+def formatter_popover(func, max_len=20, show_title=True):
+    @formatter_model
+    def span(model):
+        res = func(model)
+        if len(res) == 3:
+            short, title, content = res
+        elif len(res) == 2:
+            title, content = res
+            short = title
+        short = short[:max_len] + '...' if len(short) > max_len + 1 else short
+        return popover(content, title=title if show_title else None, short=short)
+    return span
 
 
 def formatter_icon(func=None, height=40):
@@ -52,8 +82,10 @@ def formatter_icon(func=None, height=40):
                 <img src=%%s style="max-height: %dpx; margin: -6px">
             </a>
         ''' % height
-        url = func(model)
+        url = func(model) if func is not None else url
         if url:
+            if type(url) == list:
+                return ''.join([tpl % quote(u, u) for u in url])
             return tpl % quote(url, url)
         return ''
     return icon
