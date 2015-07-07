@@ -85,7 +85,9 @@ def formatter_icon(func=None, height=40):
         url = func(model) if func is not None else url
         if url:
             if type(url) == list:
-                return ''.join([tpl % quote(u, u) for u in url])
+                return ''.join([tpl % (quote(u[0], u[1]) if type(u) == tuple else quote(u, u)) for u in url])
+            if type(url) == tuple:
+                return tpl % quote(url[0], url[1])
             return tpl % quote(url, url)
         return ''
     return icon
