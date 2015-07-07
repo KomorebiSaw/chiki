@@ -75,22 +75,30 @@ def formatter_popover(func, max_len=20, show_title=True):
 
 
 def formatter_icon(func=None, height=40):
-    @formatter_model
-    def icon(model):
-        tpl = u'''
-            <a href=%%s target="_blank">
-                <img src=%%s style="max-height: %dpx; margin: -6px">
-            </a>
-        ''' % height
-        url = func(model) if func is not None else url
+
+    tpl = u'''
+        <a href=%%s target="_blank">
+            <img src=%%s style="max-height: %dpx; margin: -6px">
+        </a>
+    ''' % height
+
+    def icon(url):
         if url:
             if type(url) == list:
-                return ''.join([tpl % (quote(u[1], u[0]) if type(u) == tuple else quote(u, u)) for u in url])
+                return ''.join([icon(u) for u in url])
             if type(url) == tuple:
-                return tpl % quote(url[1], url[0])
-            return tpl % quote(url, url)
+                if url[0] and url[1]:
+                    return tpl % quote(url[1], url[0])
+            else:
+                return tpl % quote(url, url)
         return ''
-    return icon
+
+    @formatter_model
+    def wrapper(model):
+        url = func(model) if func is not None else url
+        return icon(url)
+        
+    return wrapper
 
 
 def formatter_ip(url=None):
