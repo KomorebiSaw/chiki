@@ -6,11 +6,11 @@ from ..utils import datetime2best, time2best
 
 
 def quote(*args):
-    return tuple(quoteattr(x) for x in args)
+    return tuple(quoteattr(str(x)) for x in args)
 
 
 def escape(*args):
-    return tuple(_escape(x) for x in args)
+    return tuple(_escape(str(x)) for x in args)
 
 
 def get_span(text, short):
@@ -95,9 +95,22 @@ def formatter_icon(func=None, height=40):
 
     @formatter_model
     def wrapper(model):
-        url = func(model) if func is not None else url
-        return icon(url)
+        return icon(func(model))
         
+    return wrapper
+
+
+def formatter_link(func):
+    tpl = u'''
+        <a href=%s target="_blank">%s</a>
+    '''
+
+    @formatter_model
+    def wrapper(model):
+        text, link = func(model)
+        if text:
+             return tpl % (quote(link) + escape(text))
+
     return wrapper
 
 
