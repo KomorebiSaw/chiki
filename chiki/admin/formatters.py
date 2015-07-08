@@ -38,7 +38,7 @@ def formatter(func):
 
 def formatter_model(func):
     def wrapper(view, context, model, name):
-        return markup(func(model))
+        return markup(func(model) or '')
     return wrapper
 
 
@@ -108,7 +108,7 @@ def formatter_link(func):
     @formatter_model
     def wrapper(model):
         text, link = func(model)
-        if str(text):
+        if text or type(text) == int:
              return tpl % (quote(link) + escape(text))
 
     return wrapper
