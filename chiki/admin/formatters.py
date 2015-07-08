@@ -77,8 +77,8 @@ def formatter_popover(func, max_len=20, show_title=True):
 def formatter_icon(func=None, height=40):
 
     tpl = u'''
-        <a href=%%s target="_blank">
-            <img src=%%s style="max-height: %dpx; margin: -6px">
+        <a href=%%s target="_blank" style="text-decoration:none">
+            <img src=%%s style="max-height: %dpx; margin: -6px 0">
         </a>
     ''' % height
 
@@ -137,6 +137,19 @@ def format_choices(view, context, model, name):
         if choices:
             return dict(choices).get(data, data)
 
+
 @markupper
 def type_best(view, t):
     return get_span(str(t).split('.')[0], datetime2best(t))
+
+
+@markupper
+def type_image(view, image):
+    tpl = u'''
+        <a href=%s target="_blank" style="text-decoration:none">
+            <img src=%s style="max-height: 40px; margin: -6px 0">
+        </a>
+    '''
+    if image and image.link:
+        return tpl % quote(image.link, image.get_link(50, 40))
+    return ''
