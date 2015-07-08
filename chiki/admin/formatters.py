@@ -108,7 +108,7 @@ def formatter_link(func):
     @formatter_model
     def wrapper(model):
         text, link = func(model)
-        if text:
+        if str(text):
              return tpl % (quote(link) + escape(text))
 
     return wrapper
