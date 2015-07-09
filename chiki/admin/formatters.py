@@ -90,13 +90,16 @@ def formatter_popover(func, max_len=20, show_title=True):
     return span
 
 
-def formatter_icon(func=None, height=40):
-
+def formatter_icon(func=None, height=40, **kwargs):
+    if 'class_' in kwargs:
+        kwargs['class'] = kwargs.pop('class_')
+    exts = ' '.join(['%s=%s' % ((k,) + quote(v)) for k, v in kwargs.iteritems()]) + ' '
     tpl = u'''
         <a href=%%s target="_blank" style="text-decoration:none">
-            <img src=%%s style="max-height: %dpx; margin: -6px 0">
+            <img %ssrc=%%s style="max-height: %dpx; margin: -6px 0">
         </a>
-    ''' % height
+    ''' % (exts, height)
+
 
     def icon(url):
         if url:

@@ -1,6 +1,6 @@
 # coding: utf-8
 from datetime import datetime
-from flask import current_app, redirect
+from flask import current_app, redirect, flash
 from flask.ext.admin import AdminIndexView, expose
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
