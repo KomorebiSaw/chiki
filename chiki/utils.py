@@ -1,11 +1,16 @@
 # coding: utf-8
 import time
+from datetime import datetime, date
 from flask import jsonify
 
 __all__ = [
     'strip', 'json_success', 'json_error', 
-    'datetime2best', 'time2best',
+    'datetime2best', 'time2best', 'today',
 ]
+
+
+def today():
+    return datetime.strptime(str(date.today()),'%Y-%m-%d')
 
 
 def strip(val, *args):

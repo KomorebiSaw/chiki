@@ -5,8 +5,9 @@ from flask.ext.admin import AdminIndexView, expose
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
 from flask.ext.admin._compat import string_types
-from mongoengine.fields import IntField, LongField, DecimalField
-from mongoengine.fields import FloatField, ReferenceField
+from mongoengine.fields import IntField, LongField, DecimalField, FloatField
+from mongoengine.fields import ReferenceField, ObjectIdField, ListField
+from bson.objectid import ObjectId
 from .convert import KModelConverter
 from .filters import KFilterConverter
 from .formatters import type_best, type_image
@@ -91,6 +92,18 @@ class ModelView(_ModelView):
     def pre_model_change(self, form, model, created=False):
         pass
 
+    def get_ref_type(self, attr):
+        document, ref_type = attr.document_type, None
+        if hasattr(document, 'id'):
+            xattr = document._fields.get('id')
+            if isinstance(xattr, IntField) or isinstance(xattr, LongField):
+                ref_type = int
+            elif isinstance(xattr, DecimalField) or isinstance(xattr, FloatField):
+                ref_type = float
+            elif isinstance(xattr, ObjectIdField):
+                ref_type = ObjectId
+        return ref_type
+
     def scaffold_filters(self, name):
         if isinstance(name, string_types):
             attr = self.model._fields.get(name)
@@ -112,14 +125,13 @@ class ModelView(_ModelView):
         # Convert filter
         type_name = type(attr).__name__
         if isinstance(attr, ReferenceField):
-            document, ref_type = attr.document_type, None
-            if hasattr(document, 'id'):
-                xattr = document._fields.get('id')
-                if isinstance(xattr, IntField) or isinstance(xattr, LongField):
-                    ref_type = int
-                elif isinstance(xattr, DecimalField) or isinstance(xattr, FloatField):
-                    ref_type = float
+            ref_type = self.get_ref_type(attr)
             flt = self.filter_converter.convert(type_name, attr, visible_name, ref_type)
+        elif isinstance(attr, ListField) and isinstance(attr.field, ReferenceField):
+            ref_type = self.get_ref_type(attr.field)
+            flt = self.filter_converter.convert(type_name, attr, visible_name, ref_type)
+        elif isinstance(attr, ObjectIdField):
+            flt = self.filter_converter.convert(type_name, attr, visible_name, ObjectId)
         else:
             flt = self.filter_converter.convert(type_name, attr, visible_name)
 
