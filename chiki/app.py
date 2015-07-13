@@ -9,7 +9,7 @@ from .settings import TEMPLATE_ROOT
 from ._flask import Flask
 
 __all__ = [
-    "init_app", 'init_api', "init_admin",
+    "init_app", 'init_web', 'init_api', "init_admin",
 ]
 
 
@@ -79,6 +79,11 @@ def init_app(init, config=None, pyfile=None,
             return redirect(app.config.get('INDEX_REDIRECT'))
 
     return app
+
+
+def init_web(init, config=None, pyfile=None, 
+        template_folder='templates', index=False, error=True):
+    return init_app(init, config, pyfile, template_folder, index, error)
 
 
 def init_api(init, config=None, pyfile=None, 

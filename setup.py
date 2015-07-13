@@ -35,6 +35,11 @@ setup(
 	author_email=grep('__email__'),
 	description='Common libs of flask web develop',
 	packages=find_packages(),
+	entry_points={
+        'console_scripts': [
+            'chiki = chiki.cli:main',
+        ]
+    },
 	include_package_data=True,
 	#data_files=get_data_files('data'),
 	zip_safe=False,
@@ -54,6 +59,7 @@ setup(
 		'Flask-SQLAlchemy==2.0',
 		'Flask-Migrate==1.3.0',
 		'blinker==1.3',
+		'cookiecutter==1.0.0',
 		'watchdog',
     ],
 )
