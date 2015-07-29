@@ -25,7 +25,7 @@ def get_link(text, link, max_len=20, blank=True):
     if not blank:
         tpl = u'<a href=%s title=%s>%s</a>'
     if text or type(text) == int:
-        short = unicode(text)[:max_len] + '...' if unicode(str(text)) > max_len else str(text)
+        short = unicode(text)[:max_len] + '...' if len(unicode(text)) > max_len else unicode(text)
         return tpl % (quote(link, text) + escape(short))
     return ''
 
