@@ -21,9 +21,9 @@ def get_span(text, short):
 
 
 def get_link(text, link, max_len=20, blank=True):
-    tpl = u'<a href=%s title=%s target="_blank">%s</a>'
+    tpl = '<a href=%s title=%s target="_blank">%s</a>'
     if not blank:
-        tpl = u'<a href=%s title=%s>%s</a>'
+        tpl = '<a href=%s title=%s>%s</a>'
     if text or type(text) == int:
         short = str(text)[:max_len] + '...' if len(str(text)) > max_len else str(text)
         return tpl % (quote(link, text) + escape(short))
