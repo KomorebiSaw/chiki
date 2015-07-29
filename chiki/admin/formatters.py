@@ -6,11 +6,11 @@ from ..utils import datetime2best, time2best
 
 
 def quote(*args):
-    return tuple(quoteattr(str(x)) for x in args)
+    return tuple(quoteattr(unicode(x)) for x in args)
 
 
 def escape(*args):
-    return tuple(_escape(str(x)) for x in args)
+    return tuple(_escape(unicode(x)) for x in args)
 
 
 def get_span(text, short):
@@ -21,9 +21,9 @@ def get_span(text, short):
 
 
 def get_link(text, link, max_len=20, blank=True):
-    tpl = '<a href=%s title=%s target="_blank">%s</a>'
+    tpl = u'<a href=%s title=%s target="_blank">%s</a>'
     if not blank:
-        tpl = '<a href=%s title=%s>%s</a>'
+        tpl = u'<a href=%s title=%s>%s</a>'
     if text or type(text) == int:
         short = str(text)[:max_len] + '...' if len(str(text)) > max_len else str(text)
         return tpl % (quote(link, text) + escape(short))
