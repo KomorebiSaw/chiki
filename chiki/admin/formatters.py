@@ -25,7 +25,7 @@ def get_link(text, link, max_len=20, blank=True):
     if not blank:
         tpl = u'<a href=%s title=%s>%s</a>'
     if text or type(text) == int:
-        short = str(text)[:max_len] + '...' if len(str(text)) > max_len else str(text)
+        short = unicode(text)[:max_len] + '...' if unicode(str(text)) > max_len else str(text)
         return tpl % (quote(link, text) + escape(short))
     return ''
 
@@ -65,7 +65,7 @@ def formatter_text(func, max_len=20):
     @formatter_model
     def span(model):
         short, text = func(model)
-        short, text = str(short), str(text)
+        short, text = unicode(short), unicode(text)
         short = short[:max_len] + '...' if len(short) > max_len + 1 else short
         return get_span(text, short)
     return span
