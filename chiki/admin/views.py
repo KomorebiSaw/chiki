@@ -3,6 +3,7 @@ from datetime import datetime
 from flask import current_app, redirect, flash
 from flask.ext.admin import AdminIndexView, expose
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
+from flask.ext.admin.contrib.mongoengine.helpers import format_error
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
 from flask.ext.admin._compat import string_types
 from mongoengine.fields import IntField, LongField, DecimalField, FloatField
@@ -136,6 +137,40 @@ class ModelView(_ModelView):
             flt = self.filter_converter.convert(type_name, attr, visible_name)
 
         return flt
+
+    def get_list(self, page, sort_column, sort_desc, search, filters,
+                 execute=True):
+        query = self.get_query()
+        if self._filters:
+            for flt, flt_name, value in filters:
+                f = self._filters[flt]
+                query = f.apply(query, f.clean(value))
+
+        if self._search_supported and search:
+            query = self._search(query, search)
+
+        count = query.count() if not self.simple_list_pager else None
+
+        if sort_column:
+            query = query.order_by('%s%s' % ('-' if sort_desc else '', sort_column))
+        else:
+            order = self._get_default_order()
+            if order:
+                if order[1] != True and order[1] != False:
+                    query = query.order_by(*order)
+                else:
+                    query = query.order_by('%s%s' % ('-' if order[1] else '', order[0]))
+
+        # Pagination
+        if page is not None:
+            query = query.skip(page * self.page_size)
+
+        query = query.limit(self.page_size)
+
+        if execute:
+            query = query.all()
+
+        return count, query
 
 
 class SModelView(_SModelView):
