@@ -4,7 +4,7 @@ from flask import current_app
 from .CCPRestSDK import REST
 
 __all__ = [
-    'send_rong_sms', 'send_ihuiyi_sms',
+    'send_rong_sms', 'send_ihuyi_sms',
 ]
 
 
@@ -25,7 +25,7 @@ def send_rong_sms(phone, datas, temp_id):
     return result.get("statusCode") == "000000"
 
 
-def send_ihuiyi_sms(phone, text):
+def send_ihuyi_sms(phone, text):
     settings = current_app.config.get('SMS_IHUYI')
     params = dict(
         account=settings['account'],
