@@ -20,13 +20,25 @@ def get_span(text, short):
     return '<span title=%s>%s</span>' % (quote(text) + escape(short))
 
 
-def get_link(text, link, max_len=20, blank=True):
-    tpl = u'<a href=%s title=%s target="_blank">%s</a>'
+def get_link(text, link, max_len=20, blank=True, html=False, **kwargs):
+    if 'class_' in kwargs:
+        kwargs['class'] = kwargs.pop('class_')
+    attrs = dict()
+    for k, v in kwargs.items():
+        attrs[k.replace('_', '-')] = v
+
+    tpl = u'<a %shref=%s title=%s target="_blank">%s</a>'
     if not blank:
-        tpl = u'<a href=%s title=%s>%s</a>'
+        tpl = u'<a %shref=%s title=%s>%s</a>'
     if text or type(text) == int:
-        short = unicode(text)[:max_len] + '...' if len(unicode(text)) > max_len else unicode(text)
-        return tpl % (quote(link, text) + escape(short))
+        extras = ' '.join('%s=%s' % (x, quoteattr(unicode(y))) for x, y in attrs.iteritems())
+        extras = extras + ' ' if extras else ''
+        if html:
+            short = text
+            text = ''
+        else:
+            short = unicode(text)[:max_len] + '...' if len(unicode(text)) > max_len else unicode(text)
+        return tpl % ((extras,) + quote(link, text) + (escape(short) if not html else (short,)))
     return ''
 
 
@@ -119,14 +131,19 @@ def formatter_icon(func=None, height=40, **kwargs):
     return wrapper
 
 
-def formatter_link(func, max_len=20, blank=True):
+def formatter_link(func, max_len=20, blank=True, html=False, **kwargs):
 
     @formatter_model
     def wrapper(model):
+        attrs = dict(**kwargs)
+        for k, v in attrs.items():
+            if callable(v):
+                attrs[k] = v(model)
+
         res = func(model)
         if isinstance(res, list):
-            return ','.join([get_link(x[0], x[1], max_len, blank) for x in res])
-        return get_link(res[0], res[1], max_len, blank)
+            return ','.join([get_link(x[0], x[1], max_len, blank, html, **attrs) for x in res])
+        return get_link(res[0], res[1], max_len, blank, html, **attrs)
 
     return wrapper
 

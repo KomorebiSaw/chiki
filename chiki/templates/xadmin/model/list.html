@@ -65,4 +65,10 @@
     })
     </script>
     {% endif %}
+
+    {% if admin_view.script %}
+    <script type="text/javascript">
+        {{ admin_view.script | safe }}
+    </script>
+    {% endif %}
 {% endblock %}
