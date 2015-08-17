@@ -1,4 +1,6 @@
 # coding: utf-8 
+import re
+import urllib
 import ConfigParser
 from flask import current_app
 from .CCPRestSDK import REST
@@ -34,7 +36,7 @@ def send_ihuyi_sms(phone, text):
         content=text,
     )
     tpl = 'http://106.ihuyi.cn/webservice/sms.php?method=Submit&%s'
-    url = tpl % (SMSURL, urllib.urlencode(params))
+    url = tpl % urllib.urlencode(params)
 
     for i in range(3):
         try:
