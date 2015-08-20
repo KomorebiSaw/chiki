@@ -79,8 +79,10 @@ class OSSFile(BaseFile):
             conf['secret_access_key'],
         )
 
-    def get_link(self, name, width=0, height=0, ystart=0, yend=0):
+    def get_link(self, name, width=0, height=0, ystart=0, yend=0, source=False):
         link = self.conf['link'] % name
+        if source:
+            return link
         if width == 0 or height == 0:
             return link + '@95Q.jpg'
         if ystart == 0 or yend == 0:

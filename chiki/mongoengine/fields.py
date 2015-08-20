@@ -52,6 +52,10 @@ class FileProxy(object):
         return self.instance.get_path(self.filename)
 
     @property
+    def src(self):
+        return self.instance.get_link(self.filename, source=True)
+
+    @property
     def link(self):
         return self.instance.get_link(self.filename)
 
