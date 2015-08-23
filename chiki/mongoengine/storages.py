@@ -83,9 +83,13 @@ class OSSFile(BaseFile):
         link = self.conf['link'] % name
         if source:
             return link
+            
         format = name.split('.')[-1]
         if format not in ['jpg', 'jpeg', 'png', 'gif', 'bmp']:
             format = 'jpg'
+
+        if format == 'gif':
+            return link
 
         attrs = []
         if ystart != 0 and yend != 0: attrs.append('@0-%d-0-%da' % (ystart, yend))
