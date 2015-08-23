@@ -83,21 +83,21 @@ class OSSFile(BaseFile):
         link = self.conf['link'] % name
         if source:
             return link
-            
+
         format = name.split('.')[-1]
         if format not in ['jpg', 'jpeg', 'png', 'gif', 'bmp']:
             format = 'jpg'
-
-        if format == 'gif':
-            return link
 
         attrs = []
         if ystart != 0 and yend != 0: attrs.append('@0-%d-0-%da' % (ystart, yend))
         if width != 0: attrs.append('%dw' % width)
         if height != 0: attrs.append('%dh' % height)
         if attrs: attrs.append('1e_1c')
-        attrs.append('95Q')
-        return link + '@' + '_'.join(attrs) + '.' + format
+        if attrs or format != 'gif': attrs.append('95Q')
+        if attrs:
+            if format == 'gif': format = 'jpg'
+            return link + '@' + '_'.join(attrs) + '.' + format
+        return link
 
     def get(self, name):
         res = self.oss.get_object(self.conf['bucket'], name)
