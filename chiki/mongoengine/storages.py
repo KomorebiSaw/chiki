@@ -83,11 +83,14 @@ class OSSFile(BaseFile):
         link = self.conf['link'] % name
         if source:
             return link
+        format = name.split('.')[-1]
+        if format not in ['jpg', 'jpeg', 'png', 'gif', 'bmp']:
+            format = 'jpg'
         if width == 0 or height == 0:
-            return link + '@95Q.jpg'
+            return link + '@95Q.%s' % format
         if ystart == 0 or yend == 0:
-            return link + '@%dw_%dh_1e_1c_95Q.jpg' % (width, height) 
-        return '@0-%d-0-%da_%dw_%dh_1e_1c_95Q.jpg' % (width, height, ystart, yend)
+            return link + '@%dw_%dh_1e_1c_95Q.%s' % (width, height, format) 
+        return '@0-%d-0-%da_%dw_%dh_1e_1c_95Q.%s' % (width, height, ystart, yend, format)
 
 
     def get(self, name):
@@ -98,6 +101,8 @@ class OSSFile(BaseFile):
 
     def put(self, name, content, type=None):
         name = '%s.%s' % (name, type) if type is not None else name
+        if not name.startswith(self.conf.get('prefix')):
+            name = self.conf.get('prefix', '') + name
         res = self.oss.put_object_from_string(self.conf['bucket'], name, content)
         if (res.status / 100) == 2:
             return name

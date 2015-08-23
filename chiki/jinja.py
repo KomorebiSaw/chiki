@@ -2,6 +2,7 @@
 from flask import current_app, get_flashed_messages
 from jinja2 import Markup
 from xml.sax.saxutils import escape
+from .utils import time2best as _time2best
 
 __all__ = [
     'markup', 'markupper', 'first_error', 'text2html',
@@ -48,6 +49,8 @@ class JinjaManager(object):
     @property
     def filters(self):
         return dict(
+            time2best=self.time2best,
+            time2date=self.time2date,
             line2br=self.line2br_filter,
             text2html=self.text2html_filter,
             kform=self.kform_filter,
@@ -150,6 +153,12 @@ class JinjaManager(object):
         if messages:
             return self.alert_msg(messages[-1][1], messages[-1][0] or 'danger')
         return ''
+
+    def time2best(self, input):
+        return _time2best(input)
+
+    def time2date(self, input):
+        return str(input)[:10]
 
 
 def init_jinja(app):

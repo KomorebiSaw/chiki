@@ -1,7 +1,7 @@
 # coding: utf-8
 from flask import current_app
 from mongoengine import signals
-from mongoengine.fields import ListField
+from mongoengine.fields import ListField, EmbeddedDocument
 from mongoengine.base.fields import BaseField
 from werkzeug.datastructures import FileStorage
 from .generators import BaseGenerator, RandomGenerator
@@ -168,7 +168,7 @@ class XFileField(BaseField):
             filename = self.filename_generator()
             if format:
                 filename = '%s.%s' % (filename, format)
-        self.storage.put(filename, stream.read())
+        filename = self.storage.put(filename, stream.read())
         return filename
 
     def remove(self, filename):
@@ -245,7 +245,15 @@ class XListField(ListField):
     def pre_delete(self, sender, document, **kwargs):
         values = document._data.get(self.name) or []
         for obj in values:
-            if isinstance(obj, self.field.proxy_class) and self.field.auto_remove:
+            if isinstance(obj, EmbeddedDocument):
+                for field in obj._fields:
+                    attr = getattr(type(obj), field)
+                    value = getattr(obj, field)
+                    if hasattr(value, 'remove') \
+                            and isinstance(value, attr.proxy_class) \
+                            and attr.auto_remove:
+                        value.remove()
+            elif isinstance(obj, self.field.proxy_class) and self.field.auto_remove:
                 obj.remove()
 
     def __set__(self, instance, value):
@@ -256,7 +264,13 @@ class XListField(ListField):
         if data:
             for item in data:
                 if item not in value:
-                    item.remove()
+                    if isinstance(item, EmbeddedDocument):
+                        for field in item._fields:
+                            attr = getattr(item, field)
+                            if hasattr(attr, 'remove'):
+                                attr.remove()
+                    elif hasattr(item, 'remove'):
+                        item.remove()
         super(XListField, self).__set__(instance, value)
 
 

@@ -41,6 +41,9 @@ def datetime2best(input):
 
 
 def time2best(input):
+    if type(input) == datetime:
+        return datetime2best(input)
+        
     now = max(time.time(), input) + 8 * 3600
     tmp = input + 8 * 3600
     if tmp + 86400 < now // 86400 * 86400:
