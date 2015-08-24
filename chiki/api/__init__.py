@@ -92,4 +92,7 @@ def success(**kwargs):
         kwargs.setdefault('code', 0)
         kwargs.setdefault('key', 'SUCCESS')
         return dict(**kwargs)
-    return dict(code=0, key='SUCCESS', data=kwargs)
+    res = dict(code=0, key='SUCCESS')
+    if kwargs:
+        res['data'] = kwargs
+    return res
