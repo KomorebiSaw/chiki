@@ -1,5 +1,6 @@
 # coding: utf-8
 import os
+import redis
 from flask import Blueprint, current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
@@ -64,6 +65,14 @@ def init_app(init, config=None, pyfile=None,
         app.config.from_envvar(app.config['ENVVAR'])
 
     app.static_folder = app.config.get('STATIC_FOLDER')
+    if app.config.get('REDIS'):
+        conf = app.config.get('REDIS')
+        app.redis = redis.StrictRedis(
+            host=conf.get('host', '127.0.0.1'),
+            port=conf.get('port', 6379),
+            password=conf.get('password', ''),
+            db=conf.get('db', 0),
+        )
         
     init(app)
     init_babel(app)

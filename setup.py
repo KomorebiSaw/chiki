@@ -61,6 +61,7 @@ setup(
 		'Flask-Migrate==1.3.0',
 		'blinker==1.3',
 		'cookiecutter==1.0.0',
+		'redis',
 		'watchdog',
     ],
 )
