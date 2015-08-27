@@ -202,3 +202,8 @@ def type_image(view, image):
     if image and image.link:
         return tpl % quote(image.link, image.get_link(50, 40))
     return ''
+
+
+@markupper
+def type_file(view, proxy):
+    return get_link(proxy.filename, proxy.link, max_len=60)

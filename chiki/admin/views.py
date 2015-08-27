@@ -11,8 +11,8 @@ from mongoengine.fields import ReferenceField, ObjectIdField, ListField
 from bson.objectid import ObjectId
 from .convert import KModelConverter
 from .filters import KFilterConverter
-from .formatters import type_best, type_image
-from ..mongoengine.fields import ImageProxy
+from .formatters import type_best, type_image, type_file
+from ..mongoengine.fields import FileProxy, ImageProxy
 
 __all__ = [
     "ModelView", "SModelView", "IndexView",
@@ -29,6 +29,7 @@ class ModelView(_ModelView):
 
     column_type_formatters = _ModelView.column_type_formatters or dict()
     column_type_formatters[datetime] = type_best
+    column_type_formatters[FileProxy] = type_file
     column_type_formatters[ImageProxy] = type_image
 
     show_popover = False
