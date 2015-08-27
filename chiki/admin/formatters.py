@@ -3,6 +3,7 @@ from xml.sax.saxutils import escape as _escape, quoteattr
 from ..iptools import parse_ip
 from ..jinja import markup, markupper
 from ..utils import datetime2best, time2best
+from ..mongoengine.fields import ImageProxy
 
 
 def quote(*args):
@@ -206,4 +207,6 @@ def type_image(view, image):
 
 @markupper
 def type_file(view, proxy):
+    if isinstance(proxy, ImageProxy):
+        return type_image(view, proxy)
     return get_link(proxy.filename, proxy.link, max_len=60)

@@ -30,7 +30,6 @@ class ModelView(_ModelView):
     column_type_formatters = _ModelView.column_type_formatters or dict()
     column_type_formatters[datetime] = type_best
     column_type_formatters[FileProxy] = type_file
-    column_type_formatters[ImageProxy] = type_image
 
     show_popover = False
 
