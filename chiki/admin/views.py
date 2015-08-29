@@ -2,12 +2,14 @@
 from datetime import datetime
 from flask import current_app, redirect, flash
 from flask.ext.admin import AdminIndexView, expose
+from flask.ext.admin.actions import action
+from flask.ext.admin.babel import gettext, ngettext, lazy_gettext
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.mongoengine.helpers import format_error
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
 from flask.ext.admin._compat import string_types
 from mongoengine.fields import IntField, LongField, DecimalField, FloatField
-from mongoengine.fields import ReferenceField, ObjectIdField, ListField
+from mongoengine.fields import StringField, ReferenceField, ObjectIdField, ListField
 from bson.objectid import ObjectId
 from .convert import KModelConverter
 from .filters import KFilterConverter
@@ -173,6 +175,36 @@ class ModelView(_ModelView):
             query = query.all()
 
         return count, query
+
+    @action('delete',
+            lazy_gettext('Delete'),
+            lazy_gettext('Are you sure you want to delete selected records?'))
+    def action_delete(self, ids):
+        try:
+            count = 0
+
+            id = self.model._meta['id_field']
+            if id in self.model._fields:
+                if isinstance(self.model._fields[id], IntField):
+                    all_ids = [int(pk) for pk in ids]
+                elif isinstance(self.model._fields[id], StringField):
+                    all_ids = ids
+                else:
+                    all_ids = [self.object_id_converter(pk) for pk in ids]
+            else:
+                all_ids = [self.object_id_converter(pk) for pk in ids]
+
+            for obj in self.get_query().in_bulk(all_ids).values():
+                count += self.delete_model(obj)
+
+            flash(ngettext('Record was successfully deleted.',
+                           '%(count)s records were successfully deleted.',
+                           count,
+                           count=count))
+        except Exception as ex:
+            if not self.handle_view_exception(ex):
+                flash(gettext('Failed to delete records. %(error)s', error=str(ex)),
+                      'error')
 
 
 class SModelView(_SModelView):

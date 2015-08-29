@@ -259,7 +259,9 @@ class XListField(ListField):
                             and isinstance(value, attr.proxy_class) \
                             and attr.auto_remove:
                         value.remove()
-            elif isinstance(obj, self.field.proxy_class) and self.field.auto_remove:
+            elif isinstance(self.field, XFileField) \
+                    and isinstance(obj, self.field.proxy_class) \
+                    and self.field.auto_remove:
                 obj.remove()
 
     def __set__(self, instance, value):
