@@ -58,6 +58,7 @@ class JinjaManager(object):
             kform_inline=self.kform_inline_filter,
             kfield_inline=self.kfield_inline_filter,
             alert=self.alert_filter,
+            rmb=self.rmb_filter,
         )
 
     def context_processor(self):
@@ -153,6 +154,9 @@ class JinjaManager(object):
         if messages:
             return self.alert_msg(messages[-1][1], messages[-1][0] or 'danger')
         return ''
+
+    def rmb_filter(self, money):
+        return '%.2f' % money
 
     def time2best(self, input):
         return _time2best(input)
