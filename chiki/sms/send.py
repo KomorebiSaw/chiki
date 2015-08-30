@@ -41,6 +41,7 @@ def send_ihuyi_sms(phone, text):
     for i in range(3):
         try:
             res = urllib.urlopen(url).read()
+            break
         except (IOError, socket.error):
             pass
     
