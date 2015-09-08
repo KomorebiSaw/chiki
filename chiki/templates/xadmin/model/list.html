@@ -66,6 +66,10 @@
     </script>
     {% endif %}
 
+    {% if admin_view.html %}
+        {{ admin_view.html | safe }}
+    {% endif %}
+
     {% if admin_view.script %}
     <script type="text/javascript">
         {{ admin_view.script | safe }}
