@@ -90,6 +90,11 @@ def init_app(init=None, config=None, pyfile=None,
         def index():
             return redirect(app.config.get('INDEX_REDIRECT'))
 
+    if os.environ.get('CHIKI_BACK') == 'true':
+        @app.route('/chiki_back')
+        def chiki_back():
+            return 'true'
+
     return app
 
 
