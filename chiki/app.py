@@ -1,6 +1,7 @@
 # coding: utf-8
 import os
 import redis
+import traceback
 from flask import Blueprint, current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
@@ -10,7 +11,7 @@ from .settings import TEMPLATE_ROOT
 from ._flask import Flask
 
 __all__ = [
-    "init_app", 'init_web', 'init_api', "init_admin",
+    "init_app", 'init_web', 'init_api', "init_admin", "start_error",
 ]
 
 
@@ -52,7 +53,7 @@ def before_request():
         return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
 
 
-def init_app(init, config=None, pyfile=None, 
+def init_app(init=None, config=None, pyfile=None, 
         template_folder='templates', index=False, error=True):
     """ 创建应用 """
 
@@ -73,8 +74,10 @@ def init_app(init, config=None, pyfile=None,
             password=conf.get('password', ''),
             db=conf.get('db', 0),
         )
-        
-    init(app)
+    
+    if callable(init):
+        init(app)
+
     init_babel(app)
     init_jinja(app)
     init_logger(app)
@@ -90,17 +93,17 @@ def init_app(init, config=None, pyfile=None,
     return app
 
 
-def init_web(init, config=None, pyfile=None, 
+def init_web(init=None, config=None, pyfile=None, 
         template_folder='templates', index=False, error=True):
     return init_app(init, config, pyfile, template_folder, index, error)
 
 
-def init_api(init, config=None, pyfile=None, 
+def init_api(init=None, config=None, pyfile=None, 
         template_folder='templates', index=False, error=False):
     return init_app(init, config, pyfile, template_folder, index, error)
 
 
-def init_admin(init, config=None, pyfile=None, 
+def init_admin(init=None, config=None, pyfile=None, 
         template_folder='templates', index=True, error=True):
     """ 创建后台管理应用 """
 
@@ -115,3 +118,9 @@ def init_admin(init, config=None, pyfile=None,
     app.register_blueprint(blueprint)
 
     return app
+
+
+def start_error(init=None, config=None):
+    app = init_app(config=config)
+    app.logger.error(traceback.format_exc())
+    exit()
