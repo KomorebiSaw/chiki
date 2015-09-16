@@ -1,11 +1,13 @@
 # coding: utf-8
 import time
+import traceback
 from datetime import datetime, date
-from flask import jsonify
+from flask import jsonify, current_app
 
 __all__ = [
     'strip', 'json_success', 'json_error', 
     'datetime2best', 'time2best', 'today',
+    'err_logger', 'parse_spm', 'is_empty', 'get_ip',
 ]
 
 
@@ -73,3 +75,39 @@ def time2best(input):
         return u'%s分钟前' % int(minutes)
 
     return u'刚刚'
+
+
+def err_logger(func):
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except:
+            current_app.logger.error(traceback.format_exc())
+    return wrapper
+
+
+def parse_spm(spm):
+    if spm:
+        spm = spm.replace('unknown', '0')
+    if spm and re.match(r'^(\d+\.)+\d+$', spm):
+        res = map(lambda x: int(x), spm.split('.'))
+        while len(res) < 5: res.append(0)
+        return res[:5]
+    return 0, 0, 0, 0, 0
+
+
+def is_empty(fd):
+    fd.seek(0)
+    first_char = fd.read(1)
+    fd.seek(0)
+    return not bool(first_char)
+
+
+def get_ip():
+    if 'Cdn-Real-Ip' in request.headers:
+        return request.headers['Cdn-Real-Ip']
+    if 'X-Real-Forwarded-For' in request.headers:
+        return request.headers['X-Real-Forwarded-For'].split(',')[0]
+    if 'X-FORWARDED-FOR' in request.headers:
+        return request.headers['X-FORWARDED-FOR'].split(',')[0]
+    return request.headers.get('X-Real-Ip') or request.remote_addr

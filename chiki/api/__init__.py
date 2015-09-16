@@ -9,7 +9,7 @@ from flask.ext.restful.utils import error_data
 from werkzeug.http import HTTP_STATUS_CODES
 
 __all__ = [
-    'api', 'success',
+    'api', 'wapi', 'xapi', 'success',
 ]
 
 
@@ -85,6 +85,7 @@ class Api(_Api):
 
 
 api = Api()
+wapi = Api()
 
 
 def success(**kwargs):

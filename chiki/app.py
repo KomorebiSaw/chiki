@@ -7,6 +7,7 @@ from flask import abort, request, redirect
 from flask.ext.babelex import Babel
 from .jinja import init_jinja
 from .logger import init_logger
+from .oauth import init_oauth
 from .settings import TEMPLATE_ROOT
 from ._flask import Flask
 
@@ -23,6 +24,17 @@ def init_babel(app):
     @babel.localeselector
     def get_locale():
         return 'zh_Hans_CN'
+
+
+def init_redis(app):
+    if app.config.get('REDIS'):
+        conf = app.config.get('REDIS')
+        app.redis = redis.StrictRedis(
+            host=conf.get('host', '127.0.0.1'),
+            port=conf.get('port', 6379),
+            password=conf.get('password', ''),
+            db=conf.get('db', 0),
+        )
 
 
 def init_error_handler(app):
@@ -66,24 +78,18 @@ def init_app(init=None, config=None, pyfile=None,
         app.config.from_envvar(app.config['ENVVAR'])
 
     app.static_folder = app.config.get('STATIC_FOLDER')
-    if app.config.get('REDIS'):
-        conf = app.config.get('REDIS')
-        app.redis = redis.StrictRedis(
-            host=conf.get('host', '127.0.0.1'),
-            port=conf.get('port', 6379),
-            password=conf.get('password', ''),
-            db=conf.get('db', 0),
-        )
     
-    if callable(init):
-        init(app)
-
     init_babel(app)
+    init_redis(app)
     init_jinja(app)
     init_logger(app)
+    init_oauth(app)
 
     if error:
         init_error_handler(app)
+    
+    if callable(init):
+        init(app)
 
     if index:
         @app.route('/')
