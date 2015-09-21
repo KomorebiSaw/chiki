@@ -74,7 +74,7 @@ class MediaManager(object):
         self.app.logger.info('Generate %s md5sum: %s' % (name, md5))
         prefix = self.app.config.get('SITE_STATIC_PREFIX', '/static/')
         if type(prefix) == list:
-            prefix = random.choices(prefix)
+            prefix = random.choice(prefix)
         return '%s%s?v=%s' % (prefix, name, md5[:4])
 
     def static_url(self, name):
