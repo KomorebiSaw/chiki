@@ -39,6 +39,7 @@ def send_ihuyi_sms(phone, text):
     tpl = 'http://106.ihuyi.cn/webservice/sms.php?method=Submit&%s'
     url = tpl % urllib.urlencode(params)
 
+    res = ''
     for i in range(3):
         try:
             res = urllib.urlopen(url).read()

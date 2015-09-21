@@ -4,7 +4,7 @@ import time
 import requests
 import werobot.client
 from urllib import quote, urlencode
-from flask import current_app, request, redirect
+from flask import current_app, request, redirect, url_for
 from ..utils import err_logger
 
 __all__ = [
@@ -58,6 +58,10 @@ class WXAuth(object):
             self.config.get('secret'))
         app.wxauth = self
         app.wxclient = self.client
+
+        @app.route(self.config.get('wxauth_url', '/oauth/wechat/callback'))
+        def wxauth_callback():
+            return self.callback()
 
     def quote(self, **kwargs):
         return dict((x, quote(y)) for x, y in kwargs.iteritems())
@@ -113,14 +117,13 @@ class WXAuth(object):
 
     def get_auth_url(self, next, scope=SNSAPI_BASE, state='STATE'):
         query = self.quote(
-            url=self.AUTH_URL,
             appid=self.config.get('appid'),
             callback=url_for('wxauth_callback', next=next),
             scope=scope,
             state=state,
         )
         return '{url}?appid={appid}&redirect_uri={callback}&response_type=code' \
-            '&scope={scope}&state={state}#wechat_redirect'.format(**query)
+            '&scope={scope}&state={state}#wechat_redirect'.format(url=self.AUTH_URL, **query)
 
     def auth(self, next, scope=SNSAPI_BASE, state='STATE'):
         return redirect(self.get_auth_url(next, scope, state))
