@@ -53,7 +53,9 @@ def popover(content, short=None, title=None, placement='right'):
 def formatter(func):
     def wrapper(view, context, model, name):
         if hasattr(model.__class__, name):
-            data = unicode(getattr(model, name) or '')
+            data = getattr(model, name)
+            if type(data) == int:
+                data = unicode(data)
             return markup(func(data) or '')
         return ''
     return wrapper

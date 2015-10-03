@@ -124,8 +124,8 @@ def init_admin(init=None, config=None, pyfile=None,
     def _before_request():
         return before_request()
 
-    blueprint = Blueprint('xadmin', __name__, 
-        template_folder=TEMPLATE_ROOT)
+    blueprint = Blueprint('chiki', __name__,
+        template_folder=os.path.join(TEMPLATE_ROOT, 'chiki'))
     app.register_blueprint(blueprint)
 
     return app

@@ -2,12 +2,13 @@
 import time
 import traceback
 from datetime import datetime, date
-from flask import jsonify, current_app
+from flask import jsonify, current_app, request
 
 __all__ = [
     'strip', 'json_success', 'json_error', 
     'datetime2best', 'time2best', 'today',
     'err_logger', 'parse_spm', 'is_empty', 'get_ip',
+    'is_ajax', 'is_ajax'
 ]
 
 
@@ -111,3 +112,8 @@ def get_ip():
     if 'X-FORWARDED-FOR' in request.headers:
         return request.headers['X-FORWARDED-FOR'].split(',')[0]
     return request.headers.get('X-Real-Ip') or request.remote_addr
+
+
+def is_ajax():
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest' \
+        or request.args.get('is_ajax', 'false') == 'true'

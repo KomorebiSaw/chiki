@@ -23,8 +23,6 @@ __all__ = [
 
 class ModelView(_ModelView):
 
-    list_template = 'xadmin/model/list.html'
-
     page_size = 50
     model_form_converter = KModelConverter
     filter_converter = KFilterConverter()
