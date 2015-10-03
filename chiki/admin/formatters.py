@@ -54,9 +54,10 @@ def formatter(func):
     def wrapper(view, context, model, name):
         if hasattr(model.__class__, name):
             data = getattr(model, name)
-            if type(data) == int:
-                data = unicode(data)
-            return markup(func(data) or '')
+            if data:
+                if type(data) == int:
+                    data = unicode(data)
+                return markup(func(data ) or '')
         return ''
     return wrapper
 
