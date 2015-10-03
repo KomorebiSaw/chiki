@@ -4,8 +4,8 @@
 {% macro pager(page, pages, generator) -%}
 {% if pages > 1 %}
 <ul class="pagination">
-    {% set min = page - 3 %}
-    {% set max = page + 3 + 1 %}
+    {% set min = page - 5 %}
+    {% set max = page + 5 + 1 %}
 
     {% if min < 0 %}
         {% set max = max - min %}
