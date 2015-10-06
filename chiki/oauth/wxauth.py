@@ -23,7 +23,7 @@ def common_token(self):
         token = self.grant_token()
         token['deadline'] = now + token['expires_in']
         Item.set_data(key, json.dumps(token))
-    return token
+    return token['access_token']
 
 werobot.client.Client.token = common_token
 
