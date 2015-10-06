@@ -87,7 +87,7 @@ class JSSDK(object):
             nonceStr=self.nonce,
             timestamp=int(time.time()),
             jsapi_ticket=self.ticket,
-            url=request.headers.get('Referer', request.url),
+            url=request.args.get('url', request.headers.get('Referer', request.url)),
         )
         text = '&'.join(['%s=%s' % (x.lower(), res[x]) for x in sorted(res)])
         res['signature'] = hashlib.sha1(text).hexdigest()
