@@ -90,4 +90,6 @@ class JSSDK(object):
         )
         text = '&'.join(['%s=%s' % (x.lower(), res[x]) for x in sorted(res)])
         res['signature'] = hashlib.sha1(text).hexdigest()
+        res['text'] = text
+        Item.set('jssdk:info', json.dumps(res))
         return res
