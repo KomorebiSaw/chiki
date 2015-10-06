@@ -1,5 +1,6 @@
 # coding: utf-8
 import time
+import json
 import random
 import requests
 import hashlib
@@ -50,7 +51,7 @@ class JSSDK(object):
                 jsApiList=apis,
             )
             js = render_template_string("wx.config({{ config | safe }});",
-                config=config)
+                config=json.dumps(config))
             resp = make_response(js)
             resp.headers['Control-Cache'] = 'no-cache'
             resp.headers['Content-Type'] = 'text/javascript; charset=utf-8'
