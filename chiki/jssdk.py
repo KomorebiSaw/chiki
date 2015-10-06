@@ -73,6 +73,7 @@ class JSSDK(object):
     def refresh(self):
         url = self.TPL % current_app.wxclient.token
         res = requests.get(url).json()
+        
         if res['errcode'] != 0:
             current_app.logger.error(str(res))
             return ''
@@ -87,7 +88,7 @@ class JSSDK(object):
             nonceStr=self.nonce,
             timestamp=int(time.time()),
             jsapi_ticket=self.ticket,
-            url=request.args.get('url', request.headers.get('Referer', request.url)),
+            url=request.headers.get('Referer', request.url),
         )
         text = '&'.join(['%s=%s' % (x.lower(), res[x]) for x in sorted(res)])
         res['signature'] = hashlib.sha1(text).hexdigest()
