@@ -95,7 +95,7 @@ class WXAuth(object):
     @err_logger
     def refresh_token(self, token):
         url = self.get_refresh_url(token)
-        return requests.get(url).json()            
+        return requests.get(url).json()     
 
     def get_userinfo_url(self, token, openid, lang='zh_CN'):
         query = dict(access_token=token, openid=openid, lang=lang)
@@ -122,7 +122,7 @@ class WXAuth(object):
     def get_auth_url(self, next, scope=SNSAPI_BASE, state='STATE'):
         query = self.quote(
             appid=self.config.get('appid'),
-            callback=url_for('wxauth_callback', next=next),
+            callback=url_for('wxauth_callback', next=next, _external=True),
             scope=scope,
             state=state,
         )
