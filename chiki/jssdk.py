@@ -36,10 +36,13 @@ class JSSDK(object):
 
         @app.route('/weixin-config.js')
         def weixin_config():
-            apis = Item.data('wx_js_api_list').split('|') or DEFAULT_JS_API_LIST
+            apis = Item.data('wx_js_api_list').split('|')
+            if not apis or not apis[0]:
+                apis = DEFAULT_JS_API_LIST
+            apis = [str(x) for x in apis]
             sign = self.sign
             config = dict(
-                debug=request.args.get('debug', 'false'),
+                debug=str(request.args.get('debug', 'false')),
                 appId=current_app.config.get('WXAUTH', {}).get('appid'),
                 timestamp=sign['timestamp'],
                 nonceStr=sign['nonceStr'],
