@@ -56,7 +56,7 @@ class WXAuth(object):
     def init_app(self, app):
         self.app = app
         self.config = app.config.get('WXAUTH')
-        self.client = werobot.client.Client(self.config.get('appid'), 
+        self.client = werobot.client.Client(self.config.get('appid'),
             self.config.get('secret'))
         app.wxauth = self
         app.wxclient = self.client
@@ -122,7 +122,7 @@ class WXAuth(object):
     def get_auth_url(self, next, scope=SNSAPI_BASE, state='STATE'):
         query = self.quote(
             appid=self.config.get('appid'),
-            callback=url_for('wxauth_callback', next=next, _external=True),
+            callback=url_for('wxauth_callback', scope=scope, next=next, _external=True),
             scope=scope,
             state=state,
         )
@@ -135,6 +135,8 @@ class WXAuth(object):
     def callback(self):
         code = request.args.get('code')
         next = request.args.get('next')
+        scope = request.args.get('scope', self.SNSAPI_BASE)
+
         if not code:
             return self.error(self.AUTH_ERROR, next)
 
@@ -144,14 +146,14 @@ class WXAuth(object):
             current_app.logger.error(log % (next, code, str(access)))
             return self.error(self.ACCESS_ERROR, next)
 
-        return self.success(access, next)
+        return self.success(access, next, scope)
 
-    def success(self, access, next):
+    def success(self, access, next, scope):
         callback = self.success_callback
         if not callback:
             return '授权成功，请设置回调'
 
-        res = callback(access, next)
+        res = callback(access, next, scope)
         return res if res else redirect(next)
 
     def error(self, err, next):
