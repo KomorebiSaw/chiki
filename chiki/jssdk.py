@@ -2,9 +2,11 @@
 import time
 import random
 import requests
-from chiki.contrib.common import Item
+import hashlib
+import string
 from flask import current_app, request, render_template_string
 from flask import make_response
+from chiki.contrib.common import Item
 
 DEFAULT_JS_API_LIST = [x.strip() for x in """
 onMenuShareTimeline|onMenuShareAppMessage|onMenuShareQQ|
@@ -65,7 +67,7 @@ class JSSDK(object):
         return self._ticket
 
     def refresh(self):
-        url = URL_TPL % current_app.wxclient.token
+        url = self.TPL % current_app.wxclient.token
         res = requests.get(url).json()
         if res['errcode'] != 0:
             current_app.logger.error(str(res))

@@ -5,7 +5,9 @@ import requests
 import werobot.client
 from urllib import quote, urlencode
 from flask import current_app, request, redirect, url_for
-from ..utils import err_logger
+from chiki.jssdk import JSSDK
+from chiki.utils import err_logger
+from chiki.contrib.common import Item
 
 __all__ = [
     'WXAuth', 'init_wxauth',
@@ -62,6 +64,8 @@ class WXAuth(object):
         @app.route(self.config.get('wxauth_url', '/oauth/wechat/callback'))
         def wxauth_callback():
             return self.callback()
+
+        app.jssdk = JSSDK(app)
 
     def quote(self, **kwargs):
         return dict((x, quote(y)) for x, y in kwargs.iteritems())
