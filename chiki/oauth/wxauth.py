@@ -104,13 +104,8 @@ class WXAuth(object):
     @err_logger
     def get_userinfo(self, token, openid):
         url = self.get_userinfo_url(token, openid)
-
         res = requests.get(url)
-        
-        current_app.logger.error(res.content)
-        current_app.logger.error(str(res.json()))
-
-        return res.json()
+        return json.loads(res.content)
 
     @err_logger
     def get_user_info(self, openid):
