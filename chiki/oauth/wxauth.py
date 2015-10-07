@@ -82,10 +82,7 @@ class WXAuth(object):
     @err_logger
     def access_token(self, code):
         url = self.get_access_url(code)
-        res = requests.get(url)
-        current_app.logger.error(res.content)
-        current_app.logger.error(str(res.json()))
-        return res.json()
+        return requests.get(url).json()
 
     def get_refresh_url(self, token):
         query = dict(
@@ -107,7 +104,13 @@ class WXAuth(object):
     @err_logger
     def get_userinfo(self, token, openid):
         url = self.get_userinfo_url(token, openid)
-        return requests.get(url).json()
+
+        res = requests.get(url)
+        
+        current_app.logger.error(res.content)
+        current_app.logger.error(str(res.json())
+
+        return res.json()
 
     @err_logger
     def get_user_info(self, openid):
