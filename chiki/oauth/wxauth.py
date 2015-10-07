@@ -108,7 +108,7 @@ class WXAuth(object):
         res = requests.get(url)
         
         current_app.logger.error(res.content)
-        current_app.logger.error(str(res.json())
+        current_app.logger.error(str(res.json()))
 
         return res.json()
 
