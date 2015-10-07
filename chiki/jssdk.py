@@ -43,7 +43,7 @@ class JSSDK(object):
             apis = [str(x) for x in apis]
             sign = self.sign
             config = dict(
-                debug=str(request.args.get('debug', 'false')),
+                debug=True if request.args.get('debug') == 'true' else False,
                 appId=current_app.config.get('WXAUTH', {}).get('appid'),
                 timestamp=sign['timestamp'],
                 nonceStr=sign['nonceStr'],
