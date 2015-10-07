@@ -82,7 +82,10 @@ class WXAuth(object):
     @err_logger
     def access_token(self, code):
         url = self.get_access_url(code)
-        return requests.get(url).json()
+        res = requests.get(url)
+        current_app.logger.error(res.content)
+        current_app.logger.error(str(res.json()))
+        return res.json()
 
     def get_refresh_url(self, token):
         query = dict(
