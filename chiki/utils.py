@@ -8,7 +8,7 @@ __all__ = [
     'strip', 'json_success', 'json_error', 
     'datetime2best', 'time2best', 'today',
     'err_logger', 'parse_spm', 'is_empty', 'get_ip',
-    'is_ajax', 'is_ajax'
+    'is_ajax', 'is_ajax', 'str2datetime',
 ]
 
 
@@ -117,3 +117,10 @@ def get_ip():
 def is_ajax():
     return request.headers.get('X-Requested-With') == 'XMLHttpRequest' \
         or request.args.get('is_ajax', 'false') == 'true'
+
+
+def str2datetime(datestr):
+    try:
+        return datetime.strptime(datestr, '%Y-%m-%d %H:%M:%s')
+    except ValueError:
+        return datetime.min
