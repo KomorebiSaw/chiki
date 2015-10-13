@@ -130,7 +130,7 @@ class WXAuth(object):
 
     def get_action(self, action):
         if not action:
-            ua = request.headers.get('User-Agent', '')
+            ua = request.headers.get('User-Agent', '').lower()
             if 'micromessenger' in ua:
                 action = self.ACTION_MP
             elif is_api():
