@@ -158,7 +158,7 @@ class WXAuth(object):
         if not code:
             return self.error(self.AUTH_ERROR, action, next)
 
-        access = self.access_token(code)
+        access = self.access_token(action, code)
         if not access or 'openid' not in access:
             log = 'access error\nnext: %s\ncode: %s\naccess: %s'
             current_app.logger.error(log % (next, code, str(access)))
