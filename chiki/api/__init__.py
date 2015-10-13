@@ -7,6 +7,7 @@ from flask.signals import got_request_exception
 from flask.ext.restful import Api as _Api
 from flask.ext.restful.utils import error_data
 from werkzeug.http import HTTP_STATUS_CODES
+from .const import abort
 
 __all__ = [
     'api', 'wapi', 'xapi', 'success',

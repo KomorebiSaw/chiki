@@ -1,6 +1,7 @@
 # coding: utf-8
 from flask.ext.admin import Admin as _Admin
 from .formatters import *
+from .static import *
 from .views import *
 
 

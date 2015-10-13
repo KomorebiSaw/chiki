@@ -5,35 +5,28 @@ import requests
 import werobot.client
 from urllib import quote, urlencode
 from flask import current_app, request, redirect, url_for
-from chiki.jssdk import JSSDK
-from chiki.utils import err_logger
-from chiki.contrib.common import Item
+from chiki.api import abort, success
+from chiki.api.const import *
+from chiki.utils import err_logger, is_json, is_api
+from chiki.oauth.jssdk import JSSDK
 
 __all__ = [
     'WXAuth', 'init_wxauth',
 ]
 
 
-@property
-def common_token(self):
-    now = time.time()
-    key = 'wxauth:access_token'
-    token = json.loads(Item.data(key, '{}'))
-    if not token or token['deadline'] <= now:
-        token = self.grant_token()
-        token['deadline'] = now + token['expires_in']
-        Item.set_data(key, json.dumps(token))
-    return token['access_token']
-
-werobot.client.Client.token = common_token
-
-
 class WXAuth(object):
 
+    ACTION_MP = 'mp'
+    ACTION_MOBILE = 'mobile'
+    ACTION_QRCODE = 'qrcode'
+
+    ARGS_ERROR = 'args_error'
     AUTH_ERROR = 'auth_error'
     ACCESS_ERROR = 'access_error'
     GET_USERINFO_ERROR = 'get_userinfo_error'
     MSGS = {
+        ARGS_ERROR: '参数错误',
         AUTH_ERROR: '授权失败',
         ACCESS_ERROR: '获取令牌失败',
         GET_USERINFO_ERROR: '获取用户信息失败',
@@ -41,7 +34,8 @@ class WXAuth(object):
 
     SNSAPI_BASE = 'snsapi_base'
     SNSAPI_USERINFO = 'snsapi_userinfo'
-    AUTH_URL = 'https://open.weixin.qq.com/connect/oauth2/authorize'
+    AUTH_CONNECT_URL = 'https://open.weixin.qq.com/connect/oauth2/authorize'
+    AUTH_QRCONNECT_URL = 'https://open.weixin.qq.com/connect/qrconnect'
     ACCESS_URL = 'https://api.weixin.qq.com/sns/oauth2/access_token'
     REFRESH_URL = 'https://api.weixin.qq.com/sns/oauth2/refresh_token'
     USERINFO_URL = 'https://api.weixin.qq.com/sns/userinfo'
@@ -56,8 +50,8 @@ class WXAuth(object):
     def init_app(self, app):
         self.app = app
         self.config = app.config.get('WXAUTH')
-        self.client = werobot.client.Client(self.config.get('appid'),
-            self.config.get('secret'))
+        mp = self.config.get(self.ACTION_MP)
+        self.client = werobot.client.Client(mp.get('appid'), mp.get('secret'))
         app.wxauth = self
         app.wxclient = self.client
 
@@ -70,32 +64,34 @@ class WXAuth(object):
     def quote(self, **kwargs):
         return dict((x, quote(y)) for x, y in kwargs.iteritems())
 
-    def get_access_url(self, code):
+    def get_access_url(self, action, code):
+        config = self.config.get(action)
         query = dict(
-            appid=self.config.get('appid'),
-            secret=self.config.get('secret'),
+            appid=config.get('appid'),
+            secret=config.get('secret'),
             code=code,
             grant_type='authorization_code',
         )
         return '%s?%s' % (self.ACCESS_URL, urlencode(query))
 
     @err_logger
-    def access_token(self, code):
-        url = self.get_access_url(code)
+    def access_token(self, action, code):
+        url = self.get_access_url(action, code)
         return requests.get(url).json()
 
-    def get_refresh_url(self, token):
+    def get_refresh_url(self, action, token):
+        config = self.config.get(action)
         query = dict(
-            appid=self.config.get('appid'),
+            appid=config.get('appid'),
             refresh_token=token,
             grant_type='refresh_token',
         )
         return '%s?%s' % (self.REFRESH_URL, urlencode(query))
 
     @err_logger
-    def refresh_token(self, token):
-        url = self.get_refresh_url(token)
-        return requests.get(url).json()     
+    def refresh_token(self, action, token):
+        url = self.get_refresh_url(action, token)
+        return requests.get(url).json()
 
     def get_userinfo_url(self, token, openid, lang='zh_CN'):
         query = dict(access_token=token, openid=openid, lang=lang)
@@ -120,47 +116,68 @@ class WXAuth(object):
         url = self.get_check_url(token, openid)
         return requests.get(url).json()['errcode'] == 0
 
-    def get_auth_url(self, next, scope=SNSAPI_BASE, state='STATE'):
+    def get_auth_url(self, action, next, scope=SNSAPI_BASE, state='STATE'):
+        config = self.config.get(action)
         query = self.quote(
-            appid=self.config.get('appid'),
-            callback=url_for('wxauth_callback', scope=scope, next=next, _external=True),
+            appid=config.get('appid'),
+            callback=url_for('wxauth_callback', scope=scope, next=next, action=action, _external=True),
             scope=scope,
             state=state,
         )
+        url = self.AUTH_CONNECT_URL if action == 'mp' else self.AUTH_QRCONNECT_URL
         return '{url}?appid={appid}&redirect_uri={callback}&response_type=code' \
-            '&scope={scope}&state={state}#wechat_redirect'.format(url=self.AUTH_URL, **query)
+            '&scope={scope}&state={state}#wechat_redirect'.format(url=url, **query)
 
-    def auth(self, next, scope=SNSAPI_BASE, state='STATE'):
-        return redirect(self.get_auth_url(next, scope, state))
+    def get_action(self, action):
+        if not action:
+            ua = request.headers.get('User-Agent', '')
+            if 'micromessenger' in ua:
+                action = self.ACTION_MP
+            elif is_api():
+                action = self.ACTION_MOBILE
+            else:
+                action = self.ACTION_QRCODE
+        return action
+
+    def auth(self, action='', next='', scope=SNSAPI_BASE, state='STATE'):
+        action = self.get_action(action)
+        if action == 'mobile' or is_json():
+            return abort(WXAUTH_REQUIRED)
+
+        return redirect(self.get_auth_url(action, next, scope, state))
 
     def callback(self):
-        code = request.args.get('code')
-        next = request.args.get('next')
+        action = request.args.get('action', 'mp')
+        code = request.args.get('code', '')
+        next = request.args.get('next', '')
         scope = request.args.get('scope', self.SNSAPI_BASE)
 
+        if action not in ['mp', 'mobile', 'qrcode']:
+            return self.error(self.ARGS_ERROR, action, next)
+
         if not code:
-            return self.error(self.AUTH_ERROR, next)
+            return self.error(self.AUTH_ERROR, action, next)
 
         access = self.access_token(code)
         if not access or 'openid' not in access:
             log = 'access error\nnext: %s\ncode: %s\naccess: %s'
             current_app.logger.error(log % (next, code, str(access)))
-            return self.error(self.ACCESS_ERROR, next)
+            return self.error(self.ACCESS_ERROR, action, next)
 
-        return self.success(access, next, scope)
+        return self.success(action, scope, access, next)
 
-    def success(self, access, next, scope):
+    def success(self, action, scope, access, next):
         callback = self.success_callback
         if not callback:
             return '授权成功，请设置回调'
 
-        res = callback(access, next, scope)
-        return res if res else redirect(next)
+        res = callback(action, scope, access, next)
+        return res if res else (success() if is_json() else redirect(next))
 
-    def error(self, err, next):
-        res = '授权失败: %s' % err
+    def error(self, err, action, next):
+        res = '授权失败(%s): %s' % (action, err)
         if self.error_callback:
-            res = self.error_callback(err, next) or res
+            res = self.error_callback(err, action, next) or res
         return res
 
     def success_handler(self, callback):

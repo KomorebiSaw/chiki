@@ -183,13 +183,141 @@ class StatLog(db.Document):
             return item.value + 1
 
     @staticmethod
-    def get(key, tid, day=today(), hour=0, default=0):
+    def get(key, tid, day=today(), hour=0, default=0, save=True):
         if callable(day):
             day = day()
         day = str(day)[:10]
         item = StatLog.objects(key=key, tid=tid, day=day).first()
         if item:
             return item.value
-            
-        StatLog(key=key, tid=tid ,day=day, hour=0, value=default).save()
+
+        if save:
+            StatLog(key=key, tid=tid, day=day, hour=0, value=default).save()
         return default
+
+
+class TraceLog(db.Document):
+    """ 监控统计 """
+
+    key = db.StringField(verbose_name='KEY')
+    tid = db.StringField(verbose_name='TID')
+    user = db.IntField(verbose_name='用户')
+    label = db.StringField(verbose_name='标识')
+    value = db.StringField(verbose_name='结果')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            'key',
+            'tid',
+            'label',
+            '-created',
+        ]
+    }
+
+
+class Channel(db.Document):
+    """ 渠道模型 """
+
+    id = db.IntField(primary_key=True, verbose_name='ID')
+    name = db.StringField(max_length=40, verbose_name='名称')
+    desc = db.StringField(verbose_name='描述')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            '-created',
+        ]
+    }
+
+    def create(self):
+        """ 创建渠道 """
+        if not self.id:
+            self.id = Item.inc('channel_index', 1000)
+            self.save()
+        return self.id
+
+
+class AndroidVersion(db.Document):
+    """ 安卓版本 """
+
+    id = db.IntField(primary_key=True, verbose_name='ID')
+    version = db.StringField(max_length=200, verbose_name='版本')
+    log = db.StringField(verbose_name='更新日志')
+    url = db.StringField(verbose_name='应用地址')
+    force = db.StringField(verbose_name='强制更新')
+    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            '-created',
+        ]
+    }
+
+    def __unicode__(self):
+        return '%d - %s' % (self.id, self.version)
+
+    def create(self):
+        """ 创建版本 """
+        if not self.id:
+            self.id = Item.inc('android_version_index', 100)
+            self.save()
+        return self.id
+
+
+class IOSVersion(db.Document):
+    """ IOS版本 """
+
+    id = db.IntField(primary_key=True, verbose_name='ID')
+    version = db.StringField(max_length=200, verbose_name='版本')
+    log = db.StringField(verbose_name='更新日志')
+    url = db.StringField(verbose_name='应用地址')
+    force = db.StringField(verbose_name='强制更新')
+    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            '-created',
+        ]
+    }
+
+    def __unicode__(self):
+        return '%d - %s' % (self.id, self.version)
+
+    def create(self):
+        """ 创建版本 """
+        if not self.id:
+            self.id = Item.inc('ios_version_index', 100)
+            self.save()
+        return self.id
+
+
+class APIItem(db.Document):
+    """ 接口模型 """
+
+    name = db.StringField(verbose_name='名称')
+    key = db.StringField(verbose_name='键名')
+    url = db.StringField(verbose_name='链接')
+    cache = db.IntField(default=0, verbose_name='缓存')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            '-created',
+        ]
+    }
+
+    @property
+    def detail(self):
+        return dict(
+            name=self.name,
+            key=self.key,
+            url=self.url,
+            cache=self.cache,
+        )

@@ -1,4 +1,5 @@
 # coding: utf-8
+import re
 import time
 import traceback
 from datetime import datetime, date
@@ -7,8 +8,8 @@ from flask import jsonify, current_app, request
 __all__ = [
     'strip', 'json_success', 'json_error', 
     'datetime2best', 'time2best', 'today',
-    'err_logger', 'parse_spm', 'is_empty', 'get_ip',
-    'is_ajax', 'is_ajax', 'str2datetime',
+    'err_logger', 'parse_spm', 'get_spm', 'get_ip',
+    'is_ajax', 'str2datetime', 'is_json', 'is_empty',
 ]
 
 
@@ -97,11 +98,34 @@ def parse_spm(spm):
     return 0, 0, 0, 0, 0
 
 
-def is_empty(fd):
-    fd.seek(0)
-    first_char = fd.read(1)
-    fd.seek(0)
-    return not bool(first_char)
+def get_spm():
+    spm = request.args.get('spm')
+    if spm:
+        return spm
+
+    spm = []
+    oslist = ['ios', 'android', 'windows', 'linux', 'mac']
+    plist = ['micromessenger', 'weibo', 'qq']
+    ua = request.args.get('User-Agent', '').lower()
+
+    for index, os in enumerate(oslist):
+        if os in ua:
+            spm.append(index + 1)
+            break
+    else:
+        spm.append(index + 1)
+
+    for index, p in enumerate(plist):
+        if p in ua:
+            spm.append(index + 1)
+            break
+    else:
+        spm.append(index + 1)
+
+    spm.append(1001)
+    spm.append(0)
+
+    return '.'.join([str(x) for x in spm])
 
 
 def get_ip():
@@ -116,7 +140,23 @@ def get_ip():
 
 def is_ajax():
     return request.headers.get('X-Requested-With') == 'XMLHttpRequest' \
-        or request.args.get('is_ajax', 'false') == 'true'
+        or request.args.get('is_ajax', 'false') == 'true' \
+        or request.headers['Accept'].startswith('application/json')
+
+
+def is_api():
+    return 'API' in current_app.config.get('ENVVAR', '')
+
+
+def is_json():
+    return is_api() or is_ajax()
+
+
+def is_empty(fd):
+    fd.seek(0)
+    first_char = fd.read(1)
+    fd.seek(0)
+    return not bool(first_char)
 
 
 def str2datetime(datestr):
