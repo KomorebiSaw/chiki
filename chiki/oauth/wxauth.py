@@ -119,7 +119,7 @@ class WXAuth(object):
 
     def get_auth_url(self, action, next, scope=SNSAPI_BASE, state='STATE'):
         if action == self.ACTION_QRCODE:
-            scope = SNSAPI_LOGIN
+            scope = self.SNSAPI_LOGIN
 
         config = self.config.get(action)
         query = self.quote(
