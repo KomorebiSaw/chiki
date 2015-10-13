@@ -34,6 +34,7 @@ class WXAuth(object):
 
     SNSAPI_BASE = 'snsapi_base'
     SNSAPI_USERINFO = 'snsapi_userinfo'
+    SNSAPI_LOGIN = 'snsapi_login'
     AUTH_CONNECT_URL = 'https://open.weixin.qq.com/connect/oauth2/authorize'
     AUTH_QRCONNECT_URL = 'https://open.weixin.qq.com/connect/qrconnect'
     ACCESS_URL = 'https://api.weixin.qq.com/sns/oauth2/access_token'
@@ -117,6 +118,9 @@ class WXAuth(object):
         return requests.get(url).json()['errcode'] == 0
 
     def get_auth_url(self, action, next, scope=SNSAPI_BASE, state='STATE'):
+        if action == self.ACTION_QRCODE:
+            scope = SNSAPI_LOGIN
+
         config = self.config.get(action)
         query = self.quote(
             appid=config.get('appid'),
