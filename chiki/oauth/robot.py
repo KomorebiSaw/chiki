@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import time
 from chiki.contrib.common import Item
 from flask.ext.werobot import WeRoBot
 from werobot.client import Client
