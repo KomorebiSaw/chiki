@@ -16,6 +16,14 @@ __all__ = [
 
 class Api(_Api):
 
+    def error_router(self, original_handler, e):
+        if self._has_fr_route() or isinstance(getattr(e, 'data', ''), dict):
+            try:
+                return self.handle_error(e)
+            except Exception:
+                pass
+        return original_handler(e)
+
     def handle_error(self, e):
         got_request_exception.send(current_app._get_current_object(), exception=e)
 
@@ -30,9 +38,6 @@ class Api(_Api):
         headers = {}
 
         if code >= 500:
-
-            # There's currently a bug in Python3 that disallows calling
-            # logging.exception() when an exception hasn't actually be raised
             if sys.exc_info() == (None, None, None):
                 current_app.logger.error("Internal Error")
             else:
@@ -73,7 +78,7 @@ class Api(_Api):
                 data,
                 code,
                 headers,
-                fallback_mediatype = fallback_mediatype
+                fallback_mediatype=fallback_mediatype,
             )
         else:
             if code == 400 and current_app.config.get('CHANGE_400_TO_200'):
