@@ -3,12 +3,13 @@ import json
 import time
 import requests
 import werobot.client
-from urllib import quote, urlencode
-from flask import current_app, request, redirect, url_for
 from chiki.api import abort, success
 from chiki.api.const import *
 from chiki.utils import err_logger, is_json, is_api
 from chiki.oauth.jssdk import JSSDK
+from datetime import datetime
+from flask import current_app, request, redirect, url_for
+from urllib import quote, urlencode
 
 __all__ = [
     'WXAuth', 'init_wxauth',
@@ -164,8 +165,11 @@ class WXAuth(object):
 
         access = self.access_token(action, code)
         if not access or 'openid' not in access:
-            log = 'access error\nurl: %s\nnext: %s\ncode: %s\naccess: %s'
-            current_app.logger.error(log % (request.url, next, code, str(access)))
+            log = '%s\naccess error\naccess: %s\nurl: %s\nnext: %s\ncode: %s\naccess: %s'
+            current_app.logger.error(log % (
+                str(datetime.now()) + '-' * 80,
+                self.get_access_url(action, code),
+                request.url, next, code, str(access)))
             return self.error(self.ACCESS_ERROR, action, next)
 
         return self.success(action, scope, access, next)
