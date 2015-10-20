@@ -1,6 +1,7 @@
 # coding: utf-8
 import os
 import hmac
+import werkzeug.datastructures
 from datetime import datetime, timedelta
 from flask import current_app, request, session
 from hashlib import sha1
@@ -74,13 +75,27 @@ class BaseForm(with_metaclass(FormMeta, _Form), FormMixin):
     pass
 
 
+class _Auto():
+    pass
+
+
 class Form(with_metaclass(FormMeta, _Form), FormMixin):
 
     TIME_FORMAT = '%Y%m%d%H%M%S'
     TIME_LIMIT = timedelta(minutes=30)
     csrf_token = CSRFTokenField()
 
-    def __init__(self, formdata=None, obj=None, prefix='', **kwargs):
+    def __init__(self, formdata=_Auto, obj=None, prefix='', **kwargs):
+        if formdata is _Auto:
+            if self.is_submitted():
+                formdata = request.form
+                if request.files:
+                    formdata = formdata.copy()
+                    formdata.update(request.files)
+                elif request.json:
+                    formdata = werkzeug.datastructures.MultiDict(request.json)
+            else:
+                formdata = None
         super(Form, self).__init__(formdata, obj, prefix, **kwargs)
         self.csrf_token.current_token = self.generate_csrf_token()
 
