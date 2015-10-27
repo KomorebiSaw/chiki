@@ -87,9 +87,19 @@ class IOSVersionView(ModelView):
 
 
 class APIItemView(ModelView):
-    column_default_sort = ('created', )
+    column_default_sort = ('created', True)
     column_searchable_list = ('key', 'name')
     column_filters = ('key', 'modified', 'created')
+    column_center_list = ('modified', 'created')
+
+    def on_model_change(self, form, model, created=False):
+        model.modified = datetime.now()
+
+
+class UserImageView(ModelView):
+
+    column_default_sort = ('created', True)
+    column_filters = ('source', 'modified', 'created')
     column_center_list = ('modified', 'created')
 
     def on_model_change(self, form, model, created=False):

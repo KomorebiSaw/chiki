@@ -321,3 +321,20 @@ class APIItem(db.Document):
             url=self.url,
             cache=self.cache,
         )
+
+
+class UserImage(db.Document):
+    """ 用户图片 """
+
+    user = db.IntField(verbose_name='用户')
+    source = db.StringField(verbose_name='来源')
+    image = db.XImageField(config='USER_IMAGES', verbose_name='图片')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            'source',
+            '-created',
+        ]
+    }

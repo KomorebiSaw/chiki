@@ -64,9 +64,14 @@ class MediaManager(object):
         return os.path.getmtime(path)
 
     def get_hash(self, name):
-        path = os.path.join(self.app.static_folder, name)
+        xname = name.split('?')[0] if '?' in name else name
+        path = os.path.join(self.app.static_folder, xname)
         if not os.path.isfile(path):
-            return name
+            xname = os.path.join('dist', xname)
+            path = os.path.join(self.app.static_folder, xname)
+            if not os.path.isfile(path):
+                return name
+            name = os.path.join('dist', name)
 
         with open(path) as fd:
             md5 = hashlib.md5(fd.read()).hexdigest()
@@ -75,7 +80,9 @@ class MediaManager(object):
         prefix = self.app.config.get('SITE_STATIC_PREFIX', '/static/')
         if type(prefix) == list:
             prefix = random.choice(prefix)
-        return '%s%s?v=%s' % (prefix, name, md5[:4])
+
+        tpl = '%s%s&amp;v=%s' if '?' in name else '%s%s?v=%s'
+        return tpl % (prefix, name, md5[:4])
 
     def static_url(self, name):
         if name not in self.hash \
