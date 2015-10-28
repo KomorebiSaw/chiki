@@ -2,6 +2,7 @@
 import json
 import time
 import hashlib
+import requests
 from chiki.utils import get_ip, randstr
 from flask import request, url_for
 from werobot.utils import to_text
@@ -67,7 +68,7 @@ class WXPay(object):
 
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:
-            xml = request.post(self.PREPAY_URL, data=data).content
+            xml = requests.post(self.PREPAY_URL, data=data).content
             return self.xml2dict(xml)
         except Exception, e:
             return dict(return_code='ERROR', return_msg=str(e))
