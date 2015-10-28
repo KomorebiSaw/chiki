@@ -1,6 +1,8 @@
 # coding: utf-8
 import re
 import time
+import random
+import string
 import traceback
 from datetime import datetime, date
 from flask import jsonify, current_app, request
@@ -10,6 +12,7 @@ __all__ = [
     'datetime2best', 'time2best', 'today',
     'err_logger', 'parse_spm', 'get_spm', 'get_ip',
     'is_ajax', 'str2datetime', 'is_json', 'is_empty',
+    'randstr',
 ]
 
 
@@ -164,3 +167,8 @@ def str2datetime(datestr):
         return datetime.strptime(datestr, '%Y-%m-%d %H:%M:%s')
     except ValueError:
         return datetime.min
+
+
+def randstr(x=32):
+    a = lambda: random.choice(string.ascii_letters + string.digits)
+    return ''.join(a() for _ in range(x))

@@ -66,5 +66,7 @@ setup(
         'watchdog',
         'WeRoBot==0.6.1',
         'Flask-WeRoBot==0.1.2',
+        'xmltodict==0.9.2',
+        'dicttoxml==1.6.6',
     ],
 )
