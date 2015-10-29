@@ -44,7 +44,7 @@ class WXPay(object):
         return res or ''
 
     def wxpay_handler(self, callback):
-        self.callback = callback
+        self.wxpay_callback = callback
         return callback
 
     def xml2dict(self, xml):
