@@ -26,20 +26,20 @@ def patch_monkey():
 
     Client.token = common_token
 
-    @handle_for_type("event")
+    @handle_for_type('event')
     class EventMessage(WeChatMessage):
 
         def __init__(self, message):
-            message.pop("type")
-            self.type = message.pop("Event").lower()
-            if self.type == "click":
+            message.pop('type')
+            self.type = message.pop('Event').lower()
+            if self.type == 'click':
                 self.key = message.pop('EventKey')
-            elif self.type == "subscribe":
+            elif self.type in ['subscribe', 'scan']:
                 self.key = int(message.pop('EventKey', '')[8:] or 0)
-            elif self.type == "location":
-                self.latitude = float(message.pop("Latitude"))
-                self.longitude = float(message.pop("Longitude"))
-                self.precision = float(message.pop("Precision"))
+            elif self.type == 'location':
+                self.latitude = float(message.pop('Latitude'))
+                self.longitude = float(message.pop('Longitude'))
+                self.precision = float(message.pop('Precision'))
             super(EventMessage, self).__init__(message)
 
     def scan(self, f):
