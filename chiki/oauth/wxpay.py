@@ -33,10 +33,10 @@ class WXPay(object):
             return self.callback()
 
     def callback(self):
-        data = self.xml2dict(request.body)
+        data = self.xml2dict(request.data)
         sign = data.pop('sign', None)
         if sign != self.sign(data):
-            current_app.logger.error('wxpay callbck: %s' % request.body)
+            current_app.logger.error('wxpay callbck: %s' % request.data)
             return 'sign error'
 
         if self.wxpay_callback:
