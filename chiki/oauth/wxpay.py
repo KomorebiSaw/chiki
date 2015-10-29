@@ -76,7 +76,7 @@ class WXPay(object):
     def sign(self, **kwargs):
         text = '&'.join(['%s=%s' % x for x in kwargs.iteritems()])
         text += '&key=%s' % self.config.get('key')
-        return hashlib.md5(text).hexdigest().upper()
+        return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
     def get_conf(self, prepay, tojson=True):
         conf = dict(
