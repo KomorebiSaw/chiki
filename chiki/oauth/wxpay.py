@@ -28,7 +28,7 @@ class WXPay(object):
         self.config = app.config.get('WXPAY')
         app.wxpay = self
 
-        @app.route('/wxpay/callback')
+        @app.route('/wxpay/callback', methods=['POST'])
         def wxpay_callback():
             return self.callbck()
 
