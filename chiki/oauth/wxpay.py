@@ -30,7 +30,7 @@ class WXPay(object):
 
         @app.route('/wxpay/callback', methods=['POST'])
         def wxpay_callback():
-            return self.callbck()
+            return self.callback()
 
     def callback(self):
         data = self.xml2dict(request.body)
