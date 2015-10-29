@@ -42,5 +42,11 @@ def patch_monkey():
                 self.precision = float(message.pop("Precision"))
             super(EventMessage, self).__init__(message)
 
+    def scan(self, f):
+        self.add_handler(f, type='scan')
+        return f
+
+    WeRoBot.scan = scan
+
 
 patch_monkey()
