@@ -44,7 +44,7 @@ class JSSDK(object):
             sign = self.sign
             config = dict(
                 debug=True if request.args.get('debug') == 'true' else False,
-                appId=current_app.config.get('WXAUTH', {}).get('appid'),
+                appId=current_app.config.get('WXAUTH', {}).get('mp', {}).get('appid'),
                 timestamp=sign['timestamp'],
                 nonceStr=sign['nonceStr'],
                 signature=sign['signature'],
