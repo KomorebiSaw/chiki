@@ -83,10 +83,10 @@ class WXPay(object):
             appId=self.config.get('appid'),
             timeStamp=str(int(time.time())),
             nonceStr=randstr(32),
-            package="prepay_id=%s" % prepay,
+            package='prepay_id=%s' % prepay,
+            signType='MD5',
         )
         conf['paySign'] = self.sign(**conf)
-        conf['signType'] = 'MD5'
         return json.dumps(conf) if tojson else conf
 
 
