@@ -46,6 +46,10 @@ def patch_monkey():
         self.add_handler(f, type='scan')
         return f
 
+    WeRoBot.message_types = [
+        'subscribe', 'unsubscribe', 'click',  'view',
+        'text', 'image', 'link', 'location', 'voice', 'scan',
+    ]
     WeRoBot.scan = scan
 
 
