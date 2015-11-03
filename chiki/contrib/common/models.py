@@ -381,7 +381,7 @@ class ActionItem(db.Document):
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
     icon = db.XImageField(verbose_name='图标')
-    module = db.StringField(default=DEFAULT， verbose_name='模块'， choices=MODULE_CHOICES)
+    module = db.StringField(default=DEFAULT, verbose_name='模块', choices=MODULE_CHOICES)
     action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
     url = db.StringField(verbose_name='链接')
     share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
