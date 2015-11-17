@@ -60,7 +60,7 @@ setup(
         'Flask-SQLAlchemy==2.0',
         'Flask-Migrate==1.3.0',
         'blinker==1.3',
-        'cookiecutter==1.0.0',
+        'cookiecutter==1.1.0',
         'WeRoBot==0.6.1',
         'redis',
         'watchdog',

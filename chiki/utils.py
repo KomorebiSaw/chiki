@@ -8,12 +8,17 @@ from datetime import datetime, date
 from flask import jsonify, current_app, request
 
 __all__ = [
-    'strip', 'json_success', 'json_error', 
+    'strip', 'json_success', 'json_error',
     'datetime2best', 'time2best', 'today',
-    'err_logger', 'parse_spm', 'get_spm', 'get_ip',
+    'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_ip',
     'is_ajax', 'str2datetime', 'is_json', 'is_empty',
-    'randstr',
+    'randstr', 'AttrDict',
 ]
+
+
+class AttrDict(dict):
+    __getattr__ = dict.__getitem__
+    __setattr__ = dict.__setitem__
 
 
 def today():
@@ -129,6 +134,10 @@ def get_spm():
     spm.append(0)
 
     return '.'.join([str(x) for x in spm])
+
+
+def get_version():
+    return parse_spm(get_spm())[3]
 
 
 def get_ip():
