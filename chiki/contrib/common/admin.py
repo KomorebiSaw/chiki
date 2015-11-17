@@ -1,5 +1,7 @@
 # coding: utf-8
-from chiki.admin import ModelView, formatter_len
+from chiki.admin import (
+    ModelView, formatter_len, formatter_icon, formatter_text
+    )
 from wtforms.fields import TextField
 
 
@@ -101,6 +103,38 @@ class UserImageView(ModelView):
     column_default_sort = ('created', True)
     column_filters = ('source', 'modified', 'created')
     column_center_list = ('modified', 'created')
+
+    def on_model_change(self, form, model, created=False):
+        model.modified = datetime.now()
+
+
+class ActionItemView(ModelView):
+
+    column_default_sort = ('created', True)
+    column_filters = (
+        'name', 'icon', 'key', 'module', 'action', 'url', 'login',
+        'sort', 'enable', 'modified', 'created'
+    )
+    column_center_list = ('icon', 'module', 'sort', 'enable', 'modified', 'created')
+    column_formatters = dict(
+        icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
+        name=formatter_text(lambda m: (m.name,m.name),max_len=7),
+    )
+
+
+class SlideItemView(ModelView):
+    column_labels = dict(modified='修改', created='创建')
+    column_default_sort = ('module', 'sort')
+    column_default_sort = ('modified', True)
+    column_searchable_list = ('name', )
+    column_filters = ('module', 'modified', 'created')
+    column_center_list = (
+        'module', 'share', 'sort', 'enable', 'modified', 'created',
+    )
+    column_formatters = dict(
+        image=formatter_icon(lambda m: (m.image.get_link(height=40), m.image.link)),
+        url=formatter_len(30)
+    )
 
     def on_model_change(self, form, model, created=False):
         model.modified = datetime.now()

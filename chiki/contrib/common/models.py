@@ -29,6 +29,35 @@ class Enable(object):
         return [Enable.ENABLED]
 
 
+class Action(object):
+    """ 动作选项 """
+
+    DEFAULT = 'default'
+    EMPTY = 'empty'
+    TABLIST = 'tablist'
+    WEBSTATIC = 'webstatic'
+    WEBVIEW = 'webview'
+    LISTVIEW = 'listview'
+    GRIDVIEW = 'gridview'
+    BROWSER = 'browser'
+    REDIRECT = 'redirect'
+    DIVIDER = 'divider'
+    CHOICES = (
+        (DEFAULT, '原生'),
+        (EMPTY, '无动作'),
+        (TABLIST, 'Tab'),
+        (WEBSTATIC, '静态网页'),
+        (WEBVIEW, '网页'),
+        (LISTVIEW, '列表'),
+        (GRIDVIEW, '表格'),
+        (BROWSER, '浏览器'),
+        (REDIRECT, '内部跳转'),
+        (DIVIDER, '分割线'),
+    )
+    VALUES = [x[0] for x in CHOICES]
+    DICT = dict(CHOICES)
+
+
 class Item(db.Document):
     """ 通用选项 """
 
@@ -338,3 +367,96 @@ class UserImage(db.Document):
             '-created',
         ]
     }
+
+
+class ActionItem(db.Document):
+    """ 功能模型 """
+
+    DEFAULT = 'default'
+    MODULE_CHOICES = (
+        (DEFAULT, '默认')
+    )
+    MODULE_VALUES = [x[0] for x in MODULE_CHOICES]
+
+    name = db.StringField(verbose_name='名称')
+    key = db.StringField(verbose_name='键名')
+    icon = db.XImageField(verbose_name='图标')
+    module = db.StringField(default=DEFAULT, verbose_name='模块', choices=MODULE_CHOICES)
+    action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
+    url = db.StringField(verbose_name='链接')
+    share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
+    sort = db.IntField(verbose_name='排序')
+    login = db.BooleanField(default=False, verbose_name='登陆')
+    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            'key',
+            'sort',
+            '-created',
+        ]
+    }
+
+    @property
+    def detail(self):
+        return dict(
+            name=self.name,
+            key=self.key,
+            icon=self.icon.link,
+            action=self.action,
+            login=self.login,
+            url=self.url,
+            share=unicode(self.share),
+        )
+
+
+class TPLItem(db.Document):
+    """ 模板模型 """
+
+    name = db.StringField(verbose_name='名称')
+    key = db.StringField(verbose_name='键名')
+    tpl = db.XFileField(verbose_name='文件', allows=['html', 'htm'])
+    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+
+class SlideItem(db.Document):
+    """ 广告模型 """
+
+    MODULE_HEAD = 'home_head'
+    MODULE_FOOT = 'home_foot'
+    MODULE_CHOICES = (
+        (MODULE_HEAD, '头部'),
+        (MODULE_FOOT, '底部'),
+    )
+
+    name = db.StringField(verbose_name='名称')
+    image = db.XImageField(verbose_name='图片')
+    module = db.StringField(default=MODULE_HEAD, verbose_name='模块', choices=MODULE_CHOICES)
+    action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
+    url = db.StringField(verbose_name='链接')
+    share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
+    sort = db.IntField(verbose_name='排序')
+    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            'sort',
+            '-created',
+        ]
+    }
+
+    @property
+    def detail(self):
+        return dict(
+            name=self.name,
+            icon=self.image.link,
+            action=self.action,
+            url=self.url,
+            share=unicode(self.share),
+        )
