@@ -4,20 +4,20 @@ from datetime import datetime
 from flask import current_app
 from flask.ext.admin.model.fields import InlineFieldList
 from flask.ext.mongoengine.wtf.fields import ModelSelectMultipleField as _ModelSelectMultipleField
-from wtforms.fields import Field, StringField, SelectField, DateTimeField
+from wtforms.fields import Field, StringField, SelectField, DateTimeField, TextAreaField
 from wtforms.fields import FileField as _FileField
 from wtforms.widgets import RadioInput
 from wtforms.validators import ValidationError
 from wtforms.utils import unset_value
 from .widgets import VerifyCode, UEditor, KListWidget
-from .widgets import FileInput, ImageInput, AreaInput
+from .widgets import FileInput, ImageInput, AreaInput, WangEditor
 from ..verify import get_verify_code, validate_code
 from ..mongoengine.fields import FileProxy
 
 __all__ = [
     'VerifyCodeField', 'KDateField', 'KRadioField', 'UEditorField',
-    'FileField', 'ImageField', 'AreaField', 'ListField', 
-    'ModelSelectMultipleField',
+    'FileField', 'ImageField', 'AreaField', 'ListField',
+    'ModelSelectMultipleField', 'WangEditorField',
 ]
 
 
@@ -232,3 +232,7 @@ class ModelSelectMultipleField(_ModelSelectMultipleField):
         if not self.allow_blank:
             if not self.data:
                 raise ValidationError(_(u'Not a valid choice'))
+
+
+class WangEditorField(TextAreaField):
+    widget = WangEditor()

@@ -1,12 +1,12 @@
 # coding: utf-8
 from flask import url_for
-from wtforms.widgets import html_params, HTMLString
+from wtforms.widgets import html_params, HTMLString, TextArea
 from wtforms.compat import text_type
 from cgi import escape
 
 __all__ = [
-    'VerifyCode', 'UEditor', 'KListWidget', 'FileInput', 
-    'ImageInput', 'AreaInput',
+    'VerifyCode', 'UEditor', 'KListWidget', 'FileInput',
+    'ImageInput', 'AreaInput', 'WangEditor',
 ]
 
 
@@ -180,3 +180,15 @@ class AreaInput(object):
             html_params(id=county_name, name=county_name, **kwargs),
             field.name, province, city, county,
         ))
+
+
+class WangEditor(TextArea):
+
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('style', 'height:480px;')
+        script = """<script type="text/javascript">
+            $(function() {
+                var editor = $('#%s').wangEditor();
+            });
+        </script>""" % field.name
+        return super(WangEditor, self).__call__(field, **kwargs) + script
