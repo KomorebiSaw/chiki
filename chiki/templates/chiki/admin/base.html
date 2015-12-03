@@ -27,7 +27,7 @@
   </head>
   <body>
     {% block page_body %}
-    <div class="wrapper">
+    <div class="{{ 'wrapper sm' if request.cookies.get('sidebar.sm') == 'true' else 'wrapper' }}">
       <nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="margin-bottom: 0">
       	<!-- Brand and toggle get grouped for better mobile display -->
       	<div class="navbar-header">
@@ -60,7 +60,11 @@
             <ul class="nav side-toggle">
               <li>
                 <a class="text-center" href="javascript:;">
+                  {% if request.cookies.get('sidebar.sm') == 'true' %}
+                  <i class="glyphicon glyphicon-chevron-right"></i>
+                  {% else %}
                   <i class="glyphicon glyphicon-chevron-left"></i>
+                  {% endif %}
                 </a>
               </li>
             </ul>
