@@ -41,9 +41,11 @@ class ModelView(_ModelView):
         self.column_labels = self.column_labels or dict()
         for field in model._fields:
             if field not in self.column_labels:
-                verbose_name = getattr(model, field).verbose_name
-                if verbose_name:
-                    self.column_labels[field] = verbose_name
+                attr = getattr(model, field)
+                if hasattr(attr, 'verbose_name'):
+                    verbose_name = attr.verbose_name
+                    if verbose_name:
+                        self.column_labels[field] = verbose_name
 
         # 初始化选择列
         self.column_choices = self.column_choices or dict()

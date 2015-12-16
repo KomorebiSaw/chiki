@@ -7,7 +7,7 @@ from flask import current_app
 
 __all__ = [
     'User', 'WeChatUser', 'QQUser', 'WeiBoUser',
-    'UserLog', 'SMSCode',
+    'UserLog', 'PhoneCode', 'EmailCode',
 ]
 
 
@@ -291,14 +291,14 @@ class WeiBoUser(db.Document):
 class UserLog(db.Document):
     """ 用户日志 """
 
-    TYPE_BIND_PHONE = 'bind_phone'
+    TYPE_BIND = 'bind'
     TYPE_REGISTER = 'register'
     TYPE_LOGIN = 'login'
     TYPE_LOGOUT = 'logout'
     TYPE_CHANGE_PASSWORD = 'change_password'
     TYPE_RESET_PASSWORD = 'reset_password'
     TYPE_CHOICES = (
-        (TYPE_BIND_PHONE, '绑定手机'),
+        (TYPE_BIND, '绑定手机'),
         (TYPE_REGISTER, '注册'),
         (TYPE_LOGIN, '登录'),
         (TYPE_LOGOUT, '退出'),
@@ -309,6 +309,7 @@ class UserLog(db.Document):
 
     user = db.IntField(verbose_name='用户')
     type = db.StringField(choices=TYPE_CHOICES, verbose_name='类型')
+    key = db.StringField(verbose_name='键')
     device = db.StringField(max_length=100, verbose_name='设备ID')
     spm = db.StringField(max_length=100, verbose_name='SPM')
     ip = db.StringField(max_length=20, verbose_name='IP')
@@ -326,58 +327,105 @@ class UserLog(db.Document):
         return '%d - %s' % (self.user, self.type)
 
     @staticmethod
-    def log(type, id, device, spm=None, ip=None):
+    def log(type, id, device, key='', spm=None, ip=None):
         spm = spm if spm else get_spm()
         ip = ip if ip else get_ip()
-        UserLog(user=id, type=type, device=device, spm=spm, ip=ip).save()
+        UserLog(user=id, type=type, device=device, key=key, spm=spm, ip=ip).save()
 
     @staticmethod
-    def bind_phone(id, device, spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_BIND_PHONE, id, device, spm, ip)
+    def bind(id, device, key='', spm=None, ip=None):
+        UserLog.log(UserLog.TYPE_BIND, id, device, spm, ip)
 
     @staticmethod
-    def register(id, device, spm=None, ip=None):
+    def register(id, device, key='', spm=None, ip=None):
         UserLog.log(UserLog.TYPE_REGISTER, id, device, spm, ip)
 
     @staticmethod
-    def login(id, device, spm=None, ip=None):
+    def login(id, device, key='', spm=None, ip=None):
         UserLog.log(UserLog.TYPE_LOGIN, id, device, spm, ip)
 
     @staticmethod
-    def logout(id, device, spm=None, ip=None):
+    def logout(id, device, key='', spm=None, ip=None):
         UserLog.log(UserLog.TYPE_LOGOUT, id, device, spm, ip)
 
     @staticmethod
-    def change_password(id, device, spm=None, ip=None):
+    def change_password(id, device, key='', spm=None, ip=None):
         UserLog.log(UserLog.TYPE_CHNAGE_PASSWORD, id, device, spm, ip)
 
     @staticmethod
-    def reset_password(id, device, spm=None, ip=None):
+    def reset_password(id, device, key='', spm=None, ip=None):
         UserLog.log(UserLog.TYPE_RESET_PASSWORD, id, device, spm, ip)
 
 
-class SMSCode(db.Document):
+class PhoneCode(db.Document):
     """ 手机验证码 """
 
-    TYPE_REGISTER = 'register'
-    TYPE_BIND_PHONE = 'bind_phone'
-    TYPE_RESET_PASSWORD = 'reset_password'
-    TYPE_CHOICES = (
-        (TYPE_REGISTER, '注册'),
-        (TYPE_BIND_PHONE, '绑定手机'),
-        (TYPE_RESET_PASSWORD, '重置密码'),
+    ACTION_BIND = 'bind'
+    ACTION_REGISTER = 'register'
+    ACTION_RESET_PASSWORD = 'reset_password'
+    ACTION_CHOICES = (
+        (ACTION_BIND, '绑定'),
+        (ACTION_REGISTER, '注册'),
+        (ACTION_RESET_PASSWORD, '重置密码'),
     )
-    TYPE_VALUES = [x[0] for x in TYPE_CHOICES]
+    ACTION_VALUES = [x[0] for x in ACTION_CHOICES]
 
     phone = db.StringField(max_length=20, verbose_name='手机')
-    type = db.StringField(choices=TYPE_CHOICES, verbose_name='类型')
-    code = db.StringField(max_length=20, verbose_name='验证码')
+    type = db.StringField(choices=ACTION_CHOICES, verbose_name='类型')
+    code = db.StringField(max_length=40, verbose_name='验证码')
     error = db.IntField(default=0, verbose_name='错误次数')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = {
         'indexes': [
             ('phone', 'type'),
+            '-created',
+        ],
+    }
+
+    def __unicode__(self):
+        return '<%s - %s>' % (self.phone, self.type)
+
+    @property
+    def timelimit(self):
+        return datetime.now() < self.created + timedelta(seconds=60)
+
+    @property
+    def timeout(self):
+        return datetime.now() > self.created + timedelta(seconds=1800)
+
+    def make_code(self):
+        self.created = datetime.now()
+        self.code = str(random.randint(1000, 9999))
+        self.save()
+
+    def access(self):
+        self.error += 1
+        self.save()
+
+
+class EmailCode(db.Document):
+    """ 邮箱验证码 """
+
+    ACTION_BIND = 'bind'
+    ACTION_REGISTER = 'register'
+    ACTION_RESET_PASSWORD = 'reset_password'
+    ACTION_CHOICES = (
+        (ACTION_BIND, '绑定'),
+        (ACTION_REGISTER, '注册'),
+        (ACTION_RESET_PASSWORD, '重置密码'),
+    )
+    ACTION_VALUES = [x[0] for x in ACTION_CHOICES]
+
+    email = db.StringField(max_length=40, verbose_name='手机')
+    type = db.StringField(choices=ACTION_CHOICES, verbose_name='类型')
+    code = db.StringField(max_length=40, verbose_name='验证码')
+    error = db.IntField(default=0, verbose_name='错误次数')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            ('email', 'type'),
             '-created',
         ],
     }

@@ -165,7 +165,7 @@ def formatter_ip(url=None, blank=True):
                 return tpl % (quote(href, ip) + escape(text))
             return '<span title=%s>%s</span>' % (quote(ip) + escape(text))
     return wrapper
-
+    
 
 @formatter
 def format_time(t):

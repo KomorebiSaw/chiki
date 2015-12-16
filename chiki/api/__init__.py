@@ -2,9 +2,10 @@
 import re
 import sys
 import difflib
+from chiki.utils import strip
 from flask import current_app, request
 from flask.signals import got_request_exception
-from flask.ext.restful import Api as _Api
+from flask.ext.restful import Api as _Api, Resource as _Resource, reqparse
 from flask.ext.restful.utils import error_data
 from werkzeug.http import HTTP_STATUS_CODES
 from .const import abort
@@ -88,6 +89,21 @@ class Api(_Api):
         if code == 401:
             resp = self.unauthorized(resp)
         return resp
+
+
+class Resource(_Resource):
+
+    def __init__(self):
+        super(Resource, self).__init__()
+        self.not_strips = tuple()
+        self.req = reqparse.RequestParser()
+        self.add_args()
+
+    def add_args(self):
+        pass
+
+    def get_args(self):
+        return strip(self.req.parse_args(), *self.not_strips)
 
 
 api = Api()

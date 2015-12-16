@@ -10,8 +10,8 @@ from flask import jsonify, current_app, request
 __all__ = [
     'strip', 'json_success', 'json_error',
     'datetime2best', 'time2best', 'today',
-    'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_ip',
-    'is_ajax', 'str2datetime', 'is_json', 'is_empty',
+    'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_channel',
+    'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
     'randstr', 'AttrDict',
 ]
 
@@ -138,6 +138,10 @@ def get_spm():
 
 def get_version():
     return parse_spm(get_spm())[3]
+
+
+def get_channel():
+    return parse_spm(get_spm())[2]
 
 
 def get_ip():

@@ -1,4 +1,7 @@
 # coding: utf-8
+import sys
+sys.path.append('../..')
+
 from chiki import init_web
 from chiki.contrib.users import UserManager
 

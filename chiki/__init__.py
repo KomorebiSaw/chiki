@@ -7,6 +7,7 @@ from flask import Flask
 from flask_script import Manager
 
 from .app import *
+from .condoms import *
 from .iptools import *
 from .jinja import *
 from .logger import *
