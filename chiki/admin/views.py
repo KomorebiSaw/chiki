@@ -97,6 +97,13 @@ class ModelView(_ModelView):
     def pre_model_change(self, form, model, created=False):
         pass
 
+    def on_model_change(self, form, model, created):
+        if created == True and hasattr(model, 'create'):
+            if callable(model.create):
+                model.create()
+        elif hasattr(model, 'modified'):
+            model.modified = datetime.now()
+
     def get_ref_type(self, attr):
         document, ref_type = attr.document_type, None
         if hasattr(document, 'id'):

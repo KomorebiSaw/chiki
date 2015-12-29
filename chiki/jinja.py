@@ -54,7 +54,7 @@ class JinjaManager(object):
             line2br=self.line2br_filter,
             text2html=self.text2html_filter,
             kform=self.kform_filter,
-            kfiled=self.kfield_filter,
+            kfield=self.kfield_filter,
             kform_inline=self.kform_inline_filter,
             kfield_inline=self.kfield_inline_filter,
             alert=self.alert_filter,
@@ -72,50 +72,46 @@ class JinjaManager(object):
     def text2html_filter(self, text):
         return markup(text2html(text))
 
-    def kform_filter(self, form, label=3):
-        label_class = 'control-label col-sm-%d' % label
-        field_div = '<div class="col-sm-%d">' % (12 - label)
+    def kform_filter(self, form, **kwargs):
         out = []
         for field in form:
-            if field.type not in['CSRFTokenField', 'HiddenField']:
-                out.append('<div class="form-group">')
-                out.append(field.label(class_=label_class))
-                out.append(field_div)
-                if field.type == 'KRadioField':
-                    out.append(field(sub_class='radio-inline'))
-                elif field.type == 'KCheckboxField':
-                    out.append(field(sub_class='checkbox-inline'))
-                else:
-                    if hasattr(field, 'addon'):
-                        out.append('<div class="input-group">')
-                        out.append(field(class_='form-control', data_label=field.label.text))
-                        out.append('<span class="input-group-addon">%s</span>' % field.addon)
-                        out.append('</div>')
-                    else:
-                        out.append(field(class_='form-control', data_label=field.label.text))
-                out.append('</div></div>')
-            else:
-                out.append(field())
+            out.append(self.kfield_filter(field, **kwargs))
         return markup(''.join(out))
 
     def kfield_filter(self, field, **kwargs):
+        label = kwargs.pop('label', 3)
+        grid = kwargs.pop('grid', 'sm')
+        _class = kwargs.pop('_class', 'form-group')
+        error = kwargs.pop('error', True)
+        label_class = 'control-label col-%s-%d' % (grid, label)
         out = []
-        if field.type in ['CSRFTokenField', 'HiddenField']:
-            out.append(field(**kwargs))
-        else:
-            kwargs.setdefault('class_', 'form-control')
-            kwargs.setdefault('data_label', field.label.text)
-            out.append('<div class="form-group">')
-            out.append(field.label(class_='control-label'))
-            if hasattr(field, 'addon'):
-                out.append('<div class="input-group">')
-                out.append(field(**kwargs))
-                out.append('<span class="input-group-addon">%s</span>' % field.addon)
-                out.append('</div>')
+        if field.type not in['CSRFTokenField', 'HiddenField']:
+            out.append('<div class="%s">' % _class)
+            out.append(field.label(class_=label_class))
+            if field.type == 'KRadioField':
+                field_div = '<div class="col-%s-%d radio-line">' % (grid, (12 - label))
+                out.append(field_div)
+                out.append(field(sub_class='radio-inline', class_="radio-line"))
+            elif field.type == 'KCheckboxField':
+                field_div = '<div class="col-%s-%d checkbox-line">' % (grid, (12 - label))
+                out.append(field_div)
+                out.append(field(sub_class='checkbox-inline', class_="checkbox-line"))
             else:
-                out.append(field(**kwargs))
-            out.append('</div>')
-        return markup(''.join(out)) 
+                field_div = '<div class="col-%s-%d">' % (grid, (12 - label))
+                out.append(field_div)
+                if hasattr(field, 'addon'):
+                    out.append('<div class="input-group">')
+                    out.append(field(class_='form-control', data_label=field.label.text))
+                    out.append('<span class="input-group-addon">%s</span>' % field.addon)
+                    out.append('</div>')
+                else:
+                    out.append(field(class_='form-control', data_label=field.label.text))
+            if error and field.errors:
+                out.append('<div class="error-msg">%s</div>' % field.errors[0])
+            out.append('</div><div class="clearfix"></div></div>')
+        else:
+            out.append(field())
+        return markup(''.join(out))
 
     def kform_inline_filter(self, form):
         out = []

@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import time
 from chiki.base import db
 from chiki.utils import today
 from datetime import datetime
@@ -182,6 +183,7 @@ class ShareItem(db.EmbeddedDocument):
 class StatLog(db.Document):
     key = db.StringField(verbose_name='KEY')
     tid = db.StringField(verbose_name='TID')
+    label = db.StringField(verbose_name='标签')
     day = db.StringField(verbose_name='日期')
     hour = db.IntField(default=0, verbose_name='小时')
     value = db.IntField(default=0, verbose_name='结果')
@@ -223,6 +225,19 @@ class StatLog(db.Document):
         if save:
             StatLog(key=key, tid=tid, day=day, hour=0, value=default).save()
         return default
+
+    @staticmethod
+    def date_inc(key, tid='', label='', value=1, day=None):
+        day = time.strftime('%Y-%m-%d') if not day else day
+        doc = {'$inc':{'value':value}, '$set':{'modified':datetime.now()}, '$setOnInsert':{'created': datetime.now()}}
+        log = StatLog.objects(key=str(key), tid=tid, label=label, day=day, hour=-1).update_one(__raw__=doc, upsert=True)
+        return StatLog.date_get(key, tid=tid, label=label, day=day)
+
+    @staticmethod
+    def date_get(key, tid='', label='', day=None):
+        day = time.strftime('%Y-%m-%d') if not day else day
+        log = StatLog.objects(key=str(key), tid=tid, label=label, day=day, hour=-1).first()
+        return log.value if log else 0
 
 
 class TraceLog(db.Document):

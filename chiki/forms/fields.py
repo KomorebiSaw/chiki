@@ -4,9 +4,9 @@ from datetime import datetime
 from flask import current_app
 from flask.ext.admin.model.fields import InlineFieldList
 from flask.ext.mongoengine.wtf.fields import ModelSelectMultipleField as _ModelSelectMultipleField
-from wtforms.fields import Field, StringField, SelectField, DateTimeField, TextAreaField
+from wtforms.fields import Field, StringField, SelectField, SelectMultipleField, DateTimeField, TextAreaField
 from wtforms.fields import FileField as _FileField
-from wtforms.widgets import RadioInput
+from wtforms.widgets import RadioInput, CheckboxInput
 from wtforms.validators import ValidationError
 from wtforms.utils import unset_value
 from .widgets import VerifyCode, UEditor, KListWidget
@@ -15,7 +15,7 @@ from ..verify import get_verify_code, validate_code
 from ..mongoengine.fields import FileProxy
 
 __all__ = [
-    'VerifyCodeField', 'KDateField', 'KRadioField', 'UEditorField',
+    'VerifyCodeField', 'KDateField', 'KRadioField', 'KCheckboxField', 'UEditorField',
     'FileField', 'ImageField', 'AreaField', 'ListField',
     'ModelSelectMultipleField', 'WangEditorField',
 ]
@@ -72,6 +72,11 @@ class VerifyCodeField(Field):
 class KRadioField(SelectField):
     widget = KListWidget(html_tag='div', sub_tag='label', prefix_label=False)
     option_widget = RadioInput()
+
+
+class KCheckboxField(SelectMultipleField):
+    widget = KListWidget(html_tag='div', sub_tag='label', prefix_label=False)
+    option_widget = CheckboxInput()
 
 
 class KDateField(DateTimeField):
@@ -178,6 +183,7 @@ class ImageField(FileField):
 class AreaField(Field):
 
     widget = AreaInput()
+    defaults = dict(province=u'省份', city=u'城市', county=u'县/区')
 
     def process(self, formdata, data=unset_value):
         self.process_errors = []
@@ -199,7 +205,7 @@ class AreaField(Field):
             for field in ['province', 'city', 'county']:
                 name = '%s_%s' % (self.name, field)
                 data = formdata.get(name, '').strip()
-                if data:
+                if data.strip() and data != self.defaults.get(field):
                     area.append(data)
             if len(area) == 3:
                 self.data = '|'.join(area)

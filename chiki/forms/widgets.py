@@ -50,12 +50,12 @@ class UEditor(object):
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
         kwargs.setdefault('type', 'text/plain')
-        kwargs.setdefault('style', 'width:99%;height:360px;')
+        kwargs.setdefault('style', 'margin-right:-10px;height:360px;')
         kwargs['class'] = ''
         return HTMLString(
-            '<script %s>%s</script><script>var um = UM.getEditor("%s");</script>' % (
-                self.html_params(name=field.name, **kwargs), 
-                text_type(field._value()), 
+            '<script %s>%s</script><script>var ue = UE.getEditor("%s");</script>' % (
+                self.html_params(name=field.name, **kwargs),
+                text_type(field._value()),
                 field.name,
             )
         )
@@ -68,15 +68,15 @@ class MDEditor(object):
     def __call__(self, field, **kwargs):
         return HTMLString(
             '<script %s>%s</script><script>var um = UM.getEditor("%s");</script>' % (
-                self.html_params(name=field.name, **kwargs), 
-                text_type(field._value()), 
+                self.html_params(name=field.name, **kwargs),
+                text_type(field._value()),
                 field.name,
             )
         )
 
 
 class KListWidget(object):
-    
+
     def __init__(self, html_tag='ul', sub_tag='li', sub_startswith='sub_', prefix_label=True):
         self.html_tag = html_tag
         self.sub_tag = sub_tag
@@ -159,10 +159,11 @@ class ImageInput(object):
 class AreaInput(object):
 
     template = (
-        '<div class="col-xs-4" style="padding: 0 8px 0 0;"><select %s></select></div>'
+        '<div %s><div class="col-xs-4" style="padding: 0 8px 0 0;"><select %s></select></div>'
         '<div class="col-xs-4" style="padding: 0 8px"><select %s></select></div>'
         '<div class="col-xs-4" style="padding: 0 0 0 8px;"><select %s></select></div>'
         '<script type="text/javascript">area.init("%s", "%s", "%s", "%s")</script>'
+        '<div class="clearfix"></div></div>'
     )
 
     def __call__(self, field, **kwargs):
@@ -175,6 +176,7 @@ class AreaInput(object):
         city_name = '%s_city' % field.name
         county_name = '%s_county' % field.name
         return HTMLString(self.template % (
+            html_params(id=field.name),
             html_params(id=province_name, name=province_name, **kwargs),
             html_params(id=city_name, name=city_name, **kwargs),
             html_params(id=county_name, name=county_name, **kwargs),
