@@ -190,7 +190,10 @@ class WangEditor(TextArea):
         kwargs.setdefault('style', 'height:480px;')
         script = """<script type="text/javascript">
             $(function() {
-                var editor = $('#%s').wangEditor();
+                var editor = $('#%s').wangEditor({
+                    uploadImgComponent: $('#uploadContainer'),
+                });
+                window.WEditor = editor;
             });
         </script>""" % field.name
         return super(WangEditor, self).__call__(field, **kwargs) + script
