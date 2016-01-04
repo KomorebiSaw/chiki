@@ -64,7 +64,7 @@ class WXAuth(object):
         app.jssdk = JSSDK(app)
 
     def quote(self, **kwargs):
-        return dict((x, quote(y)) for x, y in kwargs.iteritems())
+        return dict((x, quote(y.encode('utf-8') if type(y) is unicode else y)) for x, y in kwargs.iteritems())
 
     def get_access_url(self, action, code):
         config = self.config.get(action)

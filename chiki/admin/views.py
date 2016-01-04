@@ -230,4 +230,6 @@ class IndexView(AdminIndexView):
 
     @expose('/')
     def index(self):
-        return redirect(current_app.config.get('INDEX_REDIRECT'))
+        if current_app.config.get('INDEX_REDIRECT') != '/admin/':
+            return redirect(current_app.config.get('INDEX_REDIRECT'))
+        return self.render('base.html')
