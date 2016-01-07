@@ -25,6 +25,9 @@
             table th.col-hidden { display:none; }
         }
     {% endif %}
+    {% if admin_view.css %}
+        {{ admin_view.css | safe }}
+    {% endif %}
     </style>
 {% endblock %}
 
