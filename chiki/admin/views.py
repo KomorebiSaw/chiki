@@ -4,6 +4,7 @@ from flask import current_app, redirect, flash
 from flask.ext.admin import AdminIndexView, expose
 from flask.ext.admin.actions import action
 from flask.ext.admin.babel import gettext, ngettext, lazy_gettext
+from flask.ext.admin.base import BaseView
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.mongoengine.helpers import format_error
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
@@ -19,6 +20,35 @@ from ..mongoengine.fields import FileProxy, ImageProxy
 __all__ = [
     "ModelView", "SModelView", "IndexView",
 ]
+
+old_create_blueprint = BaseView.create_blueprint
+
+
+def create_blueprint(self, admin):
+    self.admin = admin
+    if not self.static_url_path:
+        self.static_url_path = admin.static_url_path
+    if self.url is None:
+        if self.admin.url != '/':
+            self.url = '%s/%s' % (self.admin.url, self.endpoint)
+        else:
+            if self == admin.index_view:
+                self.url = '/'
+            else:
+                self.url = '/%s' % self.endpoint
+    else:
+        if not self.url.startswith('/'):
+            self.url = '%s/%s' % (self.admin.url, self.url)
+    if self.url == '/':
+        self.url = None
+        if not self.static_url_path:
+            root = os.path.dirname(os.path.dirname(__file__))
+            self.static_folder = os.path.abspath(os.path.join(root, 'static'))
+            self.static_url_path = '/static/admin'
+    return old_create_blueprint(self, admin)
+
+
+BaseView.create_blueprint = create_blueprint
 
 
 class ModelView(_ModelView):

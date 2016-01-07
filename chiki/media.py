@@ -17,9 +17,9 @@ class MediaManager(object):
         self.hash = {}
         self.ie8 = ['ie8.min.js']
         self.ie8x = [
-            'libs/html5shiv.js', 
-            'libs/respond.src.js', 
-            'libs/respond.matchmedia.addListener.src.js',
+            'bower_components/html5shiv/dist/html5shiv.js',
+            'bower_components/respond/dest/respond.src.js',
+            'bower_components/respond/dest/respond.matchmedia.addListener.src.js',
         ]
         self.add(**options)
         if app is not None:
