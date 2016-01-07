@@ -40,6 +40,9 @@ BaseView.create_blueprint = create_blueprint
 class ModelView(_ModelView):
 
     page_size = 50
+    can_view_details = True
+    details_modal = True
+    edit_modal = True
     model_form_converter = KModelConverter
     filter_converter = KFilterConverter()
 

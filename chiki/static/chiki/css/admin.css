@@ -190,7 +190,7 @@ body {
         display: none;
     }
 
-    .pagination, hr + .form-group {
+    .pagination, .page-form hr + .form-group {
         position: fixed;
         background: #fff;
         left: 200px;
@@ -206,7 +206,7 @@ body {
     .sm .nav-menu-bar,
     .sm #page-wrapper, 
     .sm .pagination, 
-    .sm hr + .form-group {
+    .sm .page-form hr + .form-group {
         left: 120px;
     }
 }

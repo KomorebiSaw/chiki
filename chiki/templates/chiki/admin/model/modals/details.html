@@ -11,7 +11,7 @@
 
   <div class="modal-body">
   {% block details_search %}
-    <div class="input-group fa_filter_container col-lg-6">
+    <div class="input-group fa_filter_container">
       <span class="input-group-addon">{{ _gettext('Filter') }}</span>
       <input id="fa_filter" type="text" class="form-control">
     </div>
@@ -21,10 +21,10 @@
     <table class="table table-hover table-bordered searchable">
     {% for c, name in details_columns %}
       <tr>
-        <td>
+        <td style="min-width:80px;text-align:center;">
           <b>{{ name }}</b>
         </td>
-        <td>
+        <td style="min-width:600px;">
         {{ get_value(model, c) }}
         </td>
       </tr>

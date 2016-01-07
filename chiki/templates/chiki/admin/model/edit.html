@@ -27,7 +27,9 @@
 {% endblock %}
 
 {% block body %}
-  {{ lib.render_form(form, return_url, extra(), form_opts) }}
+  <div class="page-form">
+    {{ lib.render_form(form, return_url, extra(), form_opts) }}
+  </div>
 {% endblock %}
 
 {% block tail %}
