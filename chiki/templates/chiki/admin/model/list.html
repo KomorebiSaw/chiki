@@ -15,6 +15,16 @@
         {% endfor %}
         .col-center { text-align: center; }
     {% endif %}
+    {% if admin_view.column_hidden_list %}
+        @media(max-width: 1500px) {
+            {% for column in admin_view.column_hidden_list %}
+                table td.col-{{ column }},
+                table th.col-{{ column }},
+            {% endfor %}
+            table td.col-hidden,
+            table th.col-hidden { display:none; }
+        }
+    {% endif %}
     </style>
 {% endblock %}
 
