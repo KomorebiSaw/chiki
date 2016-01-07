@@ -1,4 +1,5 @@
 # coding: utf-8
+import os
 from datetime import datetime
 from flask import current_app, redirect, flash
 from flask.ext.admin import AdminIndexView, expose
@@ -25,26 +26,11 @@ old_create_blueprint = BaseView.create_blueprint
 
 
 def create_blueprint(self, admin):
-    self.admin = admin
-    if not self.static_url_path:
-        self.static_url_path = admin.static_url_path
-    if self.url is None:
-        if self.admin.url != '/':
-            self.url = '%s/%s' % (self.admin.url, self.endpoint)
-        else:
-            if self == admin.index_view:
-                self.url = '/'
-            else:
-                self.url = '/%s' % self.endpoint
-    else:
-        if not self.url.startswith('/'):
-            self.url = '%s/%s' % (self.admin.url, self.url)
-    if self.url == '/':
-        self.url = None
-        if not self.static_url_path:
-            root = os.path.dirname(os.path.dirname(__file__))
-            self.static_folder = os.path.abspath(os.path.join(root, 'static'))
-            self.static_url_path = '/static/admin'
+    if self.static_folder == 'static':
+        root = os.path.dirname(os.path.dirname(__file__))
+        self.static_folder = os.path.abspath(os.path.join(root, 'static'))
+        print self.static_folder
+        self.static_url_path = '/static/admin'
     return old_create_blueprint(self, admin)
 
 
