@@ -21,10 +21,10 @@
     <table class="table table-hover table-bordered searchable">
     {% for c, name in details_columns %}
       <tr>
-        <td style="min-width:75%;text-align:center;">
+        <td style="min-width:80px;max-width:25%;text-align:center;">
           <b>{{ name }}</b>
         </td>
-        <td style="min-width:600px;">
+        <td style="min-width:75%;">
         {{ get_value(model, c) }}
         </td>
       </tr>
