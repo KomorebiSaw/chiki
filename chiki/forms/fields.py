@@ -62,7 +62,7 @@ class VerifyCodeField(Field):
 
         if self.times >= self.invalid_times:
             self._refresh = True
-            self.code, self.times = get_verify_code(self.key, 
+            self.code, self.times = get_verify_code(self.key,
                 refresh=True, code_len=self.code_len)
             self.errors.append(u'验证码已失效')
 

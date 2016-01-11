@@ -1,12 +1,15 @@
 # coding: utf-8
-from chiki import AttrDict
+from chiki import AttrDict, init_verify
 from chiki.base import db
-from . import admin, apis, forms, models, views
-from .base import user_manager
+from chiki.contrib.users import admin, apis, forms, funcs, models, oauth, views
+from chiki.contrib.users.base import user_manager
+from flask.ext.login import LoginManager
 
 __all__ = [
-    'user_manager', 'UserManager',
+    'user_manager', 'um', 'UserManager',
 ]
+
+um = user_manager
 
 
 class UserManager(object):
@@ -17,17 +20,37 @@ class UserManager(object):
         self.forms = AttrDict()
         self.funcs = AttrDict()
         self.config = AttrDict()
+        self.tpls = AttrDict()
         self.init_models()
         self.init_forms()
         self.init_funcs()
+        self.init_tpls()
         if app:
             self.init_app(app)
 
     def init_app(self, app):
         self.app = app
         app.user_manager = self
+        self.init_login()
         self.init_config()
         self.init_resources()
+        self.init_oauth()
+        init_verify(app)
+
+    def init_login(self):
+        self.login = LoginManager(self.app)
+        self.login.login_view = '/users/login'
+
+        @self.login.user_loader
+        def load_user(id):
+            if type(id) == str:
+                if id.startswith('wechat:'):
+                    return um.models.WeChatUser.objects(id=id.split(':')[-1]).first()
+                elif id.startswith('qq:'):
+                    return um.models.QQUser.objects(id=id.split(':')[-1]).first()
+                elif id.startswith('weibo:'):
+                    return um.models.WeiBoUser.objects(id=id.split(':')[-1]).first()
+            return um.models.User.objects(id=id).first()
 
     def init_config(self):
         config = self.app.config.get('CHIKI_USER', {})
@@ -37,6 +60,12 @@ class UserManager(object):
         self.config.reset_password_auto_login = config.get('reset_password_auto_login', True)
         self.config.include_apis = config.get('include_apis', {})
         self.config.exclude_apis = config.get('exclude_apis', {})
+        self.config.allow_oauth_urls = config.get('allow_oauth_urls',
+            ['users.bind', 'bindphone', 'bindemail' 'bindauto', 'static'])
+        self.config.oauth_model = config.get('oauth_model', 'select')
+        self.config.oauth_remember = config.get('oauth_remeber', True)
+        self.config.bind_url = config.get('bind_url', '/users/bind.html')
+        self.config.login_next = config.get('login_next', '/')
 
     def init_models(self):
         for key in models.__all__:
@@ -49,11 +78,20 @@ class UserManager(object):
                 self.forms[key] = getattr(forms, key)
 
     def init_funcs(self):
-        for key in apis.__all__:
-            if key not in self.funcs:
-                func = getattr(apis, key)
-                if callable(func):
-                    self.funcs[key] = func
+        for module in [apis, funcs, oauth]:
+            for key in module.__all__:
+                if key not in self.funcs:
+                    func = getattr(module, key)
+                    if callable(func):
+                        self.funcs[key] = func
+
+    def init_tpls(self):
+        self.tpls.login = 'users/login.html'
+        self.tpls.register = 'users/register.html'
+        self.tpls.register_email = 'users/register_email.html'
+        self.tpls.reset_password = 'users/reset_password.html'
+        self.tpls.reset_password_email = 'users/reset_password_email.html'
+        self.tpls.bind = 'users/bind.html'
 
     def init_resources(self):
         for key in apis.resources:
@@ -61,6 +99,9 @@ class UserManager(object):
                     and key not in self.config.exclude_apis \
                     and (not self.config.include_apis or key in self.config.include_apis):
                 self.apis[key] = apis.resources.get(key)
+
+    def init_oauth(self):
+        self.funcs.init_oauth(self.app)
 
     def add_model(self, model):
         self.models[model.__name__] = model
@@ -82,11 +123,20 @@ class UserManager(object):
     def init_apis(self, api):
         for cls, args, kwargs in self.apis.itervalues():
             _web = kwargs.pop('_web', False)
-            api.add_resource(cls, *args, **kwargs)
+            _api = kwargs.pop('_api', True)
+            if _api == True:
+                api.add_resource(cls, *args, **kwargs)
             kwargs['_web'] = _web
+            kwargs['_api'] = _api
 
     def init_wapis(self, api):
         for cls, args, kwargs in self.apis.itervalues():
             _web = kwargs.pop('_web', False)
-            api.add_resource(cls, *args, **kwargs)
+            _api = kwargs.pop('_api', True)
+            if _web == True:
+                api.add_resource(cls, *args, **kwargs)
             kwargs['_web'] = _web
+            kwargs['_api'] = _api
+
+    def init_web(self):
+        self.app.register_blueprint(views.bp, url_prefix='/users')

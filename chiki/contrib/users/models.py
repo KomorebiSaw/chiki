@@ -1,9 +1,13 @@
 # coding: utf-8
+import hashlib
 import random
+from chiki import get_ip, get_spm, get_channel
 from chiki.base import db
 from chiki.utils import get_spm, get_ip
+from chiki.contrib.common import Item
+from chiki.contrib.users.base import user_manager as um
 from datetime import datetime, timedelta
-from flask import current_app
+from flask import current_app, request
 
 __all__ = [
     'User', 'WeChatUser', 'QQUser', 'WeiBoUser',
@@ -23,6 +27,7 @@ class User(db.Document):
         (SEX_FEMALE, '女'),
     )
     SEX_VALUES = [x[0] for x in SEX_CHOICES]
+    SEX_FROM_WECHAT = {0: SEX_UNKNOWN, 1: SEX_MALE, 2: SEX_FEMALE}
 
     id = db.IntField(primary_key=True, verbose_name='ID')
     phone = db.StringField(max_length=20, verbose_name='手机')
@@ -55,8 +60,38 @@ class User(db.Document):
         ],
     }
 
+    @staticmethod
+    def create_empty():
+        return User(channel=get_channel(), spm=get_spm(), ip=get_ip())
+
+    @staticmethod
+    def from_oauth(user):
+        user.oauth()
+
+    @staticmethod
+    def from_wechat(wxuser):
+        user = create_empty()
+        user.nickname = wxuser.nickname
+        self.avatar = url2image(wxuser.headimgurl)
+        self.sex = self.SEX_FROM_WECHAT.get(wxuser.sex, self.SEX_UNKNOWN)
+        self.country = wxuser.country
+        self.location = '%s|%s' % (wxuser.province, wxuser.city)
+        user.create()
+
+    @staticmethod
+    def from_qq(ouser):
+        pass
+
+    @staticmethod
+    def from_weibo(ouser):
+        pass
+
     def __unicode__(self):
         return '%s - %s' % (self.phone, self.id)
+
+    @property
+    def is_lock(self):
+        return self.locked > datetime.now() - timedelta(seconds=300)
 
     @property
     def avatar_small(self):
@@ -142,6 +177,7 @@ class WeChatUser(db.Document):
     access_token = db.StringField(verbose_name='令牌')
     expires_in = db.DateTimeField(verbose_name='过期时间')
     refresh_token = db.StringField(verbose_name='令牌刷新')
+    updated = db.DateTimeField(default=datetime.now, verbose_name='更新时间')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
@@ -159,6 +195,42 @@ class WeChatUser(db.Document):
 
     def __unicode__(self):
         return 'WeChat %d - %s' % (self.user or 0, self.unionid)
+
+    @staticmethod
+    def create(userinfo, action):
+        user = WeChatUser()
+        if current_user.is_authenticated() and current_user.is_user():
+            user.user = current_user.id
+
+        user.update_info(userinfo, action)
+        user.save()
+        return user
+
+    def oauth(self):
+        User.from_wechat(self)
+
+    def update(self, force=False):
+        if force or self.updated + timedelta(days=1) < datetime.now():
+            self.updated = datetime.now()
+            self.update_info(current_app.wxauth.get_user_info(self.mp_openid), 'mp')
+            self.save()
+
+    def update_info(self, userinfo, action):
+        setattr(self, action + '_openid', userinfo['openid'])
+        self.unionid = userinfo.get('unionid', '')
+        self.nickname = userinfo['nickname']
+        self.sex = userinfo['sex']
+        self.province = userinfo['province']
+        self.city = userinfo['city']
+        self.country = userinfo['country']
+        self.headimgurl = userinfo['headimgurl']
+        self.privilege = userinfo.get('privilege', self.privilege)
+        if userinfo.get('subscribe') == 1:
+            self.remark = userinfo['remark']
+            self.language = userinfo['language']
+            self.groupid = userinfo['groupid']
+            self.subscribe = True
+            self.subscribe_time = datetime.fromtimestamp(userinfo['subscribe_time'])
 
     def is_user(self):
         return False
@@ -214,6 +286,9 @@ class QQUser(db.Document):
     def __unicode__(self):
         return 'QQ %d - %s' % (self.user or 0, self.openid)
 
+    def oauth(self):
+        User.from_qq(self)
+
     def is_user(self):
         return False
 
@@ -267,6 +342,9 @@ class WeiBoUser(db.Document):
 
     def __unicode__(self):
         return 'WeiBo %d - %d' % (self.user or 0, self.uid)
+
+    def oauth(self):
+        User.from_weibo(self)
 
     def is_user(self):
         return False
@@ -334,27 +412,27 @@ class UserLog(db.Document):
 
     @staticmethod
     def bind(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_BIND, id, device, spm, ip)
+        UserLog.log(UserLog.TYPE_BIND, id, device, key, spm, ip)
 
     @staticmethod
     def register(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_REGISTER, id, device, spm, ip)
+        UserLog.log(UserLog.TYPE_REGISTER, id, device, key, spm, ip)
 
     @staticmethod
     def login(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_LOGIN, id, device, spm, ip)
+        UserLog.log(UserLog.TYPE_LOGIN, id, device, key, spm, ip)
 
     @staticmethod
     def logout(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_LOGOUT, id, device, spm, ip)
+        UserLog.log(UserLog.TYPE_LOGOUT, id, device, key, spm, ip)
 
     @staticmethod
     def change_password(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_CHNAGE_PASSWORD, id, device, spm, ip)
+        UserLog.log(UserLog.TYPE_CHNAGE_PASSWORD, id, device, key, spm, ip)
 
     @staticmethod
     def reset_password(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_RESET_PASSWORD, id, device, spm, ip)
+        UserLog.log(UserLog.TYPE_RESET_PASSWORD, id, device, key, spm, ip)
 
 
 class PhoneCode(db.Document):
@@ -369,22 +447,24 @@ class PhoneCode(db.Document):
         (ACTION_RESET_PASSWORD, '重置密码'),
     )
     ACTION_VALUES = [x[0] for x in ACTION_CHOICES]
+    REGISTERED_ACTIONS = (ACTION_REGISTER,)
+    UNREGISTERED_ACTIONS = (ACTION_RESET_PASSWORD,)
 
     phone = db.StringField(max_length=20, verbose_name='手机')
-    type = db.StringField(choices=ACTION_CHOICES, verbose_name='类型')
+    action = db.StringField(choices=ACTION_CHOICES, verbose_name='类型')
     code = db.StringField(max_length=40, verbose_name='验证码')
     error = db.IntField(default=0, verbose_name='错误次数')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = {
         'indexes': [
-            ('phone', 'type'),
+            ('phone', 'action'),
             '-created',
         ],
     }
 
     def __unicode__(self):
-        return '<%s - %s>' % (self.phone, self.type)
+        return '<%s - %s>' % (self.phone, self.action)
 
     @property
     def timelimit(self):
@@ -394,10 +474,18 @@ class PhoneCode(db.Document):
     def timeout(self):
         return datetime.now() > self.created + timedelta(seconds=1800)
 
-    def make_code(self):
+    @property
+    def registered(self):
+        User = um.models.User
+        return User.objects(phone=self.phone).count() > 0
+
+    def make(self):
         self.created = datetime.now()
         self.code = str(random.randint(1000, 9999))
         self.save()
+
+    def send(self):
+        um.funcs.send_sms(self)
 
     def access(self):
         self.error += 1
@@ -416,22 +504,29 @@ class EmailCode(db.Document):
         (ACTION_RESET_PASSWORD, '重置密码'),
     )
     ACTION_VALUES = [x[0] for x in ACTION_CHOICES]
+    REGISTERED_ACTIONS = (ACTION_REGISTER,)
+    UNREGISTERED_ACTIONS = (ACTION_RESET_PASSWORD,)
 
-    email = db.StringField(max_length=40, verbose_name='手机')
-    type = db.StringField(choices=ACTION_CHOICES, verbose_name='类型')
+    email = db.StringField(max_length=40, verbose_name='邮箱')
+    action = db.StringField(choices=ACTION_CHOICES, verbose_name='类型')
     code = db.StringField(max_length=40, verbose_name='验证码')
+    token = db.StringField(max_length=40, verbose_name='令牌')
     error = db.IntField(default=0, verbose_name='错误次数')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = {
         'indexes': [
-            ('email', 'type'),
+            ('email', 'action'),
             '-created',
         ],
     }
 
     def __unicode__(self):
-        return '<%s - %s>' % (self.phone, self.type)
+        return '<%s - %s>' % (self.phone, self.action)
+
+    @staticmethod
+    def get(token):
+        return EmailCode.objects(token=token).first()
 
     @property
     def timelimit(self):
@@ -441,10 +536,19 @@ class EmailCode(db.Document):
     def timeout(self):
         return datetime.now() > self.created + timedelta(seconds=1800)
 
-    def make_code(self):
+    @property
+    def registered(self):
+        User = um.models.User
+        return User.objects(email=self.email).count() > 0
+
+    def make(self):
         self.created = datetime.now()
         self.code = str(random.randint(1000, 9999))
+        self.token = hashlib.md5('%s%s%s' % (self.email, self.code, str(self.created))).hexdigest()
         self.save()
+
+    def send(self):
+        um.funcs.send_mail(self)
 
     def access(self):
         self.error += 1

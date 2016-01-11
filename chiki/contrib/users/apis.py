@@ -1,9 +1,11 @@
 # coding: utf-8
+import re
 from chiki import get_ip, get_spm, get_channel, condom
 from chiki.api import success, Resource
 from chiki.api.const import *
 from chiki.base import db
 from chiki.contrib.users.base import user_manager as um
+from chiki.verify import get_verify_code, validate_code
 from datetime import datetime
 from flask import current_app, request
 from flask.ext.login import current_user, login_required
@@ -32,6 +34,18 @@ def resource(*args, **kwargs):
     return wrapper
 
 
+def get_email_url(email):
+    urls = {
+        'qq.com': 'http://mail.qq.com/',
+        '163.com': 'http://reg.163.com/',
+    }
+    domain = email.split('@')[-1]
+    for key, url in urls.iteritems():
+        if key == domain:
+            return url
+    return 'http://www.%s/' % domain
+
+
 def auth_phone_code(phone, code, action):
     """ 校验手机验证码 """
     if not code:
@@ -41,7 +55,7 @@ def auth_phone_code(phone, code, action):
     item = PhoneCode.objects(phone=phone, action=action).first()
     if not item:
         abort(PHONE_CODE_ERROR)
-    elif item.code != code or item.error > 10:
+    elif item.code != code or item.error >= 10:
         item.access()
         abort(PHONE_CODE_ERROR)
     elif item.timeout:
@@ -54,10 +68,10 @@ def auth_email_code(email, code, action):
         abort(EMAIL_CODE_NOT_NULL)
 
     EmailCode = um.models.EmailCode
-    item = PhoneCode.objects(email=email, action=action).first()
+    item = EmailCode.objects(email=email, action=action).first()
     if not item:
         abort(EMAIL_CODE_ERROR)
-    elif item.code != code or item.error > 10:
+    elif item.code != code or item.error >= 10:
         item.access()
         abort(EMAIL_CODE_ERROR)
     elif item.timeout:
@@ -95,7 +109,7 @@ def validate_phone_code(args, action):
 def userinfo(user):
     info = dict(
         id=user.id,
-        phone='%s****%s' % (user.phone[:3], user.phone[7:]),
+        phone='%s****%s' % (user.phone[:3], user.phone[7:]) if user.phone else '',
         email=user.email or '',
         nickname=user.nickname or '',
         avatar=user.avatar.get_link(64, 64),
@@ -110,8 +124,8 @@ def userinfo(user):
     return info
 
 
-def login(user, device='', key=''):
-    login_user(user, remember=True)
+def login(user, device='', key='', remember=True):
+    login_user(user, remember=remember)
     user.login()
     um.models.UserLog.login(user.id, device, key)
     return success(**um.funcs.userinfo(user))
@@ -130,6 +144,15 @@ class SendPhoneCode(Resource):
         action = request.args.get('action')
         args = self.get_args()
         self.validate(action, args)
+
+        if current_app.is_web:
+            verify_code = request.form.get('verify_code')
+            code_len = current_app.config.get('VERIFY_CODE_LEN', 4)
+            key = 'users_' + action + '_phone'
+            code, times = get_verify_code(key, code_len=code_len)
+            if code.lower() != verify_code.lower():
+                validate_code(key)
+                abort(VERIFY_CODE_ERROR, refresh=True)
 
         PhoneCode = um.models.PhoneCode
         code = PhoneCode.objects(phone=args['phone'], action=action).first()
@@ -193,7 +216,7 @@ class SendEmailCode(Resource):
         code.save()
         code.send()
 
-        return success()
+        return success(email_url=get_email_url(code.email))
 
     def validate(self, action, args):
         PhoneCode = um.models.PhoneCode
@@ -283,7 +306,7 @@ class Register(Resource):
         raise NotImplemented
 
 
-@resource('/users/register/phone')
+@resource('/users/register/phone', _web=True)
 class RegisterPhone(Register):
     """ 手机注册 """
 
@@ -310,7 +333,7 @@ class RegisterPhone(Register):
             abort(PHONE_EXISTS)
 
 
-@resource('/users/register/email')
+@resource('/users/register/email', _web=True)
 class RegisterEmail(Register):
     """ 邮箱注册 """
 
@@ -332,12 +355,12 @@ class RegisterEmail(Register):
         return user
 
     def validate(self, args):
-        validate_phone_code(args, um.models.EmailCode.ACTION_REGISTER)
+        validate_email_code(args, um.models.EmailCode.ACTION_REGISTER)
         if um.models.User.objects(email=args['email']).count() > 0:
             abort(EMAIL_EXISTS)
 
 
-@resource('/users/login')
+@resource('/users/login', _web=True)
 class Login(Resource):
     """ 用户登录 """
 
@@ -346,6 +369,7 @@ class Login(Resource):
         self.req.add_argument('account', type=unicode, required=True)
         self.req.add_argument('password', type=unicode, required=True)
         self.req.add_argument('device', type=unicode, default='')
+        self.req.add_argument('remember', type=bool, default=False)
         self.not_strips = ('password', )
 
     def get(self):
@@ -358,7 +382,7 @@ class Login(Resource):
         doc = db.Q(phone=args['account']) | db.Q(email=args['account'])
         user = um.models.User.objects(doc).first()
         if not user:
-            abort(ACCCOUNT_NOT_EXISTS)
+            abort(ACCOUNT_NOT_EXISTS)
         if user.is_lock:
             abort(ACCOUNT_LOCKED)
         if user.password != args['password']:
@@ -369,7 +393,7 @@ class Login(Resource):
 
     def success(self, user, args):
         key = 'phone' if user.phone == args['account'] else 'email'
-        return um.funcs.login(user, device=args['device'], key=key)
+        return um.funcs.login(user, device=args['device'], key=key, remember=args['remember'])
 
     def validate(self, args):
         if not args['account']:
@@ -432,8 +456,8 @@ class ResetPassword(Resource):
         raise NotImplementedError
 
 
-@resource('/users/reset_password/phone')
-class ResetPasswordPhone(Resource):
+@resource('/users/reset_password/phone', _web=True)
+class ResetPasswordPhone(ResetPassword):
     """ 手机重置密码 """
 
     key = 'phone'
@@ -449,8 +473,8 @@ class ResetPasswordPhone(Resource):
         validate_phone_code(args, um.models.PhoneCode.ACTION_RESET_PASSWORD)
 
 
-@resource('/users/reset_password/email')
-class ResetPasswordEmail(Resource):
+@resource('/users/reset_password/email', _web=True)
+class ResetPasswordEmail(ResetPassword):
     """ 邮箱重置密码 """
 
     key = 'email'
@@ -480,8 +504,11 @@ class Bind(Resource):
 
     @login_required
     def post(self):
-        if current_user.is_user:
+        if current_user.is_user():
             abort(NOT_ALLOW_BIND)
+
+        if current_user.user:
+            abort(BINDED)
 
         args = self.get_args()
         self.validate(args)
@@ -503,8 +530,8 @@ class Bind(Resource):
         raise NotImplemented
 
 
-@resource('/u/bind/phone')
-class BindPhone(Resource):
+@resource('/u/bind/phone', _web=True)
+class BindPhone(Bind):
     """ 绑定手机 """
 
     key = 'phone'
@@ -532,8 +559,8 @@ class BindPhone(Resource):
         validate_phone_code(args, um.models.PhoneCode.ACTION_BIND)
 
 
-@resource('/u/bind/email')
-class BindEmail(Resource):
+@resource('/u/bind/email', _web=True)
+class BindEmail(Bind):
     """ 绑定邮箱 """
 
     key = 'email'
@@ -561,6 +588,40 @@ class BindEmail(Resource):
         validate_email_code(args, um.models.EmailCode.ACTION_BIND)
 
 
+@resource('/u/bind/auto', _web=True)
+class BindAuto(Resource):
+    """ 自动绑定 """
+
+    key = 'auto'
+
+    def add_args(self):
+        super(BindAuto, self).add_args()
+        self.req.add_argument('device', type=unicode, default='')
+
+    @login_required
+    def post(self):
+        if current_user.is_user():
+            abort(NOT_ALLOW_BIND)
+
+        if current_user.user:
+            abort(BINDED)
+
+        if um.config.oauth_model == 'force':
+            abort(NEED_BIND)
+
+        args = self.get_args()
+        self.validate(args)
+        user = um.models.User.from_oauth(current_user)
+        um.models.UserLog.bind(user.id, args['device'], key=self.key)
+        return self.success(user, args)
+
+    def success(self, user, args):
+        return um.funcs.login(user, device=args['device'], key=self.key)
+
+    def validate(self, args):
+        pass
+
+
 @resource('/u')
 class UserInfo(Resource):
     """ 用户信息 """
@@ -580,7 +641,7 @@ class UserInfo(Resource):
 
     @login_required
     def post(self):
-        if not current_user.is_user:
+        if not current_user.is_user():
             abort(NEED_BIND)
 
         args = get_args()

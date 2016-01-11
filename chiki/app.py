@@ -5,6 +5,7 @@ import traceback
 from flask import Blueprint, current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
+from flask.ext.mail import Mail
 from .jinja import init_jinja
 from .logger import init_logger
 from .oauth import init_oauth
@@ -78,7 +79,8 @@ def init_app(init=None, config=None, pyfile=None,
         app.config.from_envvar(app.config['ENVVAR'])
 
     app.static_folder = app.config.get('STATIC_FOLDER')
-    
+    app.mail = Mail(app)
+
     init_babel(app)
     init_redis(app)
     init_jinja(app)
@@ -96,6 +98,10 @@ def init_app(init=None, config=None, pyfile=None,
         def index():
             return redirect(app.config.get('INDEX_REDIRECT'))
 
+    blueprint = Blueprint('chiki', __name__,
+        template_folder=os.path.join(TEMPLATE_ROOT, 'chiki'))
+    app.register_blueprint(blueprint)
+
     if os.environ.get('CHIKI_BACK') == 'true':
         @app.route('/chiki_back')
         def chiki_back():
@@ -106,12 +112,18 @@ def init_app(init=None, config=None, pyfile=None,
 
 def init_web(init=None, config=None, pyfile=None, 
         template_folder='templates', index=False, error=True):
-    return init_app(init, config, pyfile, template_folder, index, error)
+    app = init_app(init, config, pyfile, template_folder, index, error)
+    app.is_web = True
+    app.is_api = False
+    return app
 
 
 def init_api(init=None, config=None, pyfile=None, 
         template_folder='templates', index=False, error=False):
-    return init_app(init, config, pyfile, template_folder, index, error)
+    app = init_app(init, config, pyfile, template_folder, index, error)
+    app.is_web = False
+    app.is_api = True
+    return app
 
 
 def init_admin(init=None, config=None, pyfile=None, 
@@ -123,10 +135,6 @@ def init_admin(init=None, config=None, pyfile=None,
     @app.before_request
     def _before_request():
         return before_request()
-
-    blueprint = Blueprint('chiki', __name__,
-        template_folder=os.path.join(TEMPLATE_ROOT, 'chiki'))
-    app.register_blueprint(blueprint)
 
     return app
 

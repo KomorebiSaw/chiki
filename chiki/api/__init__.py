@@ -17,6 +17,8 @@ __all__ = [
 
 class Api(_Api):
 
+    default_change_400_to_200 = False
+
     def error_router(self, original_handler, e):
         if self._has_fr_route() or isinstance(getattr(e, 'data', ''), dict):
             try:
@@ -82,13 +84,17 @@ class Api(_Api):
                 fallback_mediatype=fallback_mediatype,
             )
         else:
-            if code == 400 and current_app.config.get('CHANGE_400_TO_200'):
+            if code == 400 and current_app.config.get('CHANGE_400_TO_200', self.default_change_400_to_200):
                 code = 200
             resp = self.make_response(data, code, headers)
 
         if code == 401:
             resp = self.unauthorized(resp)
         return resp
+
+
+class WApi(Api):
+    default_change_400_to_200 = True
 
 
 class Resource(_Resource):
@@ -107,7 +113,7 @@ class Resource(_Resource):
 
 
 api = Api()
-wapi = Api()
+wapi = WApi()
 
 
 def success(**kwargs):
