@@ -10,55 +10,12 @@ from datetime import datetime, timedelta
 from flask import current_app, request
 
 __all__ = [
-    'User', 'WeChatUser', 'QQUser', 'WeiBoUser',
+    'User', 'UserMixin', 'WeChatUser', 'QQUser', 'WeiBoUser',
     'UserLog', 'PhoneCode', 'EmailCode',
 ]
 
 
-class User(db.Document):
-    """ 用户模型 """
-
-    SEX_UNKNOWN = 'unknown'
-    SEX_MALE = 'male'
-    SEX_FEMALE = 'female'
-    SEX_CHOICES = (
-        (SEX_UNKNOWN, '保密'),
-        (SEX_MALE, '男'),
-        (SEX_FEMALE, '女'),
-    )
-    SEX_VALUES = [x[0] for x in SEX_CHOICES]
-    SEX_FROM_WECHAT = {0: SEX_UNKNOWN, 1: SEX_MALE, 2: SEX_FEMALE}
-
-    id = db.IntField(primary_key=True, verbose_name='ID')
-    phone = db.StringField(max_length=20, verbose_name='手机')
-    email = db.StringField(max_length=40, verbose_name='邮箱')
-    password = db.StringField(max_length=40, verbose_name='密码')
-    nickname = db.StringField(max_length=40, verbose_name='昵称')
-    avatar = db.XImageField(verbose_name='头像')
-    birthday = db.DateTimeField(verbose_name='生日')
-    sex = db.StringField(default=SEX_UNKNOWN, choices=SEX_CHOICES, verbose_name='性别')
-    location = db.AreaField(verbose_name='所在地')
-    address = db.StringField(max_length=100, verbose_name='通讯地址')
-    debug = db.BooleanField(default=False, verbose_name='允许调试')
-    active = db.BooleanField(default=True, verbose_name='激活')
-    channel = db.IntField(verbose_name='注册渠道ID')
-    spm = db.StringField(max_length=100, verbose_name='登录SPM')
-    ip = db.StringField(max_length=20, verbose_name='登录IP')
-    generate = db.BooleanField(default=False, verbose_name='生成')
-    error = db.IntField(default=0, verbose_name='登录错误次数')
-    locked = db.DateTimeField(default=lambda: datetime(1970, 1, 1), verbose_name='锁定时间')
-    logined = db.DateTimeField(default=lambda: datetime.now(), verbose_name='登录时间')
-    registered = db.DateTimeField(default=lambda: datetime.now(), verbose_name='注册时间')
-
-    meta = {
-        'indexes': [
-            'phone',
-            'nickname',
-            'ip',
-            '-logined',
-            '-registered',
-        ],
-    }
+class UserMixin(object):
 
     @staticmethod
     def create_empty():
@@ -153,6 +110,52 @@ class User(db.Document):
     def get_id(self):
         """ 获取用户ID """
         return self.id
+
+
+class User(db.Document, UserMixin):
+    """ 用户模型 """
+
+    SEX_UNKNOWN = 'unknown'
+    SEX_MALE = 'male'
+    SEX_FEMALE = 'female'
+    SEX_CHOICES = (
+        (SEX_UNKNOWN, '保密'),
+        (SEX_MALE, '男'),
+        (SEX_FEMALE, '女'),
+    )
+    SEX_VALUES = [x[0] for x in SEX_CHOICES]
+    SEX_FROM_WECHAT = {0: SEX_UNKNOWN, 1: SEX_MALE, 2: SEX_FEMALE}
+
+    id = db.IntField(primary_key=True, verbose_name='ID')
+    phone = db.StringField(max_length=20, verbose_name='手机')
+    email = db.StringField(max_length=40, verbose_name='邮箱')
+    password = db.StringField(max_length=40, verbose_name='密码')
+    nickname = db.StringField(max_length=40, verbose_name='昵称')
+    avatar = db.XImageField(verbose_name='头像')
+    birthday = db.DateTimeField(verbose_name='生日')
+    sex = db.StringField(default=SEX_UNKNOWN, choices=SEX_CHOICES, verbose_name='性别')
+    location = db.AreaField(verbose_name='所在地')
+    address = db.StringField(max_length=100, verbose_name='通讯地址')
+    debug = db.BooleanField(default=False, verbose_name='允许调试')
+    active = db.BooleanField(default=True, verbose_name='激活')
+    channel = db.IntField(verbose_name='注册渠道ID')
+    spm = db.StringField(max_length=100, verbose_name='登录SPM')
+    ip = db.StringField(max_length=20, verbose_name='登录IP')
+    generate = db.BooleanField(default=False, verbose_name='生成')
+    error = db.IntField(default=0, verbose_name='登录错误次数')
+    locked = db.DateTimeField(default=lambda: datetime(1970, 1, 1), verbose_name='锁定时间')
+    logined = db.DateTimeField(default=lambda: datetime.now(), verbose_name='登录时间')
+    registered = db.DateTimeField(default=lambda: datetime.now(), verbose_name='注册时间')
+
+    meta = {
+        'indexes': [
+            'phone',
+            'nickname',
+            'ip',
+            '-logined',
+            '-registered',
+        ],
+    }
 
 
 class WeChatUser(db.Document):
