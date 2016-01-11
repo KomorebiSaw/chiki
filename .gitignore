@@ -12,3 +12,4 @@ docs/.build
 docs/_build
 examples/uploads
 node_modules
+bower_components
