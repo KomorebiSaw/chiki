@@ -11,6 +11,4 @@ logs
 docs/.build
 docs/_build
 examples/uploads
-media/admin/node_modules
-media/api/node_modules
-media/web/node_modules
+node_modules
