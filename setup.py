@@ -52,6 +52,7 @@ setup(
         'mongoengine==0.10.1',
         'flask-mongoengine==0.7.1',
         'Flask-WTF==0.11',
+        'Flask-Mail==0.9.1',
         'Flask-RESTful==0.3.3',
         'Jinja2==2.7.3',
         'WTForms==2.0.2',

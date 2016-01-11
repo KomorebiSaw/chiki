@@ -7,9 +7,15 @@
 *.sqlite
 build
 dist
+!media/admin/dist
+!media/api/dist
+!media/web/dist
+env
 logs
+data/export
+data/uploads
 docs/.build
 docs/_build
-examples/uploads
+tests/__pycache__
 node_modules
 bower_components
