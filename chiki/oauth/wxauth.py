@@ -9,6 +9,7 @@ from chiki.utils import err_logger, is_json, is_api
 from chiki.oauth.jssdk import JSSDK
 from datetime import datetime
 from flask import current_app, request, redirect, url_for
+from flask import make_response, render_template_string
 from urllib import quote, urlencode
 
 __all__ = [
@@ -51,15 +52,38 @@ class WXAuth(object):
 
     def init_app(self, app):
         self.app = app
+        app.wxauth = self
         self.config = app.config.get('WXAUTH')
         mp = self.config.get(self.ACTION_MP)
-        self.client = werobot.client.Client(mp.get('appid'), mp.get('secret'))
-        app.wxauth = self
-        app.wxclient = self.client
+        if mp:
+            self.client = werobot.client.Client(mp.get('appid'), mp.get('secret'))
+            app.wxclient = self.client
 
         @app.route(self.config.get('wxauth_url', '/oauth/wechat/callback'))
         def wxauth_callback():
             return self.callback()
+
+        @app.route(self.config.get('wxauth_js_url', '/weixin-login.js'))
+        def weixin_login():
+            qrcode = self.config.get(self.ACTION_QRCODE)
+            js = ''
+            if qrcode:
+                config = dict(
+                    id=request.args.get('id', ''),
+                    appid=qrcode.get('appid', ''),
+                    scope=self.SNSAPI_LOGIN,
+                    redirect_uri=quote(url_for('wxauth_callback', scope=self.SNSAPI_LOGIN,
+                        action=self.ACTION_QRCODE, _external=True)),
+                    state='STATE',
+                    style=request.args.get('style', 'white'),
+                    href=request.args.get('href', ''),
+                )
+                js = render_template_string("var wxauth = new WxLogin({{ config | safe }});",
+                    config=json.dumps(config))
+            resp = make_response(js)
+            resp.headers['Control-Cache'] = 'no-cache'
+            resp.headers['Content-Type'] = 'text/javascript; charset=utf-8'
+            return resp
 
         app.jssdk = JSSDK(app)
 

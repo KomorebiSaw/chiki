@@ -52,6 +52,13 @@ class Config(object):
         allow_phone=True,
     )
 
+    WXAUTH = dict(
+        qrcode=dict(
+            appid='',
+            secret='',
+        )
+    )
+
 
 def init(app):
     db.init_app(app)

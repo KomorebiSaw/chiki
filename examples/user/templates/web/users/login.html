@@ -1,6 +1,9 @@
 {% extends "users/base.html" %}
 
 {% block subtitle %}用户登录{% endblock %}
+{% block header_script %}
+<script src="http://res.wx.qq.com/connect/zh_CN/htmledition/js/wxLogin.js"></script>
+{% endblock %}
 
 {% block main %}
 <div class="row">
@@ -11,7 +14,6 @@
 					<ul class="nav nav-tabs nav-justified" role="tablist">
 					  	<li role="presentation" class="active"><a href="#tab-login" aria-controls="tab-login" role="tab" data-toggle="tab">帐号</a></li>
 					  	<li role="presentation"><a href="#tab-wechat-login" aria-controls="tab-wechat-login" role="tab" data-toggle="tab">微信</a></li>
-					  	<li role="presentation"><a href="#tab-third-login" aria-controls="tab-third-login" role="tab" data-toggle="tab">第三方</a></li>
 					</ul>
 					<div class="message">{{ form | alert }}</div>
 				</div>
@@ -22,19 +24,10 @@
 							<button type="submit" class="btn btn-primary btn-lg btn-block">登录</button>
 						</form>
 					</div>
-					<div id="tab-wechat-login" class="tab-pane" role="tabpanel">
-						<form class="auth-form xlogin-form" action="{{ url_for('users.login') }}" method="post">
-							{{ form | kform_inline }}
-							<button type="submit" class="btn btn-primary btn-lg btn-block">微信登录</button>
-						</form>
-					</div>
-					<div id="tab-third-login" class="tab-pane" role="tabpanel">
-						<form class="auth-form xlogin-form" action="{{ url_for('users.login') }}" method="post">
-							{{ form | kform_inline }}
-							<button type="submit" class="btn btn-primary btn-lg btn-block">第三方登录</button>
-						</form>
+					<div id="tab-wechat-login" class="tab-pane" role="tabpanel" style="max-height:280px;overflow:hidden; text-align:center;">
 					</div>
 				</div>
+				<script src="/weixin-login.js?id=tab-wechat-login"></script>
 			</div>
 		</div>
 	</div>
