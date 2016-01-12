@@ -17,7 +17,9 @@ def init_oauth(app):
     @app.before_request
     def before_request():
         if current_user.is_authenticated() and not current_user.is_user() \
-                and request.endpoint not in current_app.user_manager.config.allow_oauth_urls:
+                and request.endpoint not in current_app.user_manager.config.allow_oauth_urls \
+                and not request.path.startswith('/admin'):
+
             model = current_app.user_manager.config.oauth_model
             remember = current_app.user_manager.config.oauth_remember
             if model == 'auto':
@@ -25,5 +27,4 @@ def init_oauth(app):
                 login_user(user, remember=remember)
             if is_json():
                 abort(NEED_BIND)
-            print request.endpoint
             return redirect(current_app.user_manager.config.bind_url)

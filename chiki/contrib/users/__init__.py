@@ -35,6 +35,7 @@ class UserManager(object):
         self.init_config()
         self.init_resources()
         self.init_oauth()
+        self.init_jinja()
         init_verify(app)
 
     def init_login(self):
@@ -54,14 +55,16 @@ class UserManager(object):
 
     def init_config(self):
         config = self.app.config.get('CHIKI_USER', {})
-        self.config.allow_email = config.get('allow_email', False)
-        self.config.allow_phone = config.get('allow_phone', True)
+        self.allow_email = self.config.allow_email = config.get('allow_email', False)
+        self.allow_phone = self.config.allow_phone = config.get('allow_phone', True)
         self.config.register_auto_login = config.get('register_auto_login', True)
         self.config.reset_password_auto_login = config.get('reset_password_auto_login', True)
         self.config.include_apis = config.get('include_apis', {})
         self.config.exclude_apis = config.get('exclude_apis', {})
         self.config.allow_oauth_urls = config.get('allow_oauth_urls',
-            ['users.bind', 'bindphone', 'bindemail' 'bindauto', 'static'])
+            ['users.logout', 'users.bind', 'bindphone', 'bindemail', 'bindauto',
+                'sendemailcode', 'authemailcode', 'sendphonecode', 'authphonecode',
+                'static', 'verify_code', 'uploads'])
         self.config.oauth_model = config.get('oauth_model', 'select')
         self.config.oauth_remember = config.get('oauth_remeber', True)
         self.config.bind_url = config.get('bind_url', '/users/bind.html')
@@ -102,6 +105,12 @@ class UserManager(object):
 
     def init_oauth(self):
         self.funcs.init_oauth(self.app)
+
+    def init_jinja(self):
+        self.app.context_processor(self.context_processor)
+
+    def context_processor(self):
+        return dict(um=self)
 
     def add_model(self, model):
         self.models[model.__name__] = model

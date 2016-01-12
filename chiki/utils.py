@@ -4,7 +4,9 @@ import time
 import random
 import string
 import traceback
+import requests
 from datetime import datetime, date
+from StringIO import StringIO
 from flask import jsonify, current_app, request
 
 __all__ = [
@@ -12,8 +14,26 @@ __all__ = [
     'datetime2best', 'time2best', 'today',
     'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_channel',
     'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
-    'randstr', 'AttrDict',
+    'randstr', 'AttrDict', 'url2image',
 ]
+
+def down(url, source=None):
+    if source:
+        return StringIO(requests.get(url, headers=dict(Referer=source)).content)
+    return StringIO(requests.get(url).content)
+
+
+def get_format(image):
+    format = image.split('.')[-1]
+    if format in ['jpg', 'jpeg']:
+        return 'jpg'
+    if format in ['gif', 'bmp', 'png', 'ico']:
+        return format
+    return ''
+
+
+def url2image(url, source=None):
+    return dict(stream=down(url, source=source), format=get_format(url)) if url else None
 
 
 class AttrDict(dict):

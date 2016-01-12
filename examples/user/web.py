@@ -48,6 +48,10 @@ class Config(object):
     MAIL_PASSWORD = ''
     MAIL_DEFAULT_SENDER = ''
 
+    CHIKI_USER = dict(
+        allow_phone=True,
+    )
+
 
 def init(app):
     db.init_app(app)
@@ -59,7 +63,9 @@ def init(app):
 
     @app.route('/test')
     def test():
-        u = user.models.WeChatUser.objects(unionid='1223').first()
+        u = user.models.WeChatUser.objects(unionid='1212').first()
+        if not u:
+            u = user.models.WeChatUser(unionid='1212').save()
         login_user(u)
         return redirect(user.config.bind_url)
 

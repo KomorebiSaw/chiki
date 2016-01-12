@@ -15,15 +15,16 @@
         SEND_SUCCESS: '发送成功',
         SENDING: '正在发送...',
         ACCESSING: '正在验证...',
+        SUBMITING: '正在提交...',
         NEXT: '下一步',
         REGISTER_COMPLETE: '完成注册',
         REGISTER_SUCCESS: '注册成功',
-        RESET_COMPLETE: '设置',
-        RESET_SUCCESS: '设置成功',
+        RESET_PASSWORD_COMPLETE: '设置',
+        RESET_PASSWORD_SUCCESS: '设置成功',
         UNKNOWN_ERROR: '未知错误',
-        REPASSWORD_DIFF: '两次密码不一致',
         LOGINING: '正在登录...',
-        LOGIN_SUCCESS: '登录成功'
+        LOGIN_SUCCESS: '登录成功',
+        REDIRECTING: '正在跳转...'
     }
 
     var urls = {
@@ -33,13 +34,18 @@
         REGISTER_PHONE: '/users/register/phone',
         REGISTER_PHONE_SEND: '/users/sendcode/phone?action=register',
         REGISTER_PHONE_ACCESS: '/users/authcode/phone?action=register',
-        REGISTER_NEXT: '/users/login.html',
         RESET_PASSWORD_EMAIL: '/users/reset_password/email',
         RESET_PASSWORD_EMAIL_SEND: '/users/sendcode/email?action=reset_password',
         RESET_PASSWORD_PHONE: '/users/reset_password/phone',
         RESET_PASSWORD_PHONE_SEND: '/users/sendcode/phone?action=reset_password',
         RESET_PASSWORD_PHONE_ACCESS: '/users/authcode/phone?action=reset_password',
-        RESET_PASSWORD_NEXT:'/users/login.html'
+        BIND_EMAIL: '/users/bind/email',
+        BIND_EMAIL_SEND: '/users/sendcode/email?action=bind',
+        BIND_EMAIL_ACCESS: '/users/authcode/email?action=bind',
+        BIND_PHONE: '/users/bind/phone',
+        BIND_PHONE_SEND: '/users/sendcode/phone?action=bind',
+        BIND_PHONE_ACCESS: '/users/authcode/phone?action=bind',
+        BIND_AUTO: '/users/bind/auto'
     }
 
     var onBtnSubmit = function (form, event, btn, options) {
@@ -198,463 +204,364 @@
         $K.hide()
     }
 
-    var Register = function (options) {
-        if (options === 'phone') {
-            Register.phone()
+    var BindAuto = function (options) {
+        if ($('.bind-auto-form').length === 0) return
+
+        var form = $('.bind-auto-form')
+        var btn = form.find('[type="submit"]')
+
+        options = $.extend({}, typeof options == 'object' && options)
+
+        onBtnSubmit(form, 'submit.bind.auto', btn, {
+            url: urls.BIND_AUTO,
+            loadingText: texts.REDIRECTING,
+            completeText: texts.REDIRECTING,
+            success: function (data) {
+                if (options.success !== undefined) {
+                    options.success(data)
+                } else if (options.next !== undefined) {
+                    window.location.href = options.next;
+                } else {
+                    window.location.reload()
+                }
+            }
+        })
+
+        $K.hide()
+    }
+
+    var Action = function (options) {
+        this.options = $.extend({}, Action.DEFAULTS, typeof options === 'object' && options)
+        this.$box = $(this.options.box)
+        this.$form = this.$box.find(this.options.form)
+        this.$input = this.$form.find(this.options.input)
+        this.$btn = this.$form.find(this.options.btn)
+        this.$verify = this.$form.find(this.options.verify)
+        this.$access = this.$box.find(this.options.access)
+        this.$elements = {
+            send: this.$form.find(this.$form.data('send')),
+            access: this.$form.find(this.$form.data('access')),
+            complete: this.$form.find(this.$form.data('complete')),
+            all: $.merge($.merge(this.$form.find(this.$form.data('send')), 
+                this.$form.find(this.$form.data('access'))), 
+                this.$form.find(this.$form.data('complete')))
+        }
+        this.$resend = new Resend({
+            form: this.$form,
+            resend: this.options.resend,
+            url: this.options.urls.send,
+            check: $.proxy(function () { return this.check(this.$elements.send) }, this)
+        })
+        this.off()
+    }
+
+    Action.DEFAULTS = {
+        model: 'email',
+        box: undefined,
+        form: 'form',
+        input: '.input',
+        btn: '[type="submit"]',
+        verify: '#verify_code_img',
+        access: '.access',
+        resend: '.resend',
+        urls: {
+            send: undefined,
+            access: undefined,
+            complete: undefined 
+        },
+        texts: {
+            send: {
+                resetText: undefined,
+                loadingText: texts.SENDING,
+                completeText: undefined
+            },
+            access: {
+                resetText: undefined,
+                loadingText: texts.ACCESSING,
+                completeText: undefined
+            },
+            complete: {
+                resetText: undefined,
+                loadingText: texts.SUBMITING,
+                completeText: undefined
+            }
+        },
+        tmpl: undefined,
+        next: '/'
+    }
+
+    Action.prototype.off = function () {
+        this.$box.hide()
+        this.$elements.all.hide()
+        this.$form.off('submit.send').off('submit.access').off('submit.complete')
+        this.$resend.stop()
+        $K.hide()
+    }
+
+    Action.prototype.check = function ($elements) {
+        var res = true;
+        $elements.each(function () {
+            if (!$(this).check()) {
+                res = false;
+                return false;
+            }
+        })
+        return res;
+    }
+
+    Action.prototype.send = function () {
+        this.$box.show()
+        this.$elements.all.hide()
+        this.$elements.send.show().check()
+        this.$form.off('submit.send').off('submit.access').off('submit.complete')
+        onBtnSubmit(this.$form, 'submit.send', this.$btn, {
+            url: this.options.urls.send,
+            resetText: this.options.texts.send.resetText,
+            loadingText: this.options.texts.send.loadingText,
+            completeText: this.options.texts.send.completeText,
+            check: $.proxy(function () { return this.check(this.$elements.send) }, this),
+            success: $.proxy(function (data) { this.access(data) }, this),
+            error: $.proxy(function (data) {
+                if (data !== undefined && data.refresh === true) {
+                    this.$verify.attr('src', this.$verify.data('src') + '&t=' + Math.random())
+                }
+            }, this)
+        })
+        $K.hide()
+    }
+
+    Action.prototype.access = function (data) {
+        this.$box.show()
+        if (this.options.model === 'email') {
+            this.$form.hide()
+            this.$access.html('')
+            $(this.options.tmpl).tmpl({
+                email: this.$input.val(),
+                url: data.data.email_url
+            }).appendTo(this.$access)
         } else {
-            Register.email()
-        }
-    }
-
-    Register.emailResend = new Resend({
-        form: '.register-email-form',
-        resend: '.register-email .resend',
-        url: urls.REGISTER_EMAIL_SEND,
-        check: function () { return $('.register-email-form #email').check() }
-    })
-
-    Register.email = function () {
-        if ($('.register-email').length > 0) {
-            Register.emailOff()
-            Register.phoneOff()
-            Register.emailSend()
-            $('.register-email, .register-email-form').show()
-            $('.register-email .use-phone').on('click', function () {
-                Register.phone()
+            this.$elements.all.hide()
+            this.$elements.access.show().check()
+            this.$form.off('submit.send').off('submit.access').off('submit.complete')
+            onBtnSubmit(this.$form, 'submit.access', this.$btn, {
+                url: this.options.urls.access,
+                resetText: this.options.texts.access.resetText,
+                loadingText: this.options.texts.access.loadingText,
+                completeText: this.options.texts.access.completeText,
+                check: $.proxy(function () { return this.check(this.$elements.access) }, this),
+                success: $.proxy(function (data) { this.complete(data) }, this),
+                error: $.proxy(function (data) {
+                    if (data !== undefined && data.refresh === true) {
+                        this.$verify.attr('src', this.$verify.data('src') + '&t=' + Math.random())
+                    }
+                }, this)
             })
-        } else if ($('.register-email-access').length > 0) {
-            Register.emailComplete()
         }
-    }
-
-    Register.emailOff = function () {
-        Register.emailResend.stop()
-        $('.register-email').hide()
-        $('.register-email-form').off('submit.email.send')
-        $('.email-access').html('')
+        this.$box.find(this.options.resend).show()
+        this.$resend.start()
         $K.hide()
     }
 
-    Register.emailSend = function () {
-        var form = $('.register-email-form')
-        var email = form.find('#email')
-        var code = form.find('#verify_code')
-        var btn = form.find('[type="submit"]')
-        var regx = /^[\w\d]+[\d\w_.]+@([\d\w]+)\.([\d\w]+)(?:\.[\d\w]+)?$/
-        code.check({})
-        email.check({ max: 40, regx: { re: regx } })
+    Action.prototype.complete = function () {
+        this.$box.show()
+        this.$box.find(this.options.resend).hide()
+        this.$resend.stop()
+        this.$input.attr('readonly', true)
+        this.$elements.all.hide()
+        this.$elements.complete.show().check()
+        this.$form.off('submit.send').off('submit.access').off('submit.complete')
+        onBtnSubmit(this.$form, 'submit.complete', this.$btn, {
+            url: this.options.urls.complete,
+            resetText: this.options.texts.complete.resetText,
+            loadingText: this.options.texts.complete.loadingText,
+            completeText: this.options.texts.complete.completeText,
+            check: $.proxy(function () { return this.check(this.$elements.complete) }, this),
+            success: $.proxy(function (data) { this.success(data) }, this)
+        })
+        $K.hide()
+    }
 
-        onBtnSubmit(form, 'submit.email.send', btn, {
-            url: urls.REGISTER_EMAIL_SEND,
-            loadingText: texts.SENDING,
-            completeText: texts.REGISTER_SUCCESS,
-            check: function () { return email.check() && code.check() },
-            success: function (data) { Register.emailAccess(email.val(), data.data.email_url) },
-            error: function (data) {
-                if (data !== undefined && data.refresh === true) {
-                    var src = $('.register-email #verify_code_img').data('src') + '&t=' + Math.random()
-                    $('.register-email #verify_code_img').attr('src', src)
-                }
+    Action.prototype.success = function () {
+        setTimeout($.proxy(function () {
+            if (this.$form.data('next') !== undefined) {
+                window.location.href = this.$form.data('next')
+            } else {
+                window.location.href = this.options.next
             }
-        })
-
-        $K.hide()
+        }, this), 100)
     }
 
-    Register.emailAccess = function (email, url) {
-        $('.register-email-form').hide()
-        $('.register-email .email-access').html('')
-        $('<div><p>验证邮件已发送, ' +
-            '请<a href="${ url }" target="_blank">点击查收邮件</a>激活账号。</p>' +
-            '没有收到邮件？请耐心等待，或者<a class="resend" href="javascript:;">重新发送</a></div>')
-            .tmpl({ email: email, url: url })
-            .appendTo('.register-email .email-access')
-        Register.emailResend.start()
-        $K.hide()
-    }
-
-    Register.emailComplete = function () {
-        var form = $('.register-email-access-form')
-        var phone = form.find('#phone')
-        var username = form.find('#username')
-        var password = form.find('#password')
-        var repassword = form.find('#repassword')
-        var btn = form.find('[type="submit"]')
-
-        Register.phoneResend.stop()
-        $('.register-phone .resend').hide()
-
-        phone.attr('readonly', true)
-
-        username.check({ min: 6, max: 18, regx: { re: /^([a-zA-Z][a-zA-Z0-9_]+)|(\d+[a-zA-Z]+[a-zA-Z0-9_]*)$/ } })
-        username.show()
-
-        var regx = /^[\w\d\-\[\]{}|\\,.\/<>;:'"_`~!@#$%^&*()+= ]+$/
-        password.check({ strip: false, min: 6, max: 18, regx: { re: regx }})
-        repassword.check({ strip: false, equal: { element: password, message: texts.REPASSWORD_DIFF } })
-
-        onBtnSubmit(form, 'submit.email.complete', btn, {
-            url: urls.REGISTER_EMAIL,
-            resetText: texts.REGISTER_COMPLETE,
-            loadingText: texts.SENDING,
-            completeText: texts.REGISTER_SUCCESS,
-            check: function () { return username.check() && password.check() && repassword.check() },
-            success: function () { Register.success() }
-        })
-
-        $K.hide()
-    }
-
-    Register.phoneResend = new Resend({
-        form: '.register-phone-form',
-        resend: '.register-phone .resend',
-        url: urls.REGISTER_PHONE_SEND,
-        check: function () { return $('.register-phone-form #phone').check() }
-    })
-
-    Register.phone = function () {
-        if ($('.register-phone').length === 0) return
-        Register.emailOff()
-        Register.phoneOff()
-        Register.phoneSend()
-        $('.register-phone, .verify-code-box').show()
-        $('.register-phone .use-email').on('click', function () {
-            Register.email()
-        })
-    }
-
-    Register.phoneOff = function () {
-        $('.register-phone').hide()
-        $('.register-phone-form').off('submit.phone.send')
-        $('.register-phone-form').off('submit.phone.access')
-        $('.register-phone-form').off('submit.phone.complete')
-        $('.register-phone-form #phone').attr('readonly', false)
-        $('.register-phone-form #authcode').hide()
-        $('.register-phone-form #username').hide()
-        $('.register-phone-form #password').hide()
-        $('.register-phone .resend').hide()
-        Register.phoneResend.stop()
-        $K.hide()
-    }
-
-    Register.phoneSend = function () {
-        var form = $('.register-phone-form')
-        var phone = form.find('#phone')
-        var btn = form.find('[type="submit"]')
-        btn.text(texts.SEND_PHONE_CODE)
-        phone.check({ regx: { re: /^1\d{10}$/ } })
-
-        onBtnSubmit(form, 'submit.phone.send', btn, {
-            url: urls.REGISTER_PHONE_SEND,
-            resetText: texts.SEND_PHONE_CODE,
-            loadingText: texts.SENDING,
-            completeText: texts.NEXT,
-            check: function () { return phone.check() },
-            success: function () { Register.phoneAccess() },
-            error: function (data) {
-                if (data !== undefined && data.refresh === true) {
-                    var src = $('.register-phone #verify_code_img').data('src') + '&t=' + Math.random()
-                    $('.register-phone #verify_code_img').attr('src', src)
-                }
+    var Auth = function (options) {
+        this.options = $.extend({}, Auth.DEFAULTS, typeof options === 'object' && options)
+        $($.proxy(function () {
+            if (this.options.email !== undefined && $(this.options.email.box).length > 0) {
+                this.main = this.email = new Action(this.options.email)
+                $(this.email.$box).find(this.options.usePhone).click($.proxy(function () {
+                    this.email.off()
+                    this.phone.off()
+                    this.phone.send()
+                }, this))
             }
-        })
+            if (this.options.phone !== undefined && $(this.options.phone.box).length > 0) {
+                this.main = this.phone = new Action(this.options.phone)
+                $(this.phone.$box).find(this.options.useEmail).click($.proxy(function () {
+                    this.phone.off()
+                    this.email.off()
+                    this.email.send()
+                }, this))
+            }
+            if (!!this.email && !!this.phone) {
+                this.main = this.options.model === 'phone' ? this.phone : this.email
+            }
+            if (this.options.init === true ) {
+                this.init()
+            }
+        }, this))
     }
 
-    Register.phoneAccess = function () {
-        var form = $('.register-phone-form')
-        var phone = form.find('#phone')
-        var verifyCodeBox = form.find('.verify-code-box')
-        var code = form.find('#authcode')
-        var btn = form.find('[type="submit"]')
-
-        Register.phoneResend.start()
-
-        verifyCodeBox.hide()
-        code.show()
-        code.check({})
-        phone.check({ regx: { re: /^1\d{10}$/ } })
-
-        onBtnSubmit(form, 'submit.phone.access', btn, {
-            url: urls.REGISTER_PHONE_ACCESS,
-            resetText: texts.NEXT,
-            loadingText: texts.ACCESSING,
-            completeText: texts.REGISTER_COMPLETE,
-            check: function () { return code.check() && phone.check() },
-            success: function () { Register.phoneComplete() }
-        })
-
-        $K.hide()
+    Auth.DEFAULTS = {
+        email: undefined,
+        phone: undefined,
+        useEmail: '.use-email',
+        usePhone: '.use-phone',
+        model: 'phone',
+        action: 'send',
+        init: true
     }
 
-    Register.phoneComplete = function () {
-        var form = $('.register-phone-form')
-        var phone = form.find('#phone')
-        var verifyCodeBox = form.find('.verify-code-box')
-        var code = form.find('#authcode')
-        var username = form.find('#username')
-        var password = form.find('#password')
-        var btn = form.find('[type="submit"]')
-
-        Register.phoneResend.stop()
-        $('.register-phone .resend').hide()
-
-        phone.attr('readonly', true)
-        verifyCodeBox.hide()
-        code.hide()
-
-        username.check({ min: 6, max: 18, regx: { re: /^([a-zA-Z][a-zA-Z0-9_]+)|(\d+[a-zA-Z]+[a-zA-Z0-9_]*)$/ } })
-        username.show()
-
-        var regx = /^[\w\d\-\[\]{}|\\,.\/<>;:'"_`~!@#$%^&*()+= ]+$/
-        password.check({ strip: false, min: 6, max: 18, regx: { re: regx }})
-        password.show()
-
-        onBtnSubmit(form, 'submit.phone.complete', btn, {
-            url: urls.REGISTER_PHONE,
-            resetText: texts.REGISTER_COMPLETE,
-            loadingText: texts.SENDING,
-            completeText: texts.REGISTER_SUCCESS,
-            check: function () { return username.check() && password.check() },
-            success: function () { Register.success() }
-        })
-
-        $K.hide()
-    }
-
-    Register.success = function () {
-        setTimeout(function () {
-            window.location.href = urls.REGISTER_NEXT
-        }, 100)
-    }
-
-    var ResetPassword = function (options) {
-        if (options === 'phone') {
-            ResetPassword.phone()
-        } else {
-            ResetPassword.email()
+    Auth.prototype.init = function () {
+        if (!!this.main) {
+            switch (this.options.action) {
+                case 'send': this.main.send(); break;
+                case 'access': this.main.access(); break;
+                case 'complete': this.main.complete(); break;
+            }
         }
-    }
-
-    ResetPassword.emailResend = new Resend({
-        form: '.reset-password-email-form',
-        resend: '.reset-password-email .resend',
-        url: urls.RESET_PASSWORD_EMAIL_SEND,
-        check: function () { return $('.reset-password-email-form #email').check() }
-    })
-
-    ResetPassword.email = function () {
-        if ($('.reset-password-email').length > 0) {
-            ResetPassword.emailOff()
-            ResetPassword.phoneOff()
-            ResetPassword.emailSend()
-            $('.reset-password-email, .reset-password-email-form').show()
-            $('.reset-password-email .use-phone').on('click', function () {
-                ResetPassword.phone()
-            })
-        } else if ($('.reset-password-email-access').length > 0) {
-            ResetPassword.emailComplete()
-        } 
-    }
-
-    ResetPassword.emailOff = function () {
-        ResetPassword.emailResend.stop()
-        $('.reset-password-email').hide()
-        $('.reset-password-email-form').off('submit.email.send')
-        $('.email-access').html('')
-        $K.hide()
-    }
-
-    ResetPassword.emailSend = function () {
-        var form = $('.reset-password-email-form')
-        var email = form.find('#email')
-        var code = form.find('#verify_code')
-        var btn = form.find('[type="submit"]')
-        var regx = /^[\w\d]+[\d\w_.]+@([\d\w]+)\.([\d\w]+)(?:\.[\d\w]+)?$/
-        code.check({})
-        email.check({ max: 40, regx: { re: regx } })
-
-        onBtnSubmit(form, 'submit.email.send', btn, {
-            url: urls.RESET_PASSWORD_EMAIL_SEND,
-            loadingText: texts.SENDING,
-            completeText: texts.SEND_SUCCESS,
-            check: function () { return email.check() && code.check() },
-            success: function (data) { ResetPassword.emailAccess(email.val(), data.data.email_url) },
-            error: function (data) {
-                if (data !== undefined && data.refresh === true) {
-                    var src = $('.reset-password-email #verify_code_img').data('src') + '&t=' + Math.random()
-                    $('.reset-password-email #verify_code_img').attr('src', src)
-                }
-            }
-        })
-
-        $K.hide()
-    }
-
-    ResetPassword.emailAccess = function (email, url) {
-        $('.reset-password-email-form').hide()
-        $('.reset-password-email .email-access').html('')
-        $('<div><p>重置密码邮件已发送, ' +
-            '请<a href="${ url }" target="_blank">点击查收邮件</a>找回密码。</p>' +
-            '没有收到邮件？请耐心等待，或者<a class="resend" href="javascript:;">重新发送</a></div>')
-            .tmpl({ email: email, url: url })
-            .appendTo('.reset-password-email .email-access')
-        ResetPassword.emailResend.start()
-        $K.hide()
-    }
-
-    ResetPassword.emailComplete = function () {
-        var form = $('.reset-password-email-access-form')
-        var phone = form.find('#phone')
-        var code = form.find('#authcode')
-        var password = form.find('#password')
-        var repassword = form.find('#repassword')
-        var btn = form.find('[type="submit"]')
-
-        ResetPassword.phoneResend.stop()
-        $('.reset-password-phone .resend').hide()
-
-        phone.hide()
-        code.hide()
-
-        var regx = /^[\w\d\-\[\]{}|\\,.\/<>;:'"_`~!@#$%^&*()+= ]+$/
-        password.check({ strip: false, min: 6, max: 18, regx: { re: regx }})
-        password.show()
-        repassword.check({ strip: false, equal: { element: password, message: texts.REPASSWORD_DIFF } })
-        repassword.show()
-
-        onBtnSubmit(form, 'submit.email.complete', btn, {
-            url: urls.RESET_PASSWORD_EMAIL,
-            resetText: texts.RESET_COMPLETE,
-            loadingText: texts.SENDING,
-            completeText: texts.RESET_SUCCESS,
-            check: function () { return password.check() && repassword.check() },
-            success: function () { ResetPassword.success() }
-        })
-
-        $K.hide()
-    }
-
-    ResetPassword.phoneResend = new Resend({
-        form: '.reset-password-phone-form',
-        resend: '.reset-password-phone .resend',
-        url: urls.RESET_PASSWORD_PHONE_SEND,
-        check: function () { return $('.reset-password-phone-form #phone').check() }
-    })
-
-    ResetPassword.phone = function () {
-        if ($('.reset-password-phone').length === 0) return
-        ResetPassword.emailOff()
-        ResetPassword.phoneOff()
-        ResetPassword.phoneSend()
-        $('.reset-password-phone').show()
-        $('.reset-password-phone .use-email').on('click', function () {
-            ResetPassword.email()
-        })
-    }
-
-    ResetPassword.phoneOff = function () {
-        $('.reset-password-phone').hide()
-        $('.reset-password-phone-form').off('submit.phone.send')
-        $('.reset-password-phone-form').off('submit.phone.access')
-        $('.reset-password-phone-form').off('submit.phone.complete')
-        $('.reset-password-phone-form').show()
-        $('.reset-password-phone-form #phone').show()
-        $('.reset-password-phone-form #authcode').hide()
-        $('.reset-password-phone-form #password').hide()
-        $('.reset-password-phone-form #repassword').hide()
-        $('.reset-password-phone .resend').hide()
-        ResetPassword.phoneResend.stop()
-        $K.hide()
-    }
-
-    ResetPassword.phoneSend = function () {
-        var form = $('.reset-password-phone-form')
-        var phone = form.find('#phone')
-        var verifyCodeBox = form.find('.verify-code-box')
-        var btn = form.find('[type="submit"]')
-        btn.text(texts.SEND_PHONE_CODE)
-        verifyCodeBox.show()
-        phone.check({ regx: { re: /^1\d{10}$/ } })
-
-        onBtnSubmit(form, 'submit.phone.send', btn, {
-            url: urls.RESET_PASSWORD_PHONE_SEND,
-            resetText: texts.SEND_PHONE_CODE, loadingText: texts.SENDING,
-            completeText: texts.NEXT,
-            check: function () { return phone.check() },
-            success: function () { ResetPassword.phoneAccess() }
-        })
-    }
-
-    ResetPassword.phoneAccess = function () {
-        var form = $('.reset-password-phone-form')
-        var phone = form.find('#phone')
-        var code = form.find('#authcode')
-        var btn = form.find('[type="submit"]')
-        var verifyCodeBox = form.find('.verify-code-box')
-
-        ResetPassword.phoneResend.start()
-
-        verifyCodeBox.hide()
-        code.show()
-        code.check({})
-        phone.check({ regx: { re: /^1\d{10}$/ } })
-
-        onBtnSubmit(form, 'submit.phone.access', btn, {
-            url: urls.RESET_PASSWORD_PHONE_ACCESS,
-            resetText: texts.NEXT,
-            loadingText: texts.ACCESSING,
-            completeText: texts.RESET_COMPLETE,
-            check: function () { return code.check() && phone.check() },
-            success: function () { ResetPassword.phoneComplete() }
-        })
-
-        $K.hide()
-    }
-
-    ResetPassword.phoneComplete = function () {
-        var form = $('.reset-password-phone-form')
-        var phone = form.find('#phone')
-        var code = form.find('#authcode')
-        var password = form.find('#password')
-        var repassword = form.find('#repassword')
-        var btn = form.find('[type="submit"]')
-        var verifyCodeBox = form.find('.verify-code-box')
-
-        ResetPassword.phoneResend.stop()
-        $('.reset-password-phone .resend').hide()
-
-        phone.hide()
-        verifyCodeBox.hide()
-        code.hide()
-
-        var regx = /^[\w\d\-\[\]{}|\\,.\/<>;:'"_`~!@#$%^&*()+= ]+$/
-        password.check({ strip: false, min: 6, max: 18, regx: { re: regx }})
-        password.show()
-        repassword.check({ strip: false, equal: { element: password, message: texts.REPASSWORD_DIFF } })
-        repassword.show()
-
-        onBtnSubmit(form, 'submit.phone.complete', btn, {
-            url: urls.RESET_PASSWORD_PHONE,
-            resetText: texts.RESET_COMPLETE,
-            loadingText: texts.SENDING,
-            completeText: texts.RESET_SUCCESS,
-            check: function () { return password.check() && repassword.check() },
-            success: function () { ResetPassword.success() }
-        })
-
-        $K.hide()
-    }
-
-    ResetPassword.success = function () {
-        setTimeout(function () {
-            window.location.href = urls.RESET_PASSWORD_NEXT
-        }, 100)
     }
 
     var users = {
         login: Login,
-        register: Register,
-        resetPassword: ResetPassword
+        register: new Auth({
+            email: {
+                model: 'email',
+                box: '.register-email',
+                input: '#email',
+                urls: {
+                    send: urls.REGISTER_EMAIL_SEND
+                },
+                texts: {
+                    send: { resetText: '注册', loadingText: '正在发送...', completeText: '发送成功' }
+                },
+                tmpl: '<div><p>验证邮件已发送, 请<a href="${ url }" target="_blank">点击查收邮件</a>激活账号。</p>' +
+                      '没有收到邮件？请耐心等待，或者<a class="resend" href="javascript:;">重新发送</a></div>'
+            },
+            phone: {
+                model: 'phone',
+                box: '.register-phone',
+                input: '#phone',
+                urls: {
+                    send: urls.REGISTER_PHONE_SEND,
+                    access: urls.REGISTER_PHONE_ACCESS,
+                    complete: urls.REGISTER_PHONE
+                },
+                texts: {
+                    send: { resetText: '发送验证码', loadingText: '正在发送...', completeText: '下一步' },
+                    access: { resetText: '下一步', loadingText: '正在提交...', completeText: '完成注册' },
+                    complete: { resetText: '完成注册', loadingText: '正在提交...', completeText: '注册成功' }
+                }
+            }
+        }),
+        registerEmailAccess: new Auth({
+            email: {
+                model: 'access',
+                box: '.register-email-access',
+                input: '#email',
+                urls: {
+                    complete: urls.REGISTER_EMAIL
+                },
+                texts: {
+                    complete: { resetText: '完成注册', loadingText: '正在提交...', completeText: '注册成功' }
+                }
+            },
+            action: 'complete'
+        }),
+        resetPassword: new Auth({
+            email: {
+                model: 'email',
+                box: '.reset-password-email',
+                input: '#email',
+                urls: {
+                    send: urls.RESET_PASSWORD_EMAIL_SEND
+                },
+                texts: {
+                    send: { resetText: '找回密码', loadingText: '正在发送...', completeText: '发送成功' }
+                },
+                tmpl: '<div><p>验证邮件已发送, 请<a href="${ url }" target="_blank">点击查收邮件</a>激活账号。</p>' +
+                      '没有收到邮件？请耐心等待，或者<a class="resend" href="javascript:;">重新发送</a></div>'
+            },
+            phone: {
+                model: 'phone',
+                box: '.reset-password-phone',
+                input: '#phone',
+                urls: {
+                    send: urls.RESET_PASSWORD_PHONE_SEND,
+                    access: urls.RESET_PASSWORD_PHONE_ACCESS,
+                    complete: urls.RESET_PASSWORD_PHONE
+                },
+                texts: {
+                    send: { resetText: '发送验证码', loadingText: '正在发送...', completeText: '下一步' },
+                    access: { resetText: '下一步', loadingText: '正在提交...', completeText: '设置' },
+                    complete: { resetText: '设置', loadingText: '正在提交...', completeText: '设置成功' }
+                }
+            }
+        }),
+        resetPasswordEmailAccess: new Auth({
+            email: {
+                model: 'access',
+                box: '.reset-password-email-access',
+                input: '#email',
+                urls: {
+                    complete: urls.RESET_PASSWORD_EMAIL
+                },
+                texts: {
+                    complete: { resetText: '设置', loadingText: '正在提交...', completeText: '设置成功' }
+                }
+            },
+            action: 'complete'
+        }),
+        bind: new Auth({
+            email: {
+                model: 'phone',
+                box: '.bind-email',
+                input: '#email',
+                urls: {
+                    send: urls.BIND_EMAIL_SEND,
+                    access: urls.BIND_EMAIL_ACCESS,
+                    complete: urls.BIND_EMAIL
+                },
+                texts: {
+                    send: { resetText: '发送验证码', loadingText: '正在发送...', completeText: '下一步' },
+                    access: { resetText: '下一步', loadingText: '正在提交...', completeText: '绑定' },
+                    complete: { resetText: '绑定', loadingText: '正在提交...', completeText: '绑定成功' }
+                }
+            },
+            phone: {
+                model: 'phone',
+                box: '.bind-phone',
+                input: '#phone',
+                urls: {
+                    send: urls.BIND_PHONE_SEND,
+                    access: urls.BIND_PHONE_ACCESS,
+                    complete: urls.BIND_PHONE
+                },
+                texts: {
+                    send: { resetText: '发送验证码', loadingText: '正在发送...', completeText: '下一步' },
+                    access: { resetText: '下一步', loadingText: '正在提交...', completeText: '绑定' },
+                    complete: { resetText: '绑定', loadingText: '正在提交...', completeText: '绑定成功' }
+                }
+            }
+        }),
+        bindAuto: BindAuto
     }
 
     $K.users = users
@@ -667,8 +574,7 @@
     } else {
         $(function () {
             users.login()
-            users.register()
-            users.resetPassword()
+            users.bindAuto()
         })
     }
 

@@ -1,7 +1,7 @@
 # coding: utf-8
 import hashlib
 import random
-from chiki import get_ip, get_spm, get_channel
+from chiki import get_ip, get_spm, get_channel, url2image
 from chiki.base import db
 from chiki.utils import get_spm, get_ip
 from chiki.contrib.common import Item
@@ -23,17 +23,20 @@ class UserMixin(object):
 
     @staticmethod
     def from_oauth(user):
-        user.oauth()
+        return user.oauth()
 
     @staticmethod
     def from_wechat(wxuser):
-        user = create_empty()
+        user = UserMixin.create_empty()
         user.nickname = wxuser.nickname
-        self.avatar = url2image(wxuser.headimgurl)
-        self.sex = self.SEX_FROM_WECHAT.get(wxuser.sex, self.SEX_UNKNOWN)
-        self.country = wxuser.country
-        self.location = '%s|%s' % (wxuser.province, wxuser.city)
+        user.avatar = url2image(wxuser.headimgurl)
+        user.sex = user.SEX_FROM_WECHAT.get(wxuser.sex, user.SEX_UNKNOWN)
+        user.country = wxuser.country
+        user.location = '%s|%s' % (wxuser.province, wxuser.city)
         user.create()
+        wxuser.user = user.id
+        wxuser.save()
+        return user
 
     @staticmethod
     def from_qq(ouser):
@@ -210,7 +213,7 @@ class WeChatUser(db.Document):
         return user
 
     def oauth(self):
-        User.from_wechat(self)
+        return User.from_wechat(self)
 
     def update(self, force=False):
         if force or self.updated + timedelta(days=1) < datetime.now():
@@ -290,7 +293,7 @@ class QQUser(db.Document):
         return 'QQ %d - %s' % (self.user or 0, self.openid)
 
     def oauth(self):
-        User.from_qq(self)
+        return User.from_qq(self)
 
     def is_user(self):
         return False
@@ -347,7 +350,7 @@ class WeiBoUser(db.Document):
         return 'WeiBo %d - %d' % (self.user or 0, self.uid)
 
     def oauth(self):
-        User.from_weibo(self)
+        return User.from_weibo(self)
 
     def is_user(self):
         return False

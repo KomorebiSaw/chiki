@@ -126,7 +126,7 @@ class JinjaManager(object):
         else:
             out.append('<div class="form-group">')
             if field.type == 'BooleanField':
-                out.append('<div class="checkbox"><label>%s %s</label></div>' 
+                out.append('<div class="checkbox"><label>%s %s</label></div>'
                     % (field(**kwargs), field.label.text))
             else:
                 kwargs.setdefault('class_', 'form-control')

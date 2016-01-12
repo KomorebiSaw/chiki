@@ -3,7 +3,7 @@ from chiki.web import error
 from chiki.contrib.users.base import user_manager as um
 from flask import Blueprint, request, render_template, redirect
 from flask import url_for, current_app
-from flask.ext.login import current_user, logout_user, login_required
+from flask.ext.login import current_user, login_user, logout_user, login_required
 
 bp = Blueprint('users', __name__)
 
@@ -40,6 +40,8 @@ def register_email():
 
 def login_from_account(next):
     form = um.forms.LoginForm()
+    if not um.allow_email or not um.allow_phone:
+        form.account.label.text = '帐号'
     return render_template(um.tpls.login, form=form)
 
 
@@ -110,6 +112,12 @@ def reset_password_email():
 def bind():
     next = request.args.get('next', url_for('users.login'))
     if current_user.is_user():
+        return redirect(next)
+
+    if current_user.user:
+        user = um.models.User.objects(id=current_user.user).first()
+        if user:
+            login_user(user)
         return redirect(next)
 
     email_form = um.forms.BindEmailForm()

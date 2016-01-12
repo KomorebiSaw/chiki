@@ -19,7 +19,7 @@ __all__ = [
     'AuthPhoneCode', 'AuthEmailCode',
     'Register', 'RegisterPhone', 'RegisterEmail',
     'Login', 'Logout', 'ResetPassword',
-    'RegisterPhone', 'ResetPasswordEmail',
+    'ResetPasswordPhone', 'ResetPasswordEmail',
     'Bind', 'BindPhone', 'BindEmail',
     'UserInfo', 'resources'
 ]
@@ -141,6 +141,9 @@ class SendPhoneCode(Resource):
 
     @condom('send_phone_code')
     def post(self):
+        if not um.allow_phone:
+            abort(ACCESS_DENIED)
+
         action = request.args.get('action')
         args = self.get_args()
         self.validate(action, args)
@@ -193,6 +196,9 @@ class SendEmailCode(Resource):
 
     @condom('send_email_code')
     def post(self):
+        if not um.allow_email:
+            abort(ACCESS_DENIED)
+
         action = request.args.get('action')
         args = self.get_args()
         self.validate(action, args)
@@ -328,6 +334,9 @@ class RegisterPhone(Register):
         return user
 
     def validate(self, args):
+        if not um.allow_phone:
+            abort(ACCESS_DENIED)
+
         validate_phone_code(args, um.models.PhoneCode.ACTION_REGISTER)
         if um.models.User.objects(phone=args['phone']).count() > 0:
             abort(PHONE_EXISTS)
@@ -355,6 +364,9 @@ class RegisterEmail(Register):
         return user
 
     def validate(self, args):
+        if not um.allow_email:
+            abort(ACCESS_DENIED)
+
         validate_email_code(args, um.models.EmailCode.ACTION_REGISTER)
         if um.models.User.objects(email=args['email']).count() > 0:
             abort(EMAIL_EXISTS)
@@ -469,7 +481,10 @@ class ResetPasswordPhone(ResetPassword):
     def get_user(self, args):
         return um.models.User.objects(phone=args['phone']).first()
 
-    def validate(self, args):
+    def validate(self, args):        
+        if not um.allow_phone:
+            abort(ACCESS_DENIED)
+
         validate_phone_code(args, um.models.PhoneCode.ACTION_RESET_PASSWORD)
 
 
@@ -487,6 +502,9 @@ class ResetPasswordEmail(ResetPassword):
         return um.models.User.objects(email=args['email']).first()
 
     def validate(self, args):
+        if not um.allow_email:
+            abort(ACCESS_DENIED)
+
         validate_email_code(args, um.models.EmailCode.ACTION_RESET_PASSWORD)
 
 
@@ -530,7 +548,7 @@ class Bind(Resource):
         raise NotImplemented
 
 
-@resource('/u/bind/phone', _web=True)
+@resource('/users/bind/phone', _web=True)
 class BindPhone(Bind):
     """ 绑定手机 """
 
@@ -556,10 +574,13 @@ class BindPhone(Bind):
         return user
 
     def validate(self, args):
+        if not um.allow_phone:
+            abort(ACCESS_DENIED)
+
         validate_phone_code(args, um.models.PhoneCode.ACTION_BIND)
 
 
-@resource('/u/bind/email', _web=True)
+@resource('/users/bind/email', _web=True)
 class BindEmail(Bind):
     """ 绑定邮箱 """
 
@@ -585,10 +606,13 @@ class BindEmail(Bind):
         return user
 
     def validate(self, args):
+        if not um.allow_email:
+            abort(ACCESS_DENIED)
+
         validate_email_code(args, um.models.EmailCode.ACTION_BIND)
 
 
-@resource('/u/bind/auto', _web=True)
+@resource('/users/bind/auto', _web=True)
 class BindAuto(Resource):
     """ 自动绑定 """
 

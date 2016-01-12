@@ -10,7 +10,31 @@
         this.$element = $(element)
         this.$form = this.$element.parents('form')
         this.label = typeof options.label !== 'undefined' ? options.label : this.$element.data('label')
+        if (this.$element.data('strip') === 'false') {
+            options.strip = false
+        }
         this.options = $.extend({}, Check.DEFAULTS, options)
+        if (typeof this.options.empty === 'undefined' && this.$element.data('empty') === 'true') {
+            this.options.empty = true
+        }
+        if (typeof this.options.min === 'undefined' && !!this.$element.data('min')) {
+            this.options.min = parseInt(this.$element.data('min'), 10)
+        }
+        if (typeof this.options.max === 'undefined' && !!this.$element.data('max')) {
+            this.options.max = parseInt(this.$element.data('max'), 10)
+        }
+        if (typeof this.options.equal === 'undefined' && !!this.$element.data('equal')) {
+            this.options.equal = {
+                element: this.$element.data('equal'),
+                message: this.$element.data('equal_message')
+            }
+        }
+        if (typeof this.options.regx === 'undefined' && !!this.$element.data('regx')) {
+            this.options.regx = {
+                re: this.$element.data('regx'),
+                message: this.$element.data('regx_message')
+            }
+        }
         if (typeof options.ajax === 'undefined') {
             this.$element.on('change', check)
         } else {
@@ -37,6 +61,9 @@
     }
 
     Check.prototype.check = function () {
+        if (typeof this.label === 'undefined') {
+            return;
+        }
         if (this.options.strip) {
             this.$element.val($.trim(this.$element.val()))
         }

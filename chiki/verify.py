@@ -14,6 +14,8 @@ __all__ = [
 
 _keys = set()
 _codes = string.uppercase + string.digits
+for code in '0oIl1':
+   _codes = _codes.replace(code, '')
 
 FONTS = [
     os.path.join(FONT_ROOT, '1.ttf'),
