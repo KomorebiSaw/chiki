@@ -1,4 +1,5 @@
 # coding: utf-8
+import hashlib
 from flask import current_app
 from mongoengine import signals
 from mongoengine.fields import ListField, EmbeddedDocument
