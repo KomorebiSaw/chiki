@@ -8,7 +8,7 @@ from chiki.base import db
 from chiki.api import wapi
 from chiki.contrib.users import UserManager
 from flask import redirect
-from flask.ext.login import login_user
+from flask.ext.login import login_user, login_required
 
 media = MediaManager(
     css=['css/web.min.css'],
@@ -50,6 +50,7 @@ class Config(object):
 
     CHIKI_USER = dict(
         allow_phone=True,
+        login_next='/users/abc',
     )
 
     WXAUTH = dict(
@@ -75,6 +76,12 @@ def init(app):
             u = user.models.WeChatUser(unionid='1212').save()
         login_user(u)
         return redirect(user.config.bind_url)
+
+
+    @app.route('/')
+    @login_required
+    def index():
+        return '123'
 
 
 app = init_web(init, Config, template_folder=Config.TEMPLATE_FOLDER)
