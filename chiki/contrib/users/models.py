@@ -8,6 +8,7 @@ from chiki.contrib.common import Item
 from chiki.contrib.users.base import user_manager as um
 from datetime import datetime, timedelta
 from flask import current_app, request
+from flask.ext.login import current_user
 
 __all__ = [
     'User', 'UserMixin', 'WeChatUser', 'QQUser', 'WeiBoUser',
@@ -51,7 +52,7 @@ class UserMixin(object):
 
     @property
     def wechat_user(self):
-        return WechatUser.objects(user=self.id).first()
+        return um.models.WechatUser.objects(user=self.id).first()
 
     @property
     def is_lock(self):

@@ -481,7 +481,7 @@ class ResetPasswordPhone(ResetPassword):
     def get_user(self, args):
         return um.models.User.objects(phone=args['phone']).first()
 
-    def validate(self, args):        
+    def validate(self, args):
         if not um.allow_phone:
             abort(ACCESS_DENIED)
 
