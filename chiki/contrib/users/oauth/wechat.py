@@ -25,7 +25,7 @@ def get_wechat_user(access):
 
 def create_wechat_user(userinfo, action):
     um = current_app.user_manager
-    um.models.WeChatUser.create(userinfo, action)
+    return um.models.WeChatUser.create(userinfo, action)
 
 
 def wechat_login(wxuser):
