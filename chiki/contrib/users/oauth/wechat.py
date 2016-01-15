@@ -20,7 +20,7 @@ def get_wechat_user(access):
     if len(config) > 1:
         return um.models.WeChatUser(unionid=access['unionid']).first()
     query = { '%s_openid' % config.items()[0][0] : access['openid'] }
-    return um.models.WeChatUser(**query).first()
+    return um.models.WeChatUser.objects(**query).first()
 
 
 def create_wechat_user(userinfo, action):
