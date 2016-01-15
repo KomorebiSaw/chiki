@@ -22,7 +22,6 @@ def init_oauth(app):
 
             model = current_app.user_manager.config.oauth_model
             remember = current_app.user_manager.config.oauth_remember
-            current_app.logger.error(model)
             if model == 'auto':
                 user = um.models.User.from_oauth(current_user)
                 login_user(user, remember=remember)
