@@ -25,6 +25,7 @@ def init_oauth(app):
             if model == 'auto':
                 user = um.models.User.from_oauth(current_user)
                 login_user(user, remember=remember)
+                return
             if is_json():
                 abort(NEED_BIND)
             return redirect(current_app.user_manager.config.bind_url)
