@@ -50,6 +50,10 @@ class UserMixin(object):
         return '%s - %s' % (self.phone, self.id)
 
     @property
+    def wechat_user(self):
+        return WechatUser.objects(user=self.id).first()
+
+    @property
     def is_lock(self):
         return self.locked > datetime.now() - timedelta(seconds=300)
 
