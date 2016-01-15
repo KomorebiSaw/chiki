@@ -4,6 +4,7 @@ from chiki import is_json
 from chiki.api import abort
 from chiki.api.const import *
 from chiki.contrib.common import Item
+from chiki.contrib.users.base import um
 from chiki.web import error
 from flask import flash, render_template, redirect, url_for
 from flask.ext.login import login_user, current_user
