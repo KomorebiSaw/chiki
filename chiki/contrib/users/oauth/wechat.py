@@ -4,7 +4,6 @@ from chiki import is_json
 from chiki.api import abort
 from chiki.api.const import *
 from chiki.contrib.common import Item
-from chiki.contrib.users.base import um
 from chiki.web import error
 from flask import flash, render_template, redirect, url_for
 from flask.ext.login import login_user, current_user
@@ -16,6 +15,7 @@ __all__ = [
 
 
 def get_wechat_user(access):
+    um = current_app.user_manager
     config = current_app.config.get('WXAUTH')
     if len(config) > 1:
         return um.models.WeChatUser(unionid=access['unionid']).first()
@@ -24,11 +24,13 @@ def get_wechat_user(access):
 
 
 def create_wechat_user(userinfo, action):
+    um = current_app.user_manager
     um.models.WeChatUser.create(userinfo, action)
 
 
 def wechat_login(wxuser):
-    model = current_app.user_manager.config.oauth_model
+    um = current_app.user_manager
+    model = um.config.oauth_model
     if model == 'auto':
         um.models.User.from_wechat(wxuser)
 
@@ -42,6 +44,7 @@ def init_wxauth(app):
         return
 
     wxauth = app.wxauth
+    um = app.user_manager
 
     @wxauth.success_handler
     def wxauth_success(action, scope, access, next):
