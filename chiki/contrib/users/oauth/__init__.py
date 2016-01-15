@@ -2,7 +2,7 @@
 from chiki import is_json
 from chiki.api.const import *
 from flask import current_app, request, redirect
-from flask.ext.login import current_user
+from flask.ext.login import current_user, login_user
 from . import wechat
 from .wechat import *
 
