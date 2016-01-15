@@ -20,8 +20,9 @@ def init_oauth(app):
                 and request.endpoint not in current_app.user_manager.config.allow_oauth_urls \
                 and not request.path.startswith('/admin'):
 
-            model = current_app.user_manager.config.oauth_model
-            remember = current_app.user_manager.config.oauth_remember
+            um = current_app.user_manager
+            model = um.config.oauth_model
+            remember = um.config.oauth_remember
             if model == 'auto':
                 user = um.models.User.from_oauth(current_user)
                 login_user(user, remember=remember)
