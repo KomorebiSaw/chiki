@@ -44,7 +44,6 @@ class UserManager(object):
 
         @self.login.user_loader
         def load_user(id):
-            self.app.logger.error(str(type(id)))
             if type(id) in (str, unicode):
                 if id.startswith('wechat:'):
                     return um.models.WeChatUser.objects(id=id.split(':')[-1]).first()
