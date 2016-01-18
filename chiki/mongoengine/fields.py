@@ -2,7 +2,7 @@
 import hashlib
 from flask import current_app
 from mongoengine import signals
-from mongoengine.fields import ListField, EmbeddedDocument
+from mongoengine.fields import ListField, EmbeddedDocument, StringField
 from mongoengine.base.fields import BaseField
 from werkzeug.datastructures import FileStorage
 from .generators import BaseGenerator, RandomGenerator
@@ -283,5 +283,5 @@ class XListField(ListField):
         super(XListField, self).__set__(instance, value)
 
 
-class AreaField(BaseField):
+class AreaField(StringField):
     pass
