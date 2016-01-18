@@ -39,6 +39,7 @@ class WXPay(object):
             current_app.logger.error('wxpay callbck: %s' % request.data)
             return 'sign error'
 
+        res = ''
         if self.wxpay_callback:
             res = self.wxpay_callback(data)
         return res or ''
