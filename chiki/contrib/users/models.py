@@ -52,7 +52,7 @@ class UserMixin(object):
 
     @property
     def wechat_user(self):
-        return um.models.WechatUser.objects(user=self.id).first()
+        return um.models.WeChatUser.objects(user=self.id).first()
 
     @property
     def is_lock(self):
