@@ -180,7 +180,7 @@ class ThirdUserMixin(object):
 
     @property
     def current(self):
-        return um.models.User.objects(user=self.user).first()
+        return um.models.User.objects(id=self.user).first()
 
     def is_user(self):
         return False
