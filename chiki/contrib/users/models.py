@@ -47,7 +47,7 @@ class UserMixin(object):
 
     @staticmethod
     def from_wechat_mp(openid):
-        return um.models.User.create_wechat(um.models.WeChatUser.create_mp(openid))
+        return um.models.User.from_wechat(um.models.WeChatUser.create_mp(openid))
 
     @staticmethod
     def from_qq(ouser):
