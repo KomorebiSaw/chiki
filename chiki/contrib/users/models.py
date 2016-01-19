@@ -271,7 +271,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
         return user
 
     def oauth(self):
-        return User.from_wechat(self)
+        return um.models.User.from_wechat(self)
 
     def update(self, force=False):
         if force or self.updated + timedelta(days=1) < datetime.now():
@@ -334,7 +334,7 @@ class QQUser(db.Document, ThirdUserMixin):
         return 'QQ %d - %s' % (self.user or 0, self.openid)
 
     def oauth(self):
-        return User.from_qq(self)
+        return um.models.User.from_qq(self)
 
 
 class WeiBoUser(db.Document, ThirdUserMixin):
@@ -374,7 +374,7 @@ class WeiBoUser(db.Document, ThirdUserMixin):
         return 'WeiBo %d - %d' % (self.user or 0, self.uid)
 
     def oauth(self):
-        return User.from_weibo(self)
+        return um.models.User.from_weibo(self)
 
 
 class UserLog(db.Document):
