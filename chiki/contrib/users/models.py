@@ -26,7 +26,7 @@ class UserMixin(object):
 
     @staticmethod
     def create_empty():
-        return User(channel=get_channel(), spm=get_spm(), ip=get_ip())
+        return um.models.User(channel=get_channel(), spm=get_spm(), ip=get_ip())
 
     @staticmethod
     def from_oauth(user):
