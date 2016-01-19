@@ -34,7 +34,12 @@ class UserMixin(object):
 
     @staticmethod
     def from_wechat(wxuser):
-        user = UserMixin.create_empty()
+        if wxuser.user:
+            user = wxuser.current
+            if user:
+                return user
+
+        user = um.models.User.create_empty()
         user.nickname = wxuser.nickname
         user.avatar = url2image(wxuser.headimgurl)
         user.sex = user.SEX_FROM_WECHAT.get(wxuser.sex, user.SEX_UNKNOWN)

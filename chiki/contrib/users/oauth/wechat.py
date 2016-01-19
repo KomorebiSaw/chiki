@@ -31,7 +31,7 @@ def create_wechat_user(userinfo, action):
 def wechat_login(wxuser):
     um = current_app.user_manager
     model = um.config.oauth_model
-    if model == 'auto':
+    if model == 'auto' and not wxuser.user:
         um.models.User.from_wechat(wxuser)
 
 
