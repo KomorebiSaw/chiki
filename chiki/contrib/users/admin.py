@@ -4,7 +4,7 @@ from chiki.admin import ModelView
 
 class UserView(ModelView):
     show_popover = True
-    column_default_sort = ('created', True)
+    column_default_sort = ('registered', True)
     column_list = (
         'id', 'phone', 'avatar', 'location', 'debug', 'active', 'channel', 'spm', 'ip',
         'generate', 'error', 'logined', 'registered'
