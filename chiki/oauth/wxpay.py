@@ -89,6 +89,10 @@ class WXPay(object):
         kwargs['mch_billno'] = kwargs['mch_id'] + kwargs.get('mch_billno', '')
         kwargs.setdefault('sign', self.sign(**kwargs))
 
+        if 're_openid' not in kwargs:
+            raise ValueError('re_openid is required.')
+
+        data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:
             xml = requests.post(self.SEND_RED_PACK, data=data, cert=self.config.get('cert')).content
             return self.xml2dict(xml)
