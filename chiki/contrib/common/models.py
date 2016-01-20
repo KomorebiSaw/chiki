@@ -87,7 +87,7 @@ class Item(db.Document):
         item = Item.objects(key=key).first()
         if item:
             return item.value
-            
+
         Item(key=key, type=Item.TYPE_INT, value=default).save()
         return default
 

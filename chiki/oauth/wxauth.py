@@ -131,7 +131,11 @@ class WXAuth(object):
 
     @err_logger
     def get_user_info(self, openid):
-        return self.client.get_user_info(openid)
+        try:
+            return self.client.get_user_info(openid)
+        except:
+            self.client.refresh_token()
+            return self.client.get_user_info(openid)
 
     def get_check_url(self, token, openid):
         query = dict(access_token=token, openid=openid)

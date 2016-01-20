@@ -147,7 +147,7 @@ class JinjaManager(object):
             return self.alert_msg(error, style)
 
         messages = get_flashed_messages(with_categories=True)
-        if messages:
+        if messages and messages[-1][1] != 'Please log in to access this page.':
             return self.alert_msg(messages[-1][1], messages[-1][0] or 'danger')
         return ''
 

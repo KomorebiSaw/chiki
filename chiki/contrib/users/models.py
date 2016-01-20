@@ -19,8 +19,14 @@ __all__ = [
 class UserMixin(object):
 
     @staticmethod
+    def get_wechat(**kwargs):
+        user = um.models.WeChatUser.objects(**kwargs).first()
+        if user:
+            return user.current or user
+
+    @staticmethod
     def create_empty():
-        return User(channel=get_channel(), spm=get_spm(), ip=get_ip())
+        return um.models.User(channel=get_channel(), spm=get_spm(), ip=get_ip())
 
     @staticmethod
     def from_oauth(user):
@@ -28,7 +34,12 @@ class UserMixin(object):
 
     @staticmethod
     def from_wechat(wxuser):
-        user = UserMixin.create_empty()
+        if wxuser.user:
+            user = wxuser.current
+            if user:
+                return user
+
+        user = um.models.User.create_empty()
         user.nickname = wxuser.nickname
         user.avatar = url2image(wxuser.headimgurl)
         user.sex = user.SEX_FROM_WECHAT.get(wxuser.sex, user.SEX_UNKNOWN)
@@ -38,6 +49,10 @@ class UserMixin(object):
         wxuser.user = user.id
         wxuser.save()
         return user
+
+    @staticmethod
+    def from_wechat_mp(openid):
+        return um.models.User.from_wechat(um.models.WeChatUser.create_mp(openid))
 
     @staticmethod
     def from_qq(ouser):
@@ -166,8 +181,36 @@ class User(db.Document, UserMixin):
     }
 
 
-class WeChatUser(db.Document):
+class ThirdUserMixin(object):
+
+    @property
+    def current(self):
+        return um.models.User.objects(id=self.user).first()
+
+    def is_user(self):
+        return False
+
+    def is_authenticated(self):
+        """ 是否登录 """
+        return True
+
+    def is_active(self):
+        """ 是否激活 """
+        return True
+
+    def is_anonymous(self):
+        """ 是否游客 """
+        return False
+
+    def get_id(self):
+        """ 获取用户ID """
+        return '%s:%s' % (self.key, str(self.id))
+
+
+class WeChatUser(db.Document, ThirdUserMixin):
     """ 微信用户信息 """
+
+    key = 'wechat'
 
     user = db.IntField(verbose_name='用户')
     unionid = db.StringField(verbose_name='联合ID')
@@ -217,8 +260,18 @@ class WeChatUser(db.Document):
         user.save()
         return user
 
+    @staticmethod
+    def create_mp(openid):
+        user = WeChatUser(mp_openid=openid)
+        if current_user.is_authenticated() and current_user.is_user():
+            user.user = current_user.id
+
+        user.update(True)
+        user.save()
+        return user
+
     def oauth(self):
-        return User.from_wechat(self)
+        return um.models.User.from_wechat(self)
 
     def update(self, force=False):
         if force or self.updated + timedelta(days=1) < datetime.now():
@@ -243,28 +296,16 @@ class WeChatUser(db.Document):
             self.subscribe = True
             self.subscribe_time = datetime.fromtimestamp(userinfo['subscribe_time'])
 
-    def is_user(self):
-        return False
-
-    def is_authenticated(self):
-        """ 是否登录 """
-        return True
-
-    def is_active(self):
-        """ 是否激活 """
-        return True
-
-    def is_anonymous(self):
-        """ 是否游客 """
-        return False
-
-    def get_id(self):
-        """ 获取用户ID """
-        return 'wechat:%s' % str(self.id)
+    def unsubscribe(self):
+        self.subscribe = False
+        self.subscribe_time = datetime.now()
+        self.save()
 
 
-class QQUser(db.Document):
+class QQUser(db.Document, ThirdUserMixin):
     """ QQ用户信息 """
+
+    key = 'qq'
 
     user = db.IntField(verbose_name='用户')
     openid = db.StringField(verbose_name='开放ID')
@@ -298,30 +339,13 @@ class QQUser(db.Document):
         return 'QQ %d - %s' % (self.user or 0, self.openid)
 
     def oauth(self):
-        return User.from_qq(self)
-
-    def is_user(self):
-        return False
-
-    def is_authenticated(self):
-        """ 是否登录 """
-        return True
-
-    def is_active(self):
-        """ 是否激活 """
-        return True
-
-    def is_anonymous(self):
-        """ 是否游客 """
-        return False
-
-    def get_id(self):
-        """ 获取用户ID """
-        return 'qq:%s' % str(self.id)
+        return um.models.User.from_qq(self)
 
 
-class WeiBoUser(db.Document):
+class WeiBoUser(db.Document, ThirdUserMixin):
     """ QQ用户信息 """
+
+    key = 'weibo'
 
     user = db.IntField(verbose_name='用户')
     uid = db.IntField(verbose_name='ID')
@@ -355,26 +379,7 @@ class WeiBoUser(db.Document):
         return 'WeiBo %d - %d' % (self.user or 0, self.uid)
 
     def oauth(self):
-        return User.from_weibo(self)
-
-    def is_user(self):
-        return False
-
-    def is_authenticated(self):
-        """ 是否登录 """
-        return True
-
-    def is_active(self):
-        """ 是否激活 """
-        return True
-
-    def is_anonymous(self):
-        """ 是否游客 """
-        return False
-
-    def get_id(self):
-        """ 获取用户ID """
-        return 'weibo:%s' % str(self.id)
+        return um.models.User.from_weibo(self)
 
 
 class UserLog(db.Document):

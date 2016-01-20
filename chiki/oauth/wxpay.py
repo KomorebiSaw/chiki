@@ -17,6 +17,7 @@ __all__ = [
 class WXPay(object):
 
     PREPAY_URL = 'https://api.mch.weixin.qq.com/pay/unifiedorder'
+    SEND_RED_PACK = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack'
 
     def __init__(self, app=None):
         self.wxpay_callback = None
@@ -70,6 +71,30 @@ class WXPay(object):
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:
             xml = requests.post(self.PREPAY_URL, data=data).content
+            return self.xml2dict(xml)
+        except Exception, e:
+            return dict(return_code='ERROR', return_msg=str(e))
+
+    def send_red_pack(self, **kwargs):
+        kwargs.setdefault('wxappid', self.config.get('appid'))
+        kwargs.setdefault('mch_id', self.config.get('mchid'))
+        kwargs.setdefault('client_ip', self.config.get('client_ip'))
+        kwargs.setdefault('send_name', self.config.get('send_name', '小酷科技'))
+        kwargs.setdefault('total_amount', 100)
+        kwargs.setdefault('total_num', 1)
+        kwargs.setdefault('nonce_str', randstr(32))
+        kwargs.setdefault('wishing', '恭喜发财')
+        kwargs.setdefault('act_name', '现金红包')
+        kwargs.setdefault('remark', '备注')
+        kwargs['mch_billno'] = kwargs['mch_id'] + kwargs.get('mch_billno', '')
+        kwargs.setdefault('sign', self.sign(**kwargs))
+
+        if 're_openid' not in kwargs:
+            raise ValueError('re_openid is required.')
+
+        data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
+        try:
+            xml = requests.post(self.SEND_RED_PACK, data=data, cert=self.config.get('cert')).content
             return self.xml2dict(xml)
         except Exception, e:
             return dict(return_code='ERROR', return_msg=str(e))
