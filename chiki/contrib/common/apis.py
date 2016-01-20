@@ -8,8 +8,8 @@ from flask.ext.restful import Resource, reqparse
 from chiki.api.const import *
 from chiki.utils import parse_spm
 from chiki.contrib.common.models import (
-    Enable, Item, APIItem, TPLItem, AndroidVersion, 
-    ActionItem, SlideItem, 
+    Enable, Item, APIItem, TPLItem, AndroidVersion,
+    ActionItem, SlideItem,
 )
 
 
