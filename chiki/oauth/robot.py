@@ -24,6 +24,14 @@ def patch_monkey():
             Item.set_data(key, json.dumps(token))
         return token['access_token']
 
+    def refresh_token(self):
+        now = time.time()
+        key = 'wxauth:access_token'
+        token = self.grant_token()
+        token['deadline'] = now + token['expires_in']
+        Item.set_data(key, json.dumps(token))
+
+    Client.refresh_token = refresh_token
     Client.token = common_token
 
     @handle_for_type('event')
