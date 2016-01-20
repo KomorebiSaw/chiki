@@ -296,6 +296,11 @@ class WeChatUser(db.Document, ThirdUserMixin):
             self.subscribe = True
             self.subscribe_time = datetime.fromtimestamp(userinfo['subscribe_time'])
 
+    def unsubscribe(self):
+        self.subscribe = False
+        self.subscribe_time = datetime.now()
+        self.save()
+
 
 class QQUser(db.Document, ThirdUserMixin):
     """ QQ用户信息 """
