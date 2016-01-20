@@ -21,16 +21,15 @@ class WeChatUserView(ModelView):
     show_popover = True
     column_default_sort = ('created', True)
     column_list = (
-        'user', 'mobile_openid', 'headimgurl', 'privilege', 'subscribe', 'subscribe_time', 'remark', 'groupid', 'access_token', 
+        'user', 'nickname', 'province', 'city', 'privilege', 'subscribe', 'subscribe_time', 'remark', 'groupid', 'access_token', 
         'expires_in', 'refresh_token', 'updated', 'modified', 'created'
     )
     column_center_list = (
-        'user', 'mobile_openid', 'headimgurl', 'privilege', 'subscribe', 'subscribe_time', 'remark', 'groupid', 'access_token', 
+        'user', 'nickname', 'province', 'city', 'privilege', 'subscribe', 'subscribe_time', 'remark', 'groupid', 'access_token', 
         'expires_in', 'refresh_token', 'updated', 'modified', 'created'
     )
-    column_hidden_list = ('headimgurl',)
-    column_searchable_list = ('unionid', 'mp_openid', 'mobile_openid',)
-    column_filters = ('user', 'mobile_openid')
+    column_searchable_list = ('unionid', 'mp_openid', )
+    column_filters = ('user',)
 
 
 class QQUserView(ModelView):
