@@ -63,7 +63,8 @@ class JinjaManager(object):
 
     def context_processor(self):
         return dict(
-            alert=self.alert_filter,
+            SITE_NAME=current_app.config.get('SITE_NAME'),
+            VERSION=current_app.config.get('VERSION'),
         )
 
     def line2br_filter(self, text):
