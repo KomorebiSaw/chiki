@@ -1,17 +1,17 @@
 #　coding: utf-8
-from flask import request
+from flask import request, render_template
 
 
-def message(msg, style='info'):
-    return msg
+def message(msg, style='info', url=''):
+    return render_template('msg.html', msg=msg, style=style, url=url)
 
 
-def success(msg):
-    return message(msg, style='success')
+def success(msg, url=''):
+    return message(msg, style='success', url=url)
 
 
-def error(msg):
-    return message(msg, style='danger')
+def error(msg, url=''):
+    return message(msg, style='danger', url=url)
 
 
 def is_ajax():
