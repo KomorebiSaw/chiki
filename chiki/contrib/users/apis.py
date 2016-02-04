@@ -114,13 +114,15 @@ def userinfo(user):
         nickname=user.nickname or '',
         avatar=user.avatar.get_link(64, 64),
         avatar_large=user.avatar.link,
-        birthday=user.birthday.strftime('%Y-%m-%d') if user.birthday else '',
-        sex=user.sex,
         location=user.location or '',
         address=user.address or '',
         debug=user.debug,
         registered=str(user.registered).split('.')[0],
     )
+    if hasattr(user, 'birthday'):
+        info['birthday'] = user.birthday.strftime('%Y-%m-%d') if user.birthday else ''
+    if hasattr(user, 'sex'):
+        info['sex'] = user.sex
     return info
 
 

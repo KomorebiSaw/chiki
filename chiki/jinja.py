@@ -21,9 +21,10 @@ def markupper(func):
 
     
 def first_error(form):
-    for field in form:
-        if field.errors:
-            return field.errors[0]
+    if form:
+        for field in form:
+            if field.errors:
+                return field.errors[0]
 
 
 def text2html(text):
@@ -65,6 +66,7 @@ class JinjaManager(object):
         return dict(
             SITE_NAME=current_app.config.get('SITE_NAME'),
             VERSION=current_app.config.get('VERSION'),
+            alert=self.alert_filter,
         )
 
     def line2br_filter(self, text):

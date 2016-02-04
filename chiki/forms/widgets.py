@@ -132,28 +132,44 @@ class ImageInput(object):
                 <img src="%(thumb)s">
             </div>
         </a>
-        <div class="checkbox">
+        <div class="checkbox" style="margin-bottom:10px;">
             <label>
                 <input name="%(name)s-delete" type="checkbox" value="true"> 删除 %(filename)s
             </label>
         </div>
     """
 
+    input_tpl = """
+        <div class="input-group">
+            <span class="input-group-btn">
+                <div id="btn-image" autocomplete="off" class="btn btn-default" style="width:80px;padding:0;">
+                    <span style="padding: 6px 12px;display:inline-block;">选择图片</span>
+                    %(input)s
+                </div>
+            </span>
+            <input autocomplete="off" type="text" class="col-sm-5 form-control input-insert-image"
+                placeholder='%(name)s' disabled="disabled" />
+        </div>
+        <div class="clearfix"></div>
+    """
+
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
         kwargs.pop('class', None)
-        kwargs.setdefault('style', 'margin: 10px 0;')
+        kwargs.setdefault('autocomplete', 'off')
+        kwargs.setdefault('style', 'width:100%;height:34px;margin-top:-34px;opacity:0;cursor:pointer;')
+        kwargs.setdefault('onchange', "$(this).parents('.input-group').find('.input-insert-image').val($(this).val())")
 
-        placeholder = ''
+        input = '<input %s>' % html_params(name=field.name, type='file', **kwargs)
+        html = self.input_tpl % dict(name=field.label.text, input=input)
         if field.data and hasattr(field.data, 'link') and field.data.link:
-            placeholder = self.template % dict(
-                thumb=field.data.link, 
+            html = self.template % dict(
+                thumb=field.data.link,
                 name=field.name,
                 filename=field.data.filename,
-            )
+            ) + html
 
-        return HTMLString('%s<input %s>' % (placeholder, 
-            html_params(name=field.name, type='file', **kwargs)))
+        return HTMLString(html)
 
 
 class AreaInput(object):
