@@ -186,7 +186,7 @@ class ModelView(_ModelView):
         else:
             order = self._get_default_order()
             if order:
-                if order[1] != True and order[1] != False:
+                if len(order) <= 1 or order[1] != True and order[1] != False:
                     query = query.order_by(*order)
                 else:
                     query = query.order_by('%s%s' % ('-' if order[1] else '', order[0]))

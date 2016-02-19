@@ -1,7 +1,7 @@
 # coding: utf-8
-from chiki.admin import (
-    ModelView, formatter_len, formatter_icon, formatter_text
-    )
+from chiki.admin import ModelView, formatter_len, formatter_icon
+from chiki.admin import formatter_text
+from datetime import datetime
 from wtforms.fields import TextField
 
 
@@ -43,7 +43,7 @@ class TraceLogView(ModelView):
 
 class ChannelView(ModelView):
     column_default_sort = ('created', )
-    column_center_list = ('id','name', 'modified', 'created')
+    column_center_list = ('id', 'name', 'modified', 'created')
     column_formatters = dict(
         desc=formatter_len(),
     )

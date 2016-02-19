@@ -12,8 +12,10 @@ Chiki相关的还有一个项目模版 `CookieCutter Chiki`_ 。使用该模版�
 支持自动化部署(nginx+uwsgi+fabric)、gitlab项目同步、服务器简单管理、前端优化
 (grunt+bower)。
 
-注意：Chiki主要采用mongodb数据库，SQLAlchemy支持较少，需要的话自己做支持。mongodb
-使用起来比mysql等其他数据库，简单得多，不需要建表就可以直接用。
+.. admonition:: 注意
+
+    Chiki主要采用mongodb数据库，SQLAlchemy支持较少，需要的话自己做支持。mongodb
+    使用起来比mysql等其他数据库，简单得多，不需要建表就可以直接用。
 
 
 .. _CookieCutter Chiki: https://github.com/endsh/cookiecutter-chiki

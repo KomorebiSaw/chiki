@@ -9,8 +9,7 @@
 在 :ref:`installation` 中基本给出了创建新项目的所有步骤，这里再给出一个完整的例子::
 
     mkvirtualenv simple
-    git clone https://github.com/endsh/chiki.git chiki
-    cd chiki && python setup.py install && cd ..
+    pip install chiki
     chiki https://github.com/endsh/cookiecutter-chiki.git -a -w
     cd simple
 

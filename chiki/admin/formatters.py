@@ -57,7 +57,7 @@ def formatter(func):
             if data:
                 if type(data) == int:
                     data = unicode(data)
-                return markup(func(data ) or '')
+                return markup(func(data) or '')
         return ''
     return wrapper
 
@@ -131,7 +131,7 @@ def formatter_icon(func=None, height=40, **kwargs):
     @formatter_model
     def wrapper(model):
         return icon(func(model))
-        
+
     return wrapper
 
 
@@ -165,7 +165,7 @@ def formatter_ip(url=None, blank=True):
                 return tpl % (quote(href, ip) + escape(text))
             return '<span title=%s>%s</span>' % (quote(ip) + escape(text))
     return wrapper
-    
+
 
 @formatter
 def format_time(t):

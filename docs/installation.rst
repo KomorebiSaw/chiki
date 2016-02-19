@@ -23,10 +23,17 @@ virtualenvwrapper有几个常用的命令::
 在虚拟环境下，python、pip、还有其他的libs都是使用虚拟环境所安装的版本。virtualenv
 安装目录在/home/user/.virtualenvs下。
 
+pip 安装
+--------
+
+通过pip安装::
+    
+    pip install chiki
+
 克隆 & 安装
 -----------
 
-克隆并安装chiki框架，chiki依赖安装的只有部分lib，还有一些欠缺的需要自己手动安装，
+从github克隆并安装chiki框架，chiki依赖安装的只有部分lib，还有一些欠缺的需要自己手动安装，
 因为部分扩展不一定会被用到，可能需要注意的是flask-admin也需要自己手动克隆安装
 (python setup.py install)，因为需要支持中文::
 

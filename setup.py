@@ -30,7 +30,7 @@ def get_data_files(*dirs):
 setup(
     name='chiki',
     version=grep('__version__'),
-    url='https://www.chiki.org/',
+    url='http://www.chiki.org/',
     author=grep('__author__'),
     author_email=grep('__email__'),
     description='Common libs of flask web develop',
