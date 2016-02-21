@@ -78,7 +78,7 @@ class UserMixin(object):
         return self.get_avatar(64, 64)
 
     @property
-    def avatar_lagre(self):
+    def avatar_large(self):
         return self.get_avatar()
 
     def get_avatar(self, width=128, height=128):
