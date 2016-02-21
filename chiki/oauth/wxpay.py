@@ -4,7 +4,7 @@ import time
 import hashlib
 import requests
 from chiki.utils import get_ip, randstr
-from flask import request, url_for
+from flask import request, url_for, current_app
 from werobot.utils import to_text
 from xml.etree import ElementTree
 from dicttoxml import dicttoxml
