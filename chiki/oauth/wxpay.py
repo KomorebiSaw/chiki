@@ -49,8 +49,8 @@ class WXPay(object):
                 return 'sign error'
             if self.wxpay_callback:
                 res = self.wxpay_callback(data)
-        except:
-            pass
+        except Exception, e:
+            current_app.logger.error('wxpay callbck except: %s' % str(e))
         return res or ''
 
     def wxpay_handler(self, callback):
