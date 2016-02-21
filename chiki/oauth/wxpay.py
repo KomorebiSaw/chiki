@@ -31,7 +31,13 @@ class WXPay(object):
 
         @app.route('/wxpay/callback', methods=['POST'])
         def wxpay_callback():
-            return self.callback()
+            self.callback()
+            return """
+<xml>
+  <return_code><![CDATA[SUCCESS]]></return_code>
+  <return_msg><![CDATA[OK]]></return_msg>
+</xml>
+"""
 
     def callback(self):
         res = ''
