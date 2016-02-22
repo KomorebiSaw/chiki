@@ -1,5 +1,6 @@
 # coding: utf-8
 import os
+import traceback
 from datetime import datetime
 from flask import current_app, redirect, flash
 from flask.ext.admin import AdminIndexView, expose
@@ -13,6 +14,7 @@ from flask.ext.admin._compat import string_types
 from mongoengine.fields import IntField, LongField, DecimalField, FloatField
 from mongoengine.fields import StringField, ReferenceField, ObjectIdField, ListField
 from bson.objectid import ObjectId
+from jinja2 import contextfunction
 from .convert import KModelConverter
 from .filters import KFilterConverter
 from .formatters import type_best, type_image, type_file
@@ -201,6 +203,32 @@ class ModelView(_ModelView):
             query = query.all()
 
         return count, query
+
+    @contextfunction
+    def get_list_value(self, context, model, name):
+        column_fmt = self.column_formatters.get(name)
+        if column_fmt is not None:
+            try:
+                value = column_fmt(self, context, model, name)
+            except:
+                current_app.logger.error(traceback.format_exc())
+                value = ''
+        else:
+            value = self._get_field_value(model, name)
+
+        choices_map = self._column_choices_map.get(name, {})
+        if choices_map:
+            return choices_map.get(value) or value
+
+        type_fmt = None
+        for typeobj, formatter in self.column_type_formatters.items():
+            if isinstance(value, typeobj):
+                type_fmt = formatter
+                break
+        if type_fmt is not None:
+            value = type_fmt(self, value)
+
+        return value
 
     @action('delete',
             lazy_gettext('Delete'),
