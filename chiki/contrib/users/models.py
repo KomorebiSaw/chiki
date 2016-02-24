@@ -276,9 +276,9 @@ class WeChatUser(db.Document, ThirdUserMixin):
             user.avatar = url2image(self.headimgurl)
         if not user.sex or force:
             user.sex = user.SEX_FROM_WECHAT.get(self.sex, user.SEX_UNKNOWN)
-        if not user.country or force:
+        if hasattr(user, 'country') and not user.country or force:
             user.country = self.country
-        if not user.location or force:
+        if hasattr(user, 'location') and not user.location or force:
             user.location = '%s|%s' % (self.province, self.city)
 
     def oauth(self):
