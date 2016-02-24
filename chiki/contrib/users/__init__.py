@@ -126,7 +126,7 @@ class UserManager(object):
 
     def add_api(self, *args, **kwargs):
         def wrapper(cls):
-            self.apis[key] = (cls, args, kwargs)
+            self.apis[cls.__name__] = (cls, args, kwargs)
         return wrapper
 
     def init_apis(self, api):

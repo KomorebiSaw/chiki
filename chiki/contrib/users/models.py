@@ -212,6 +212,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
     key = 'wechat'
 
     user = db.IntField(verbose_name='用户')
+    scene = db.StringField(verbose_name='邀请码')
     unionid = db.StringField(verbose_name='联合ID')
     mp_openid = db.StringField(verbose_name='公众号ID')
     mobile_openid = db.StringField(verbose_name='手机ID')
@@ -260,8 +261,8 @@ class WeChatUser(db.Document, ThirdUserMixin):
         return user
 
     @staticmethod
-    def create_mp(openid):
-        user = WeChatUser(mp_openid=openid)
+    def create_mp(openid, scene=''):
+        user = WeChatUser(mp_openid=openid, scene=scene)
         if current_user.is_authenticated() and current_user.is_user():
             user.user = current_user.id
 
