@@ -271,15 +271,15 @@ class WeChatUser(db.Document, ThirdUserMixin):
 
     def sync(self, user, force=False):
         if not user.nickname or force:
-            user.nickname = wxuser.nickname
+            user.nickname = self.nickname
         if not user.avatar or force:
-            user.avatar = url2image(wxuser.headimgurl)
+            user.avatar = url2image(self.headimgurl)
         if not user.sex or force:
-            user.sex = user.SEX_FROM_WECHAT.get(wxuser.sex, user.SEX_UNKNOWN)
+            user.sex = user.SEX_FROM_WECHAT.get(self.sex, user.SEX_UNKNOWN)
         if not user.country or force:
-            user.country = wxuser.country
+            user.country = self.country
         if not user.location or force:
-            user.location = '%s|%s' % (wxuser.province, wxuser.city)
+            user.location = '%s|%s' % (self.province, self.city)
 
     def oauth(self):
         return um.models.User.from_wechat(self)
