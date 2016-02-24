@@ -40,11 +40,7 @@ class UserMixin(object):
                 return user
 
         user = um.models.User.create_empty()
-        user.nickname = wxuser.nickname
-        user.avatar = url2image(wxuser.headimgurl)
-        user.sex = user.SEX_FROM_WECHAT.get(wxuser.sex, user.SEX_UNKNOWN)
-        user.country = wxuser.country
-        user.location = '%s|%s' % (wxuser.province, wxuser.city)
+        user.sync(wxuser)
         user.create()
         wxuser.user = user.id
         wxuser.save()
@@ -61,6 +57,9 @@ class UserMixin(object):
     @staticmethod
     def from_weibo(ouser):
         pass
+
+    def sync(self, user):
+        user.sync(self)
 
     def __unicode__(self):
         return '%s - %s' % (self.phone, self.id)
@@ -269,6 +268,18 @@ class WeChatUser(db.Document, ThirdUserMixin):
         user.update(True)
         user.save()
         return user
+
+    def sync(self, user, force=False):
+        if not user.nickname or force:
+            user.nickname = wxuser.nickname
+        if not user.avatar or force:
+            user.avatar = url2image(wxuser.headimgurl)
+        if not user.sex or force:
+            user.sex = user.SEX_FROM_WECHAT.get(wxuser.sex, user.SEX_UNKNOWN)
+        if not user.country or force:
+            user.country = wxuser.country
+        if not user.location or force:
+            user.location = '%s|%s' % (wxuser.province, wxuser.city)
 
     def oauth(self):
         return um.models.User.from_wechat(self)

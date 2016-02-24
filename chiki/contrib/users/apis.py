@@ -535,6 +535,7 @@ class Bind(Resource):
         user = self.bind(args)
 
         current_user.user = user.id
+        current_user.sync(user)
         current_user.save()
 
         um.models.UserLog.bind(user.id, args['device'], key=self.key)
