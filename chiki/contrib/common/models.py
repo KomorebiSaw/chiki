@@ -475,3 +475,9 @@ class SlideItem(db.Document):
             url=self.url,
             share=unicode(self.share),
         )
+
+
+class ImageItem(db.Document):
+
+    image = db.XImageField(verbose_name='图片')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')

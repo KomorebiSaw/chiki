@@ -118,7 +118,7 @@ class ActionItemView(ModelView):
     column_center_list = ('icon', 'module', 'sort', 'enable', 'modified', 'created')
     column_formatters = dict(
         icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
-        name=formatter_text(lambda m: (m.name,m.name),max_len=7),
+        name=formatter_text(lambda m: (m.name,m.name), max_len=7),
     )
 
 
@@ -138,3 +138,7 @@ class SlideItemView(ModelView):
 
     def on_model_change(self, form, model, created=False):
         model.modified = datetime.now()
+
+
+class ImageItemView(ModelView):
+    pass

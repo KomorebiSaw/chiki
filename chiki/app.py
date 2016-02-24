@@ -10,6 +10,7 @@ from .jinja import init_jinja
 from .logger import init_logger
 from .oauth import init_oauth
 from .settings import TEMPLATE_ROOT
+from .upimg import init_upimg
 from ._flask import Flask
 
 __all__ = [
@@ -66,7 +67,7 @@ def before_request():
         return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
 
 
-def init_app(init=None, config=None, pyfile=None, 
+def init_app(init=None, config=None, pyfile=None,
         template_folder='templates', index=False, error=True):
     """ 创建应用 """
 
@@ -131,6 +132,8 @@ def init_admin(init=None, config=None, pyfile=None,
     """ 创建后台管理应用 """
 
     app = init_app(init, config, pyfile, template_folder, index, error)
+
+    init_upimg(app)
 
     @app.before_request
     def _before_request():
