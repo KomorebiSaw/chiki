@@ -1,5 +1,6 @@
 # coding: utf-8
 from chiki.admin import ModelView
+from datetime import datetime
 
 
 class UserView(ModelView):
