@@ -127,7 +127,7 @@ class FileField(_FileField):
             return
 
         format = self.data.filename.split('.')[-1]
-        if self.allows and format not in self.allows:
+        if self.allows and format.lower() not in self.allows:
             raise ValidationError(u'%s 格式不支持上传' % format)
 
         if self.max_size and self.data.content_length > self.max_size:
