@@ -40,8 +40,6 @@ class VerifyManager(object):
         @app.route(self.code_url)
         def verify_code():
             key = request.args.get('key', None)
-            if key not in _keys:
-                return ''
             code, _ = get_verify_code(key, refresh=True)
             return code2image(code)
 
@@ -51,7 +49,7 @@ def get_verify_code(key, refresh=False, code_len=4):
 
     if 'verify_codes' not in session:
         session['verify_codes'] = {}
-        
+
     codes = session['verify_codes']
     if key not in codes or refresh:
         codes[key] = {
