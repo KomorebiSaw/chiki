@@ -39,7 +39,7 @@ def get_filename_generator(key, local, generator=None):
 
 
 class FileProxy(object):
-    
+
     def __init__(self, instance, value=None):
         self.instance = instance
         self.filename = ''
@@ -115,19 +115,20 @@ class FileProxy(object):
 
 
 class XFileField(BaseField):
-    
+
     proxy_class = FileProxy
     default_allows = DEFAULT_ALLOWS
 
-    def __init__(self, max_size=2*1024*1024, auto_remove=True, 
-            rename=True, allows=None, config='UPLOADS', 
-            filename_generator=None, **kwargs):
+    def __init__(self, max_size=2*1024*1024, auto_remove=True,
+            rename=True, allows=None, config='UPLOADS',
+            filename_generator=None, place='', **kwargs):
         self.max_size = max_size
         self.auto_remove = auto_remove
         self.rename = rename
         self.allows = allows or self.default_allows
         self.config = config
         self._filename_generator = filename_generator
+        self.palce = place
         super(XFileField, self).__init__(**kwargs)
 
     @property
