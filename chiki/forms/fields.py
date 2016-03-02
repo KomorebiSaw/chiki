@@ -116,10 +116,11 @@ class FileField(_FileField):
 
     widget = FileInput()
 
-    def __init__(self, label=None, max_size=None, allows=None, **kwargs):
+    def __init__(self, label=None, max_size=None, allows=None, place=None, **kwargs):
         self.delete = False
         self.max_size = max_size
         self.allows = allows
+        self.place = place
         super(FileField, self).__init__(label=label, **kwargs)
 
     def pre_validate(self, form, extra_validators=tuple()):
