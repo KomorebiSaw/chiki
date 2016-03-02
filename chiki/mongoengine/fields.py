@@ -128,7 +128,7 @@ class XFileField(BaseField):
         self.allows = allows or self.default_allows
         self.config = config
         self._filename_generator = filename_generator
-        self.palce = place
+        self.place = place
         super(XFileField, self).__init__(**kwargs)
 
     @property
