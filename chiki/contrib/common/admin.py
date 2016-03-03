@@ -112,7 +112,7 @@ class ActionItemView(ModelView):
 
     column_default_sort = ('created', True)
     column_filters = (
-        'name', 'icon', 'key', 'module', 'action', 'url', 'login',
+        'name', 'key', 'module', 'action', 'url', 'login',
         'sort', 'enable', 'modified', 'created'
     )
     column_center_list = ('icon', 'module', 'sort', 'enable', 'modified', 'created')

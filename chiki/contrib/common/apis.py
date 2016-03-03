@@ -1,6 +1,6 @@
 # coding: utf-8
 import time
-from chiki import strip
+from chiki import strip, get_version, get_os
 from chiki.api import success
 from flask import current_app, request, url_for
 from flask.ext.login import current_user, login_required
@@ -16,18 +16,36 @@ from chiki.contrib.common.models import (
 class CommonAPI(Resource):
 
     def get(self):
-        res = dict(apis={}, tpls={}, actions={}, slides={}, cache=0)
+        res = dict(apis={}, tpls={}, actions={}, options={})
+        version = get_version()
 
         apis = APIItem.objects.all()
         for api in apis:
-            if api.key == 'common':
-                res['cache'] = api.cache
-            else:
-                res['apis'][api.key] = api.detail
+            res['apis'][api.key] = api.detail
+
+        for option in OptionItem.objects.all():
+            res['options'][option.key] = option.value
+        res['options']['uuid'] = '0'
+        res['options']['channel'] = '0'
 
         tpls = TPLItem.objects(enable__in=Enable.get()).order_by('sort')
         for tpl in tpls:
-            res['tpls'][tpl.key] = dict(name=tpl.name, url=tpl.tpl.link, modified=str(tpl.modified))
+            res['tpls'][tpl.key] = dict(
+                key=tpl.key,
+                name=tpl.name,
+                url=tpl.tpl.link,
+                modified=str(tpl.modified),
+            )
+
+        query = db.Q(enable__in=Enable.get())
+        if get_os() == 2:
+            query = query & (db.Q(android_version__lte=version) | db.Q(android_version=None)) & \
+                (db.Q(android_version_end__gte=version) | db.Q(android_version_end=None))
+        elif get_os() == 1:
+            query = query & (db.Q(ios_version__lte=version) | db.Q(ios_version=None)) & \
+                (db.Q(ios_version_end__gte=version) | db.Q(ios_version_end=None))
+        if not current_user.is_authenticated():
+            query = query & (db.Q(login_show=False) | db.Q(login_show=None))
 
         actions = ActionItem.objects(enable__in=Enable.get()).order_by('sort')
         for action in actions:
@@ -41,9 +59,6 @@ class CommonAPI(Resource):
                 res['actions'][slide.module] = list()
             res['actions'][slide.module].append(slide.detail)
 
-        res['backup_host'] = Item.data('backup_host')
-        res['channel'] = 1001
-        res['uuid'] = current_user.id if current_user.is_authenticated() else 0
         return res
 
 
