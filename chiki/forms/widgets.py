@@ -148,7 +148,7 @@ class ImageInput(object):
                 </div>
             </span>
             <input autocomplete="off" type="text" class="col-sm-5 form-control input-insert-image"
-                placeholder='%(name)s' disabled="disabled" />
+                placeholder='%(place)s' disabled="disabled" />
         </div>
         <div class="clearfix"></div>
     """
@@ -161,7 +161,7 @@ class ImageInput(object):
         kwargs.setdefault('onchange', "$(this).parents('.input-group').find('.input-insert-image').val($(this).val())")
 
         input = '<input %s>' % html_params(name=field.name, type='file', **kwargs)
-        html = self.input_tpl % dict(name=field.label.text, input=input)
+        html = self.input_tpl % dict(place=field.place or field.label.text, input=input)
         if field.data and hasattr(field.data, 'link') and field.data.link:
             html = self.template % dict(
                 thumb=field.data.link,

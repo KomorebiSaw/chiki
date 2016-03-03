@@ -1,5 +1,6 @@
 # coding: utf-8
 from chiki.admin import ModelView
+from datetime import datetime
 
 
 class UserView(ModelView):
@@ -15,6 +16,13 @@ class UserView(ModelView):
     )
     column_searchable_list = ('phone',)
     column_filters = ('id', 'phone',)
+    form_excluded_columns = ('id', 'generate')
+
+    def on_model_change(self, form, model, created=False):
+        model.create()
+        if created:
+            model.generate = True
+        model.modified = datetime.now()
 
 
 class WeChatUserView(ModelView):

@@ -118,7 +118,7 @@ class ModelView(_ModelView):
     def pre_model_change(self, form, model, created=False):
         pass
 
-    def on_model_change(self, form, model, created):
+    def on_model_change(self, form, model, created=False):
         if created == True and hasattr(model, 'create'):
             if callable(model.create):
                 model.create()
