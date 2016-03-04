@@ -348,7 +348,7 @@ class APIItem(db.Document):
     key = db.StringField(verbose_name='键名')
     url = db.StringField(verbose_name='链接')
     expire = db.IntField(default=0, verbose_name='缓存')
-    cache = db.BooleanField(verbose_name='已缓存')
+    is_cache = db.BooleanField(verbose_name='已缓存')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
