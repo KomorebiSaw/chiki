@@ -365,7 +365,7 @@ class APIItem(db.Document):
             key=self.key,
             url=self.url,
             expire=self.expire,
-            cache=self.cache,
+            is_cache=self.is_cache,
         )
 
 
