@@ -98,3 +98,14 @@ body.modal-open {
     margin-top: 20px;
     margin-bottom: 10px;
 }
+
+.btn-select {
+    background: transparent;
+    border: 1px solid transparent;
+}
+
+.btn-select:hover,
+.btn-select:focus,
+.btn-select:active {
+    border: 1px solid #eee;
+}
