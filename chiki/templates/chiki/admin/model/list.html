@@ -298,7 +298,6 @@
                 $.getJSON(url, {id: id, name: name, value: 'False'}, function(data) {
                     if (data.code == 0) {
                         $('.alert').remove()
-                        console.log('abc')
                         $this.html('<i class="fa fa-minus-circle text-danger"></i>')
                     } else {
                         alert('该记录不存在')
