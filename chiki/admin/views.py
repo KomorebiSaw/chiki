@@ -282,8 +282,12 @@ class ModelView(_ModelView):
         if model.objects(id=id):
             models=model.objects(id=id).first()
             models[name] = val
+
+            if hasattr(model, 'modified'):
+                models['modified']=datetime.now()
             models.save()
             return json_success()
+
         return json_error(msg='该记录不存在')
 
 
