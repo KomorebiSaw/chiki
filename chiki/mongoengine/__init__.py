@@ -7,6 +7,7 @@ def _include_custom(obj):
     for key in fields.__all__:
         if not hasattr(obj, key):
             setattr(obj, key, getattr(fields, key))
+    setattr(obj, 'abstract', abstract)
 
 
 class MongoEngine(mongoengine.MongoEngine):
@@ -35,3 +36,7 @@ class DynamicDocument(mongoengine.DynamicDocument):
 
     meta = {'abstract': True,
             'queryset_class': BaseQuerySet}
+
+
+def abstract(model):
+    model._meta['abstract'] = True

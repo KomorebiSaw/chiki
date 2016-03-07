@@ -347,7 +347,8 @@ class APIItem(db.Document):
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
     url = db.StringField(verbose_name='链接')
-    cache = db.IntField(default=0, verbose_name='缓存')
+    expire = db.IntField(default=0, verbose_name='缓存')
+    is_cache = db.BooleanField(verbose_name='已缓存')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
@@ -363,7 +364,8 @@ class APIItem(db.Document):
             name=self.name,
             key=self.key,
             url=self.url,
-            cache=self.cache,
+            expire=self.expire,
+            is_cache=self.is_cache,
         )
 
 
@@ -390,6 +392,68 @@ class ActionItem(db.Document):
     DEFAULT = 'default'
     MODULE_CHOICES = (
         (DEFAULT, '默认'),
+    )
+    MODULE_VALUES = [x[0] for x in MODULE_CHOICES]
+
+    name = db.StringField(verbose_name='名称')
+    key = db.StringField(verbose_name='键名')
+    desc = db.StringField(verbose_name='描述')
+    icon = db.XImageField(verbose_name='图标')
+    module = db.StringField(default=DEFAULT, verbose_name='模块', choices=MODULE_CHOICES)
+    action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
+    url = db.StringField(verbose_name='链接')
+    share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
+    sort = db.IntField(verbose_name='排序')
+    android_version = db.ReferenceField(AndroidVersion, verbose_name='安卓版本')
+    android_version_end = db.ReferenceField(AndroidVersion, verbose_name='安卓最大版本')
+    ios_version = db.ReferenceField(IOSVersion, verbose_name='IOS版本')
+    ios_version_end = db.ReferenceField(IOSVersion, verbose_name='IOS最大版本')
+    login = db.BooleanField(default=False, verbose_name='登陆')
+    login_show = db.BooleanField(default=False, verbose_name='登录显示')
+    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            'key',
+            'sort',
+            '-created',
+        ]
+    }
+
+    @property
+    def detail(self):
+        return dict(
+            name=self.name,
+            key=self.key,
+            desc=self.desc,
+            icon=self.icon.link,
+            action=self.action,
+            login=self.login,
+            url=self.url,
+            share=unicode(self.share),
+            extras='',
+        )
+
+
+class TPLItem(db.Document):
+    """ 模板模型 """
+
+    name = db.StringField(verbose_name='名称')
+    key = db.StringField(verbose_name='键名')
+    tpl = db.XFileField(verbose_name='文件', allows=['html', 'htm'])
+    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+
+class SlideItem(db.Document):
+    """ 广告模型 """
+
+    DEFAULT = 'default'
+    MODULE_CHOICES = (
+        (DEFAULT, '默认')
     )
     MODULE_VALUES = [x[0] for x in MODULE_CHOICES]
 
@@ -424,56 +488,7 @@ class ActionItem(db.Document):
             login=self.login,
             url=self.url,
             share=unicode(self.share),
-        )
-
-
-class TPLItem(db.Document):
-    """ 模板模型 """
-
-    name = db.StringField(verbose_name='名称')
-    key = db.StringField(verbose_name='键名')
-    tpl = db.XFileField(verbose_name='文件', allows=['html', 'htm'])
-    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
-    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
-    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
-
-
-class SlideItem(db.Document):
-    """ 广告模型 """
-
-    MODULE_HEAD = 'home_head'
-    MODULE_FOOT = 'home_foot'
-    MODULE_CHOICES = (
-        (MODULE_HEAD, '头部'),
-        (MODULE_FOOT, '底部'),
-    )
-
-    name = db.StringField(verbose_name='名称')
-    image = db.XImageField(verbose_name='图片')
-    module = db.StringField(default=MODULE_HEAD, verbose_name='模块', choices=MODULE_CHOICES)
-    action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
-    url = db.StringField(verbose_name='链接')
-    share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
-    sort = db.IntField(verbose_name='排序')
-    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
-    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
-    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
-
-    meta = {
-        'indexes': [
-            'sort',
-            '-created',
-        ]
-    }
-
-    @property
-    def detail(self):
-        return dict(
-            name=self.name,
-            icon=self.image.link,
-            action=self.action,
-            url=self.url,
-            share=unicode(self.share),
+            extras='',
         )
 
 
@@ -481,3 +496,19 @@ class ImageItem(db.Document):
 
     image = db.XImageField(verbose_name='图片')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+
+class OptionItem(db.Document):
+    """ 配置模型 """
+
+    name = db.StringField(verbose_name='名称')
+    key = db.StringField(verbose_name='键名')
+    value = db.StringField(verbose_name='值')
+    modified = db.DateTimeField(default=lambda: datetime.now(), verbose_name='修改时间')
+    created = db.DateTimeField(default=lambda: datetime.now(), verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            '-created',
+        ]
+    }

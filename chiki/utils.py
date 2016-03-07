@@ -164,6 +164,14 @@ def get_channel():
     return parse_spm(get_spm())[2]
 
 
+def get_os():
+    return parse_spm(get_spm())[0]
+
+
+def get_platform():
+    return parse_spm(get_spm())[1]
+
+
 def get_ip():
     if 'Cdn-Real-Ip' in request.headers:
         return request.headers['Cdn-Real-Ip']
