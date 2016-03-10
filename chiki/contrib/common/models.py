@@ -391,7 +391,7 @@ class ActionItem(db.Document):
 
     DEFAULT = 'default'
     MODULE_CHOICES = (
-        (DEFAULT, '默认')
+        (DEFAULT, '默认'),
     )
     MODULE_VALUES = [x[0] for x in MODULE_CHOICES]
 

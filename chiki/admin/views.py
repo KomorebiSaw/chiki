@@ -2,7 +2,7 @@
 import os
 import traceback
 from datetime import datetime
-from flask import current_app, redirect, flash
+from flask import current_app, redirect, flash, request
 from flask.ext.admin import AdminIndexView, expose
 from flask.ext.admin.actions import action
 from flask.ext.admin.babel import gettext, ngettext, lazy_gettext
@@ -17,8 +17,9 @@ from bson.objectid import ObjectId
 from jinja2 import contextfunction
 from .convert import KModelConverter
 from .filters import KFilterConverter
-from .formatters import type_best, type_image, type_file
+from .formatters import type_best, type_image, type_file, type_select, type_bool
 from ..mongoengine.fields import FileProxy, ImageProxy
+from ..utils import json_success, json_error
 
 __all__ = [
     "ModelView", "SModelView", "IndexView",
@@ -216,9 +217,13 @@ class ModelView(_ModelView):
         else:
             value = self._get_field_value(model, name)
 
+        #获取choice
         choices_map = self._column_choices_map.get(name, {})
         if choices_map:
-            return choices_map.get(value) or value
+            return type_select(self, value, model, name, choices_map) or value
+        
+        if isinstance(value, bool):
+            return type_bool(self, value, model, name)
 
         type_fmt = None
         for typeobj, formatter in self.column_type_formatters.items():
@@ -259,6 +264,31 @@ class ModelView(_ModelView):
             if not self.handle_view_exception(ex):
                 flash(gettext('Failed to delete records. %(error)s', error=str(ex)),
                       'error')
+
+
+    @expose('/dropdown')
+    def dropdown(self):
+        id = request.args.get('id', 0, unicode)
+        val= request.args.get('key', '')
+        name = request.args.get('name', '', unicode)
+        value = request.args.get('value', '', unicode)
+        model=self.model
+
+        if not val:
+            val = False if value=='False' else True
+        if type(val) == int:
+            val = int(val)
+
+        if model.objects(id=id):
+            models=model.objects(id=id).first()
+            models[name] = val
+
+            if hasattr(model, 'modified'):
+                models['modified']=datetime.now()
+            models.save()
+            return json_success()
+
+        return json_error(msg='该记录不存在')
 
 
 class SModelView(_SModelView):

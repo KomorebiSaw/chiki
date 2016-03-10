@@ -14,6 +14,12 @@ class Pagination(_Pagination):
     def has_pages(self):
         return self.pages > 1
 
+    @property
+    def next_link(self):
+        if self.has_next:
+            return self.get_link(self.next_num)
+        return ''
+
     def get_link(self, page):
         return url_for(self.endpoint, page=page, per_page=self.per_page, **self.kwargs)
 
