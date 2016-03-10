@@ -142,3 +142,6 @@ class SlideItemView(ModelView):
 
 class ImageItemView(ModelView):
     pass
+
+class TPLItemView(ModelView):
+    pass

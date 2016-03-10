@@ -63,7 +63,7 @@ def send_mail(code):
     elif code.action == code.ACTION_RESET_PASSWORD:
         tpl, title, endpoint = reset_email_html, u'%s - 重置密码', 'users.reset_password_email'
     else:
-        tpl, title, endpoint = reset_email_html, u'%s - 绑定邮箱', 'users.bind'
+        tpl, title, endpoint = bind_email_html, u'%s - 绑定邮箱', 'users.bind'
 
     msg = Message(title % current_app.config.get('SITE_NAME'),
         sender=current_app.config.get('SERVICE_EMAIL'),
