@@ -12,8 +12,8 @@ from flask import jsonify, current_app, request
 __all__ = [
     'strip', 'json_success', 'json_error',
     'datetime2best', 'time2best', 'today',
-    'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_channel',
-    'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
+    'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os', 'get_platform',
+    'get_channel','get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
     'randstr', 'AttrDict', 'url2image',
 ]
 
