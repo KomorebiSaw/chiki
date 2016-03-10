@@ -9,7 +9,7 @@ from chiki.api.const import *
 from chiki.utils import parse_spm
 from chiki.contrib.common.models import (
     Enable, Item, APIItem, TPLItem, AndroidVersion,
-    ActionItem, SlideItem,
+    ActionItem, SlideItem, OptionItem
 )
 
 
