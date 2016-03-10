@@ -7,6 +7,7 @@ from flask.ext.login import current_user, login_required
 from flask.ext.restful import Resource, reqparse
 from chiki.api.const import *
 from chiki.utils import parse_spm
+from chiki.base import db
 from chiki.contrib.common.models import (
     Enable, Item, APIItem, TPLItem, AndroidVersion,
     ActionItem, SlideItem, OptionItem
