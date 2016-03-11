@@ -247,3 +247,19 @@ def type_bool(view, value, model, name):
         %s
         </a>"""%(model.id, name, val, url, FA_CHECK if value else FA_MINUS)
     return html
+
+
+def filter_sort(column_filters, column_list):
+    if not column_list or column_list==None:
+        return column_filters
+    c = dict((y,x) for x,y in enumerate(column_list))
+    res =dict()
+    for x in column_filters:
+        if x in column_list:
+            res[x] = c.get(x, 10000)
+    e=sorted(res.iteritems(), key=lambda x:x[1])
+    new_list = list()
+    new_list.append('id')
+    for x,y in e:
+        new_list.append(x)
+    return new_list

@@ -294,10 +294,11 @@
             var name = $(this).data('name')
             var value = $(this).data('value')
             var url = $(this).data('url')
-            if ($this.html() == '<i class="fa fa-check-circle text-success"></i>') {
+            if (value == 'True') {
                 $.getJSON(url, {id: id, name: name, value: 'False'}, function(data) {
                     if (data.code == 0) {
                         $('.alert').remove()
+                        $this.data('value', 'False')
                         $this.html('<i class="fa fa-minus-circle text-danger"></i>')
                     } else {
                         alert('该记录不存在')
@@ -307,6 +308,7 @@
                 $.getJSON(url, {id: id, name: name,  value: 'True'}, function(data) {
                     $('.alert').remove()
                     if (data.code == 0) {
+                        $this.data('value', 'True')
                         $this.html('<i class="fa fa-check-circle text-success"></i>')
                     } else {
                         alert('该记录不存在')
