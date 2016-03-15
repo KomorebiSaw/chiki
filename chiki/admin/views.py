@@ -84,10 +84,17 @@ class ModelView(_ModelView):
         #初始化筛选器
         types = (IntField, ReferenceField, StringField, BooleanField, DateTimeField)if self.robot_filters else(ReferenceField,)
         self.column_filters = list(self.column_filters or [])
-        if hasattr(model, 'id'):
-            self.column_filters = ['id'] + self.column_filters
+
+
         for field in model._fields:
             attr = getattr(model, field)
+            if hasattr(attr, 'primary_key'):
+                if attr.primary_key == True:
+                    self.column_filters = [field] + self.column_filters
+            else:
+                if hasattr(model, 'id'):
+                    self.column_filters = ['id'] + self.column_filters
+            
             if type(attr) in types and attr.name not in self.column_filters:
                 self.column_filters.append(attr.name)
 
