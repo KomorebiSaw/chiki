@@ -391,6 +391,9 @@ class ActionModule(db.Document):
     key = db.StringField(verbose_name='KEY')
     name = db.StringField(verbose_name='名称')
 
+    def __unicode__(self):
+        return self.name
+
 
 class ActionItem(db.Document):
     """ 功能模型 """
@@ -452,6 +455,10 @@ class SlideModule(db.Document):
 
     key = db.StringField(verbose_name='KEY')
     name = db.StringField(verbose_name='名称')
+
+    def __unicode__(self):
+        return self.name
+
 
 
 class SlideItem(db.Document):
