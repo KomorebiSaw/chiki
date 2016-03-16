@@ -1,5 +1,6 @@
 # coding: utf-8
 import time
+from collections import defaultdict
 from chiki import strip, get_version, get_os
 from chiki.api import success
 from flask import current_app, request, url_for
@@ -17,7 +18,7 @@ from chiki.contrib.common.models import (
 class CommonAPI(Resource):
 
     def get(self):
-        res = dict(apis={}, tpls={}, actions={}, options={})
+        res = dict(apis={}, tpls={}, actions=defaultdict(list), options={})
         version = get_version()
 
         apis = APIItem.objects.all()
@@ -50,15 +51,13 @@ class CommonAPI(Resource):
 
         actions = ActionItem.objects(enable__in=Enable.get()).order_by('sort')
         for action in actions:
-            if action.module not in res['actions']:
-                res['actions'][action.module] = list()
-            res['actions'][action.module].append(action.detail)
+            if action.module and action.module.key:
+                res['actions'][action.module.key].append(action.detail)
 
         slides = SlideItem.objects(enable__in=Enable.get()).order_by('sort')
         for slide in slides:
-            if slide.module not in res['actions']:
-                res['actions'][slide.module] = list()
-            res['actions'][slide.module].append(slide.detail)
+            if slide.module and slide.module.key:
+                res['actions'][slide.module.key].append(slide.detail)
 
         return res
 
