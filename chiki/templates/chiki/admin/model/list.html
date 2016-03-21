@@ -260,4 +260,62 @@
         {{ admin_view.script | safe }}
     </script>
     {% endif %}
+
+    <script>
+    $(function (){
+        $('.btn-formatter').click(function(){
+            var id = $(this).data('id')
+            var key = $(this).data('key')
+            var name = $(this).data('name')
+            var url = $(this).data('url')
+            var value = $(this).text()
+            var test='#'+id+name
+
+            if(id != 0 && !!key){ 
+                $.getJSON(url,{id:id, key:key, name:name}, function(data){
+                    if (data.code == 0) {
+                       $(test).html(value+" <span class='caret'></span>")
+                    }
+                    else{
+                    }
+                })
+            } else {
+                alert("该记录不存在")
+            }
+        })
+    })
+    </script>
+
+    <script>
+    $(function (){
+        $('.btn-active').click(function(){
+            var $this = $(this)
+            var id = $(this).data('id')
+            var name = $(this).data('name')
+            var value = $(this).data('value')
+            var url = $(this).data('url')
+            if (value == 'True') {
+                $.getJSON(url, {id: id, name: name, value: 'False'}, function(data) {
+                    if (data.code == 0) {
+                        $('.alert').remove()
+                        $this.data('value', 'False')
+                        $this.html('<i class="fa fa-minus-circle text-danger"></i>')
+                    } else {
+                        alert('该记录不存在')
+                    }
+                })
+            } else {
+                $.getJSON(url, {id: id, name: name,  value: 'True'}, function(data) {
+                    $('.alert').remove()
+                    if (data.code == 0) {
+                        $this.data('value', 'True')
+                        $this.html('<i class="fa fa-check-circle text-success"></i>')
+                    } else {
+                        alert('该记录不存在')
+                    }
+                })
+            }
+        })
+    })
+    </script>
 {% endblock %}

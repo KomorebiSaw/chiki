@@ -2,7 +2,7 @@
 import os
 import traceback
 from datetime import datetime
-from flask import current_app, redirect, flash
+from flask import current_app, redirect, flash, request
 from flask.ext.admin import AdminIndexView, expose
 from flask.ext.admin.actions import action
 from flask.ext.admin.babel import gettext, ngettext, lazy_gettext
@@ -13,12 +13,15 @@ from flask.ext.admin.contrib.sqla import ModelView as _SModelView
 from flask.ext.admin._compat import string_types
 from mongoengine.fields import IntField, LongField, DecimalField, FloatField
 from mongoengine.fields import StringField, ReferenceField, ObjectIdField, ListField
+from mongoengine.fields import BooleanField, DateTimeField
 from bson.objectid import ObjectId
 from jinja2 import contextfunction
 from .convert import KModelConverter
-from .filters import KFilterConverter
-from .formatters import type_best, type_image, type_file
+from .filters import KFilterConverter, ObjectIdEqualFilter
+from .formatters import type_best, type_image, type_file, type_select, type_bool
+from .formatters import formatter_len, formatter_link, filter_sort
 from ..mongoengine.fields import FileProxy, ImageProxy
+from ..utils import json_success, json_error
 
 __all__ = [
     "ModelView", "SModelView", "IndexView",
@@ -53,6 +56,8 @@ class ModelView(_ModelView):
     column_type_formatters[FileProxy] = type_file
 
     show_popover = False
+    robot_filters = False
+
 
     def __init__(self, model, name=None,
             category=None, endpoint=None, url=None, static_folder=None,
@@ -76,6 +81,32 @@ class ModelView(_ModelView):
                 if choices:
                     self.column_choices[field] = choices
 
+        #初始化筛选器
+        types = (IntField, ReferenceField, StringField, BooleanField, DateTimeField)if self.robot_filters else(ReferenceField,)
+        self.column_filters = list(self.column_filters or [])
+
+
+        for field in model._fields:
+            attr = getattr(model, field)
+            if hasattr(attr, 'primary_key'):
+                if attr.primary_key == True:
+                    self.column_filters = [field] + self.column_filters
+            else:
+                if hasattr(model, 'id'):
+                    self.column_filters = ['id'] + self.column_filters
+            
+            if type(attr) in types and attr.name not in self.column_filters:
+                self.column_filters.append(attr.name)
+
+        self.column_filters = filter_sort(self.column_filters, self.column_list)
+
+        #初始化类型格式化
+        for field in model._fields:
+            attr = getattr(model, field)
+            if type(attr) == StringField:
+                self.column_formatters.setdefault(attr.name, formatter_len(10))
+
+        self._init_referenced = False
 
         super(ModelView, self).__init__(model, name, category, endpoint, url, static_folder,
                                         menu_class_name=menu_class_name,
@@ -204,8 +235,40 @@ class ModelView(_ModelView):
 
         return count, query
 
+    def get_filter_tpl(self, attr):
+        for view in self.admin._views:
+            if hasattr(view, 'model') and attr.document_type == view.model:
+                for idx, flt in view._filter_args.itervalues():
+                    if type(flt) == ObjectIdEqualFilter:
+                        return ('/admin/%s/?flt0_' % view.model.__name__.lower()) + str(idx) + '=%s'
+                    if flt.column.primary_key == True:
+                        cls = type(flt).__name__
+                        if 'EqualFilter' in cls and 'Not' not in cls:
+                            return ('/admin/%s/?flt0_' % view.model.__name__.lower()) + str(idx) + '=%s'
+
+    def set_filter_formatter(self, attr):
+
+        def formatter(tpl, name):
+            return lambda m: (getattr(m, name), tpl % str(getattr(m, name).id if getattr(m, name) else ''))
+
+        tpl = self.get_filter_tpl(attr)
+        if tpl:
+            f = formatter_link(formatter(tpl, attr.name))
+            self.column_formatters.setdefault(attr.name, f)
+
+    def init_referenced(self):
+        #初始化类型格式化
+        for field in self.model._fields:
+            attr = getattr(self.model, field)
+            if type(attr) == ReferenceField:
+                self.set_filter_formatter(attr)
+
     @contextfunction
     def get_list_value(self, context, model, name):
+        if not self._init_referenced:
+            self._init_referenced = True
+            self.init_referenced()
+
         column_fmt = self.column_formatters.get(name)
         if column_fmt is not None:
             try:
@@ -216,9 +279,13 @@ class ModelView(_ModelView):
         else:
             value = self._get_field_value(model, name)
 
+        #获取choice
         choices_map = self._column_choices_map.get(name, {})
         if choices_map:
-            return choices_map.get(value) or value
+            return type_select(self, value, model, name, choices_map) or value
+        
+        if isinstance(value, bool):
+            return type_bool(self, value, model, name)
 
         type_fmt = None
         for typeobj, formatter in self.column_type_formatters.items():
@@ -259,6 +326,31 @@ class ModelView(_ModelView):
             if not self.handle_view_exception(ex):
                 flash(gettext('Failed to delete records. %(error)s', error=str(ex)),
                       'error')
+
+
+    @expose('/dropdown')
+    def dropdown(self):
+        id = request.args.get('id', 0, unicode)
+        val= request.args.get('key', '')
+        name = request.args.get('name', '', unicode)
+        value = request.args.get('value', '', unicode)
+        model=self.model
+
+        if not val:
+            val = False if value=='False' else True
+        if type(val) == int:
+            val = int(val)
+
+        if model.objects(id=id):
+            models=model.objects(id=id).first()
+            models[name] = val
+
+            if hasattr(model, 'modified'):
+                models['modified']=datetime.now()
+            models.save()
+            return json_success()
+
+        return json_error(msg='该记录不存在')
 
 
 class SModelView(_SModelView):

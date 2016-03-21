@@ -24,5 +24,11 @@
     // Apply flask-admin form styles after the modal is loaded
     window.faForm.applyGlobalStyles(document);
   });
+
+  </script>
+  <script>
+    $(document).ready(function(){
+      $(document).off('focusin.modal');
+    })
   </script>
 {% endblock %}

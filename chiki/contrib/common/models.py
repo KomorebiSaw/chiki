@@ -386,20 +386,23 @@ class UserImage(db.Document):
     }
 
 
+class ActionModule(db.Document):
+
+    key = db.StringField(verbose_name='KEY')
+    name = db.StringField(verbose_name='名称')
+
+    def __unicode__(self):
+        return self.name
+
+
 class ActionItem(db.Document):
     """ 功能模型 """
-
-    DEFAULT = 'default'
-    MODULE_CHOICES = (
-        (DEFAULT, '默认')
-    )
-    MODULE_VALUES = [x[0] for x in MODULE_CHOICES]
 
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
     desc = db.StringField(verbose_name='描述')
     icon = db.XImageField(verbose_name='图标')
-    module = db.StringField(default=DEFAULT, verbose_name='模块', choices=MODULE_CHOICES)
+    module = db.ReferenceField('ActionModule', verbose_name='模块')
     action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
     url = db.StringField(verbose_name='链接')
     share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
@@ -448,19 +451,23 @@ class TPLItem(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
 
+class SlideModule(db.Document):
+
+    key = db.StringField(verbose_name='KEY')
+    name = db.StringField(verbose_name='名称')
+
+    def __unicode__(self):
+        return self.name
+
+
+
 class SlideItem(db.Document):
     """ 广告模型 """
-
-    DEFAULT = 'default'
-    MODULE_CHOICES = (
-        (DEFAULT, '默认')
-    )
-    MODULE_VALUES = [x[0] for x in MODULE_CHOICES]
 
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
     icon = db.XImageField(verbose_name='图标')
-    module = db.StringField(default=DEFAULT, verbose_name='模块', choices=MODULE_CHOICES)
+    module = db.ReferenceField('SlideModule', verbose_name='模块')
     action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
     url = db.StringField(verbose_name='链接')
     share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
