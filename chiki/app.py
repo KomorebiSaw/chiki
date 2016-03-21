@@ -6,6 +6,7 @@ from flask import Blueprint, current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
 from flask.ext.mail import Mail
+from flask.ext.debugtoolbar import DebugToolbarExtension
 from .jinja import init_jinja
 from .logger import init_logger
 from .oauth import init_oauth
@@ -16,6 +17,20 @@ from ._flask import Flask
 __all__ = [
     "init_app", 'init_web', 'init_api', "init_admin", "start_error",
 ]
+
+DEBUG_TB_PANELS = (
+    'flask_debugtoolbar.panels.versions.VersionDebugPanel',
+    'flask_debugtoolbar.panels.timer.TimerDebugPanel',
+    'flask_debugtoolbar.panels.headers.HeaderDebugPanel',
+    'flask_debugtoolbar.panels.request_vars.RequestVarsDebugPanel',
+    'flask_debugtoolbar.panels.config_vars.ConfigVarsDebugPanel',
+    'flask_debugtoolbar.panels.template.TemplateDebugPanel',
+    'flask_debugtoolbar.panels.logger.LoggingPanel',
+    'flask_debugtoolbar.panels.route_list.RouteListDebugPanel',
+    'flask_debugtoolbar.panels.profiler.ProfilerDebugPanel',
+    'flask_debugtoolbar_lineprofilerpanel.panels.LineProfilerPanel',
+    'chiki.debug_toolbar_mongo.panel.MongoDebugPanel',
+)
 
 
 def init_babel(app):
@@ -76,8 +91,13 @@ def init_app(init=None, config=None, pyfile=None,
     if pyfile: app.config.from_pyfile(pyfile)
 
     ENVVAR = app.config.get('ENVVAR')
-    if ENVVAR and os.environ.get(ENVVAR): 
+    if ENVVAR and os.environ.get(ENVVAR):
         app.config.from_envvar(app.config['ENVVAR'])
+    else:
+        app.config.setdefault('DEBUG_TB_ENABLED', True)
+        app.config.setdefault('DEBUG_TB_PANELS', DEBUG_TB_PANELS)
+
+    toolbar = DebugToolbarExtension(app)
 
     app.static_folder = app.config.get('STATIC_FOLDER')
     app.mail = Mail(app)
