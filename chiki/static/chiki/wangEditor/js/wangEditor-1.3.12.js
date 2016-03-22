@@ -324,7 +324,8 @@ $.extend($E, {
         'dropPanel_expression_group': '<div index="{index}" class="clearfix wangEditor-expression-group">{content}</div>',
 
         //视频
-        'videoEmbed': '<embed src="{src}" allowFullScreen="true" quality="high" width="{width}" height="{height}" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash"></embed>',
+        'videoEmbed': '<iframe src="http://v.qq.com/iframe/player.html?vid={id}&amp;auto=0" width="100%" frameborder="0" height="300"></iframe>',
+        /*'videoEmbed': '<embed src="{src}" allowFullScreen="true" quality="high" width="{width}" height="{height}" align="middle" allowScriptAccess="always" type="application/x-shockwave-flash"></embed>',*/
         //代码块
         'codePre': '<pre style="border:1px solid #ccc; background-color: #f5f5f5; padding: 10px; margin: 5px 0px; line-height: 1.4; font-size: 0.8em; font-family: Menlo, Monaco, Consolas; border-radius: 4px; -moz-border-radius: 4px; -webkit-border-radius: 4px;"><code>{content}</code></pre><p><br></p>',
         //代码块（highlight插件）
@@ -2442,7 +2443,11 @@ $.extend($E.fn, {
             }
 
             //在此验证src
-            if( (src.indexOf('http://') !== 0 && src.indexOf('https://') !== 0) || src.indexOf('.swf') === -1 ){
+            /*if( (src.indexOf('http://') !== 0 && src.indexOf('https://') !== 0) || src.indexOf('.swf') === -1 ){
+                alert( langFormatError );
+                return;
+            }*/
+            if(src.indexOf('http://') !== 0 && src.indexOf('https://') !== 0){
                 alert( langFormatError );
                 return;
             }
@@ -2455,10 +2460,9 @@ $.extend($E.fn, {
                 height = defaultHeight;
             }
 
+            var id = src.substr(src.lastIndexOf("=")+1);
             embed = $E.htmlTemplates.videoEmbed
-                    .replace('{src}', src)
-                    .replace('{width}', width)
-                    .replace('{height}', height);
+                    .replace('{id}', id);
 
             editor.command(e, 'insertHTML', embed, video_callback);
         });
