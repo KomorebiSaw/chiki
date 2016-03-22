@@ -29,7 +29,7 @@ class WeChatUserView(ModelView):
     show_popover = True
     column_default_sort = ('created', True)
     column_list = (
-        'user', 'nickname', 'province', 'city', 'privilege', 'subscribe', 'subscribe_time', 'remark', 'groupid', 'access_token', 
+        'user', 'scene', 'nickname', 'province', 'city', 'privilege', 'subscribe', 'subscribe_time', 'remark', 'groupid', 'access_token', 
         'expires_in', 'refresh_token', 'updated', 'modified', 'created'
     )
     column_center_list = (
