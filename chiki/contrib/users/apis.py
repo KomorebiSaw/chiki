@@ -20,7 +20,7 @@ __all__ = [
     'Register', 'RegisterPhone', 'RegisterEmail',
     'Login', 'Logout', 'ResetPassword',
     'ResetPasswordPhone', 'ResetPasswordEmail',
-    'Bind', 'BindPhone', 'BindEmail',
+    'Bind', 'BindPhone', 'BindEmail', 'BindAuto',
     'UserInfo', 'resources'
 ]
 
