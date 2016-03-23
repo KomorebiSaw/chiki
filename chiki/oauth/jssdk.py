@@ -9,7 +9,7 @@ from flask import current_app, request, render_template_string
 from flask import make_response
 from chiki.contrib.common import Item
 
-DEFAULT_JS_API_LIST = [x.strip() for x in """
+DEFAULT_JS_API_LIST = '|'.join([x.strip() for x in """
 onMenuShareTimeline|onMenuShareAppMessage|onMenuShareQQ|
 onMenuShareWeibo|onMenuShareQZone|startRecord|stopRecord|
 onVoiceRecordEnd|playVoice|pauseVoice|stopVoice|onVoicePlayEnd|
@@ -18,7 +18,7 @@ downloadImage|translateVoice|getNetworkType|openLocation|
 getLocation|hideOptionMenu|showOptionMenu|hideMenuItems|
 showMenuItems|hideAllNonBaseMenuItem|showAllNonBaseMenuItem|
 closeWindow|scanQRCode|chooseWXPay|openProductSpecificView|
-addCard|chooseCard|openCard""".split('|')]
+addCard|chooseCard|openCard""".split('|')])
 
 
 class JSSDK(object):
@@ -38,8 +38,6 @@ class JSSDK(object):
         @app.route('/weixin-config.js')
         def weixin_config():
             apis = Item.data('wx_js_api_list', DEFAULT_JS_API_LIST).split('|')
-            if not apis or not apis[0]:
-                apis = DEFAULT_JS_API_LIST
             apis = [str(x) for x in apis]
             sign = self.sign
             config = dict(
