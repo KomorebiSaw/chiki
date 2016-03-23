@@ -150,3 +150,4 @@ class UserManager(object):
 
     def init_web(self):
         self.app.register_blueprint(views.bp, url_prefix='/users')
+        
