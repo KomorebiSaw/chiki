@@ -234,11 +234,11 @@ class ListField(InlineFieldList):
 
 
 class ModelSelectMultipleField(_ModelSelectMultipleField):
-    
+
     def pre_validate(self, form):
         if not self.allow_blank:
             if not self.data:
-                raise ValidationError(_(u'Not a valid choice'))
+                raise ValidationError('Not a valid choice')
 
 
 class WangEditorField(TextAreaField):

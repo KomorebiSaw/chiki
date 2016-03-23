@@ -37,7 +37,7 @@ class JSSDK(object):
 
         @app.route('/weixin-config.js')
         def weixin_config():
-            apis = Item.data('wx_js_api_list').split('|')
+            apis = Item.data('wx_js_api_list', DEFAULT_JS_API_LIST).split('|')
             if not apis or not apis[0]:
                 apis = DEFAULT_JS_API_LIST
             apis = [str(x) for x in apis]
