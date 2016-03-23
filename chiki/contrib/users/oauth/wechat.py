@@ -19,7 +19,7 @@ def get_wechat_user(access):
     config = current_app.config.get('WXAUTH')
     if len(config) > 1:
         return um.models.WeChatUser(unionid=access['unionid']).first()
-    query = { '%s_openid' % config.items()[0][0] : access['openid'] }
+    query = {'%s_openid' % config.items()[0][0]: access['openid']}
     return um.models.WeChatUser.objects(**query).first()
 
 

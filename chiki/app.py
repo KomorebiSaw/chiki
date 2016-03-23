@@ -96,11 +96,17 @@ def init_app(init=None, config=None, pyfile=None,
     else:
         app.config.setdefault('DEBUG_TB_ENABLED', True)
         app.config.setdefault('DEBUG_TB_PANELS', DEBUG_TB_PANELS)
+        app.config.setdefault('DEBUG_TB_INTERCEPT_REDIRECTS', False)
 
     toolbar = DebugToolbarExtension(app)
 
     app.static_folder = app.config.get('STATIC_FOLDER')
     app.mail = Mail(app)
+
+    def get_data_path(name):
+        return os.path.abspath(os.path.join(app.config.get('DATA_FOLDER'), name))
+
+    app.get_data_path = get_data_path
 
     init_babel(app)
     init_redis(app)
