@@ -143,11 +143,18 @@ class SlideItemView(ModelView):
 class ImageItemView(ModelView):
     pass
 
+
 class TPLItemView(ModelView):
     pass
+
 
 class ActionModuleView(ModelView):
     pass
 
+
 class SlideModuleView(ModelView):
+    pass
+
+
+class OptionItemView(ModelView):
     pass
