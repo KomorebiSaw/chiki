@@ -237,7 +237,7 @@ class ModelView(_ModelView):
 
     def get_filter_tpl(self, attr):
         for view in self.admin._views:
-            if hasattr(view, 'model') and attr.document_type == view.model:
+            if hasattr(view, 'model') and attr.document_type == view.model and view._filter_args:
                 for idx, flt in view._filter_args.itervalues():
                     if type(flt) == ObjectIdEqualFilter:
                         return ('/admin/%s/?flt0_' % view.model.__name__.lower()) + str(idx) + '=%s'
