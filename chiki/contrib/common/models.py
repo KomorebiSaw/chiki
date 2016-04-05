@@ -105,7 +105,7 @@ class Item(db.Document):
     @staticmethod
     def inc(key, default=0):
         item = Item.objects(key=key).modify(
-            inc__value=1, 
+            inc__value=1,
             set__modified=datetime.now(),
         )
         if not item:
@@ -152,8 +152,8 @@ class ShareItem(db.EmbeddedDocument):
                 url = '%s?uid=%d' % (url, current_user.id)
 
         return json.dumps(dict(
-            title=self.title, 
-            content=self.content, 
+            title=self.title,
+            content=self.content,
             url=url,
             image=self.image,
         ))
@@ -173,8 +173,8 @@ class ShareItem(db.EmbeddedDocument):
                 url = '%s?uid=%d' % (url, current_user.id)
 
         return json.dumps(dict(
-            title=title, 
-            content=content, 
+            title=title,
+            content=content,
             url=url,
             image=image,
         ))
