@@ -353,7 +353,9 @@ class ModelView(_ModelView):
         return json_error(msg='该记录不存在')
 
     def get_field_type(self, field):
-        return type(getattr(self.model, field)).__name__
+        if getattr(self.model, field):
+            return type(getattr(self.model, field)).__name__
+        return 'LabelField'
 
 
 class SModelView(_SModelView):
