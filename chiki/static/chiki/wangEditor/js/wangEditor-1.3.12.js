@@ -2460,7 +2460,14 @@ $.extend($E.fn, {
                 height = defaultHeight;
             }
 
-            var id = src.substr(src.lastIndexOf("=")+1);
+            var test = new RegExp("page","g")
+            if (!!src.match(test)){
+                src = src.substring(0,src.length-5)
+                var id = src.substr(src.lastIndexOf("/")+1);
+            }
+            else {
+                var id = src.substr(src.lastIndexOf("=")+1);
+            }
             embed = $E.htmlTemplates.videoEmbed
                     .replace('{id}', id);
 

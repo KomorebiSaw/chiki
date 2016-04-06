@@ -72,13 +72,15 @@ class WXAuth(object):
                     id=request.args.get('id', ''),
                     appid=qrcode.get('appid', ''),
                     scope=self.SNSAPI_LOGIN,
-                    redirect_uri=quote(url_for('wxauth_callback', scope=self.SNSAPI_LOGIN,
+                    redirect_uri=quote(url_for(
+                        'wxauth_callback', scope=self.SNSAPI_LOGIN,
                         action=self.ACTION_QRCODE, _external=True)),
                     state='STATE',
                     style=request.args.get('style', 'white'),
                     href=request.args.get('href', ''),
                 )
-                js = render_template_string("var wxauth = new WxLogin({{ config | safe }});",
+                js = render_template_string(
+                    "var wxauth = new WxLogin({{ config | safe }});",
                     config=json.dumps(config))
             resp = make_response(js)
             resp.headers['Control-Cache'] = 'no-cache'

@@ -150,7 +150,7 @@ class SendPhoneCode(Resource):
         args = self.get_args()
         self.validate(action, args)
 
-        if current_app.is_web:
+        if current_app.is_web and not current_user.is_authenticated():
             verify_code = request.form.get('verify_code')
             code_len = current_app.config.get('VERIFY_CODE_LEN', 4)
             key = 'users_' + action + '_phone'
