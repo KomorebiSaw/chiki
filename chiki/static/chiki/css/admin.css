@@ -203,6 +203,10 @@ body {
         border-radius: 0px;
     }
 
+    .modal-dialog hr + .form-group {
+        position: static;
+    }
+
     .sm .nav-menu-bar,
     .sm #page-wrapper, 
     .sm .pagination, 

@@ -223,15 +223,15 @@ def type_select(view, value, model, name, choices):
     id = str(model.id)+str(name)
 
     for k, v in choices.items():
-        select = '<li><a class="btn-formatter" data-key="%s" data-id="%s" data-name="%s" data-url="%s">%s</a></li>'%(k, model.id, name, url, v)
+        select = '<li><a class="btn-formatter" data-key="%s" data-id="%s" data-name="%s" data-url="%s">%s</a></li>' % (k, model.id, name, url, v)
         selects = selects + select
 
-    html =  '''<div class="dropdown">
-                <button id=%s class="btn btn-block btn-select" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">%s
+    html = '''<div class="dropdown" style="min-width: 80px">
+                <button id=%s class="btn btn-block btn-select" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" s>%s
                     <span class="caret"></span>
-                </button> 
+                </button>
                 <ul class="dropdown-menu" aria-labelledby="dLabel" style="min-width:100px">%s</ul>
-            </div>'''% (id, choices.get(value), selects)
+            </div>''' % (id, choices.get(value), selects)
 
     return html
 
@@ -241,26 +241,26 @@ def type_bool(view, value, model, name):
     FA_CHECK = '<i class="fa fa-check-circle text-success"></i>'
     FA_MINUS = '<i class="fa fa-minus-circle text-danger"></i>'
     url = view.get_url('.dropdown')
-    val=str(value)
+    val = str(value)
 
-    html="""<a class="btn btn-default btn-sm btn-active " target="_blank" data-id="%s" data-name="%s" data-value="%s" data-url="%s">
+    html = """<a class="btn btn-default btn-sm btn-active" target="_blank" data-id="%s" data-name="%s" data-value="%s" data-url="%s">
         %s
-        </a>"""%(model.id, name, val, url, FA_CHECK if value else FA_MINUS)
+        </a>""" % (model.id, name, val, url, FA_CHECK if value else FA_MINUS)
     return html
 
 
 def filter_sort(column_filters, column_list):
-    if not column_list or column_list==None:
+    if not column_list or column_list is None:
         return column_filters
-    c = dict((y,x) for x,y in enumerate(column_list))
-    res =dict()
+    c = dict((y, x) for x, y in enumerate(column_list))
+    res = dict()
     for x in column_filters:
         if x in column_list:
             res[x] = c.get(x, 10000)
-    e=sorted(res.iteritems(), key=lambda x:x[1])
+    e = sorted(res.iteritems(), key=lambda x: x[1])
     new_list = list()
     if 'id' in column_filters:
         new_list.append('id')
-    for x,y in e:
+    for x, y in e:
         new_list.append(x)
     return new_list

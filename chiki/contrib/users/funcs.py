@@ -65,11 +65,13 @@ def send_mail(code):
     else:
         tpl, title, endpoint = bind_email_html, u'%s - 绑定邮箱', 'users.bind'
 
-    msg = Message(title % current_app.config.get('SITE_NAME'),
+    msg = Message(
+        title % current_app.config.get('SITE_NAME'),
         sender=current_app.config.get('SERVICE_EMAIL'),
         recipients=[code.email])
     url = url_for(endpoint, token=code.token, _external=True)
-    msg.html = render_template_string(tpl,
+    msg.html = render_template_string(
+        tpl,
         email=code.email,
         site_name=current_app.config.get('SITE_NAME'),
         url=url,

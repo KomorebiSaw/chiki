@@ -58,10 +58,12 @@ class ModelView(_ModelView):
     show_popover = False
     robot_filters = False
 
-
-    def __init__(self, model, name=None,
+    def __init__(
+            self, model, name=None,
             category=None, endpoint=None, url=None, static_folder=None,
             menu_class_name=None, menu_icon_type=None, menu_icon_value=None):
+
+        self.column_formatters = dict(self.column_formatters or dict())
 
         # 初始化标识
         self.column_labels = self.column_labels or dict()
@@ -85,16 +87,15 @@ class ModelView(_ModelView):
         types = (IntField, ReferenceField, StringField, BooleanField, DateTimeField)if self.robot_filters else(ReferenceField,)
         self.column_filters = list(self.column_filters or [])
 
-
         for field in model._fields:
             attr = getattr(model, field)
             if hasattr(attr, 'primary_key'):
-                if attr.primary_key == True:
+                if attr.primary_key is True:
                     self.column_filters = [field] + self.column_filters
             else:
                 if hasattr(model, 'id'):
                     self.column_filters = ['id'] + self.column_filters
-            
+
             if type(attr) in types and attr.name not in self.column_filters:
                 self.column_filters.append(attr.name)
 
@@ -104,7 +105,7 @@ class ModelView(_ModelView):
         for field in model._fields:
             attr = getattr(model, field)
             if type(attr) == StringField:
-                self.column_formatters.setdefault(attr.name, formatter_len(10))
+                self.column_formatters.setdefault(attr.name, formatter_len(40))
 
         self._init_referenced = False
 
@@ -150,7 +151,7 @@ class ModelView(_ModelView):
         pass
 
     def on_model_change(self, form, model, created=False):
-        if created == True and hasattr(model, 'create'):
+        if created is True and hasattr(model, 'create'):
             if callable(model.create):
                 model.create()
         elif hasattr(model, 'modified'):
@@ -219,7 +220,7 @@ class ModelView(_ModelView):
         else:
             order = self._get_default_order()
             if order:
-                if len(order) <= 1 or order[1] != True and order[1] != False:
+                if len(order) <= 1 or order[1] is not True and order[1] is not False:
                     query = query.order_by(*order)
                 else:
                     query = query.order_by('%s%s' % ('-' if order[1] else '', order[0]))
@@ -241,7 +242,7 @@ class ModelView(_ModelView):
                 for idx, flt in view._filter_args.itervalues():
                     if type(flt) == ObjectIdEqualFilter:
                         return ('/admin/%s/?flt0_' % view.model.__name__.lower()) + str(idx) + '=%s'
-                    if flt.column.primary_key == True:
+                    if flt.column.primary_key:
                         cls = type(flt).__name__
                         if 'EqualFilter' in cls and 'Not' not in cls:
                             return ('/admin/%s/?flt0_' % view.model.__name__.lower()) + str(idx) + '=%s'
@@ -283,7 +284,7 @@ class ModelView(_ModelView):
         choices_map = self._column_choices_map.get(name, {})
         if choices_map:
             return type_select(self, value, model, name, choices_map) or value
-        
+
         if isinstance(value, bool):
             return type_bool(self, value, model, name)
 
@@ -327,40 +328,46 @@ class ModelView(_ModelView):
                 flash(gettext('Failed to delete records. %(error)s', error=str(ex)),
                       'error')
 
-
     @expose('/dropdown')
     def dropdown(self):
         id = request.args.get('id', 0, unicode)
-        val= request.args.get('key', '')
+        val = request.args.get('key', '')
         name = request.args.get('name', '', unicode)
         value = request.args.get('value', '', unicode)
-        model=self.model
+        model = self.model
 
         if not val:
-            val = False if value=='False' else True
+            val = False if value == 'False' else True
         if type(val) == int:
             val = int(val)
 
         if model.objects(id=id):
-            models=model.objects(id=id).first()
+            models = model.objects(id=id).first()
             models[name] = val
 
             if hasattr(model, 'modified'):
-                models['modified']=datetime.now()
+                models['modified'] = datetime.now()
             models.save()
             return json_success()
 
         return json_error(msg='该记录不存在')
 
+    def get_field_type(self, field):
+        if hasattr(self.model, field):
+            return type(getattr(self.model, field)).__name__
+        return 'LabelField'
+
 
 class SModelView(_SModelView):
 
-    def __init__(self, model, session,
+    def __init__(
+            self, model, session,
             name=None, category=None, endpoint=None, url=None, static_folder=None,
             menu_class_name=None, menu_icon_type=None, menu_icon_value=None):
         if hasattr(model, 'LABELS'):
             self.column_labels = model.LABELS
-        super(SModelView, self).__init__(model, session, name=name, category=category, 
+        super(SModelView, self).__init__(
+            model, session, name=name, category=category,
             endpoint=endpoint, url=url, static_folder=static_folder, menu_class_name=menu_class_name,
             menu_icon_type=menu_icon_type, menu_icon_value=menu_icon_value)
 

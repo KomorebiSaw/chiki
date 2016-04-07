@@ -306,7 +306,7 @@ class Register(Resource):
         raise NotImplemented
 
     def success(self, user, args):
-        if um.config.get('register_auto_login'):
+        if um.config.register_auto_login:
             return um.funcs.login(user, device=args['device'], key=self.key)
         return success()
 
@@ -459,7 +459,7 @@ class ResetPassword(Resource):
         return self.success(user, args)
 
     def success(self, user, args):
-        if um.config.get('reset_password_auto_login'):
+        if um.config.reset_password_auto_login:
             return um.funcs.login(user, device=args['device'], key=self.key)
         return success()
 

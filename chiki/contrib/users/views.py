@@ -16,8 +16,10 @@ def register():
 
     email_form = um.forms.RegisterEmailForm()
     phone_form = um.forms.RegisterPhoneForm()
-    return render_template(um.tpls.register,
-        next=next, email_form=email_form, phone_form=phone_form)
+    return render_template(
+        um.tpls.register,
+        next=next, email_form=email_form, phone_form=phone_form
+    )
 
 
 @bp.route('/register/email.html')
@@ -34,8 +36,10 @@ def register_email():
     form = um.forms.RegisterEmailAccessForm()
     form.email.data = code.email
     form.authcode.data = code.code
-    return render_template(um.tpls.register_email,
-        next=next, code=code, form=form)
+    return render_template(
+        um.tpls.register_email,
+        next=next, code=code, form=form
+    )
 
 
 def login_from_account(next):
@@ -85,8 +89,10 @@ def reset_password():
 
     email_form = um.forms.ResetPasswordEmailForm()
     phone_form = um.forms.ResetPasswordPhoneForm()
-    return render_template(um.tpls.reset_password,
-        next=next, email_form=email_form, phone_form=phone_form)
+    return render_template(
+        um.tpls.reset_password,
+        next=next, email_form=email_form, phone_form=phone_form
+    )
 
 
 @bp.route('/reset_password/email.html')
@@ -103,8 +109,10 @@ def reset_password_email():
     form = um.forms.ResetPasswordEmailAccessForm()
     form.email.data = code.email
     form.authcode.data = code.code
-    return render_template(um.tpls.reset_password_email,
-        next=next, code=code, form=form)
+    return render_template(
+        um.tpls.reset_password_email,
+        next=next, code=code, form=form
+    )
 
 
 @bp.route('/bind.html')

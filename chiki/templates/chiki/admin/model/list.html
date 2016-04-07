@@ -9,6 +9,10 @@
     {{ lib.form_css() }}
 
     <style>
+    .col-bool {
+        min-width: 60px;
+        max-width: 60px;
+    }
     {% if admin_view.column_center_list %}
         {% for column in admin_view.column_center_list %}
             .col-{{ column }},
@@ -97,7 +101,7 @@
                     {% endblock %}
                     {% set column = 0 %}
                     {% for c, name in list_columns %}
-                    <th class="column-header col-{{c}}">
+                    <th class="column-header col-{{c}}{% if admin_view.get_field_type(c) == 'BooleanField' %} col-bool{% endif %}">
                         {% if admin_view.is_sortable(c) %}
                             {% if sort_column == column %}
                                 <a href="{{ sort_url(column, True) }}" title="{{ _gettext('Sort by %(name)s', name=name) }}">
@@ -318,4 +322,5 @@
         })
     })
     </script>
+
 {% endblock %}
