@@ -671,7 +671,7 @@ class UserInfo(Resource):
         if not current_user.is_user():
             abort(NEED_BIND)
 
-        args = get_args()
+        args = self.get_args()
         self.handle(args)
         current_user.save()
 
