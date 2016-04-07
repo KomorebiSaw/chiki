@@ -672,7 +672,12 @@ class UserInfo(Resource):
             abort(NEED_BIND)
 
         args = self.get_args()
-        self.handle(args)
+        self.handle(args, 'nickname')
+        self.handle(args, 'avatar')
+        self.handle(args, 'birthday')
+        self.handle(args, 'sex')
+        self.handle(args, 'location')
+        self.handle(args, 'address')
         current_user.save()
 
         return success(**userinfo(current_user))
