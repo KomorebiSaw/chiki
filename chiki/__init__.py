@@ -14,6 +14,7 @@ from .logger import *
 from .media import *
 from .uploads import *
 from .verify import *
+from .stat import *
 from .utils import *
 
 manager = Manager(Flask(__name__))
