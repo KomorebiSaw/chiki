@@ -40,7 +40,7 @@ class UserManager(object):
 
     def init_login(self):
         self.login = LoginManager(self.app)
-        self.login.login_view = 'users.login'
+        self.login.login_view = 'users.login' if self.app.is_web else '/users/login'
 
         @self.login.user_loader
         def load_user(id):

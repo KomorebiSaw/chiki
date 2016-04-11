@@ -83,7 +83,8 @@ def before_request():
 
 
 def init_app(init=None, config=None, pyfile=None,
-        template_folder='templates', index=False, error=True):
+        template_folder='templates', index=False, error=True,
+        is_web=False, is_api=False):
     """ 创建应用 """
 
     app = Flask(__name__, template_folder=template_folder)
@@ -100,6 +101,8 @@ def init_app(init=None, config=None, pyfile=None,
 
     toolbar = DebugToolbarExtension(app)
 
+    app.is_web = is_web
+    app.is_api = is_api
     app.static_folder = app.config.get('STATIC_FOLDER')
     app.mail = Mail(app)
 
@@ -137,19 +140,15 @@ def init_app(init=None, config=None, pyfile=None,
     return app
 
 
-def init_web(init=None, config=None, pyfile=None, 
+def init_web(init=None, config=None, pyfile=None,
         template_folder='templates', index=False, error=True):
-    app = init_app(init, config, pyfile, template_folder, index, error)
-    app.is_web = True
-    app.is_api = False
+    app = init_app(init, config, pyfile, template_folder, index, error, is_web=True)
     return app
 
 
 def init_api(init=None, config=None, pyfile=None, 
         template_folder='templates', index=False, error=False):
-    app = init_app(init, config, pyfile, template_folder, index, error)
-    app.is_web = False
-    app.is_api = True
+    app = init_app(init, config, pyfile, template_folder, index, error, is_api=True)
     return app
 
 
