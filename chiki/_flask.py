@@ -4,6 +4,8 @@ from flask import Flask as _Flask
 from flask.json import JSONEncoder as _JSONEncoder
 from flask.ext.restful.representations.json import settings
 from werkzeug.datastructures import ImmutableDict
+from bson import ObjectId
+
 
 __all__ = [
     'JSONEncoder', 'Flask',
