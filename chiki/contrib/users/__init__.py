@@ -134,7 +134,7 @@ class UserManager(object):
         for cls, args, kwargs in self.apis.itervalues():
             _web = kwargs.pop('_web', False)
             _api = kwargs.pop('_api', True)
-            if _api == True:
+            if _api is True:
                 api.add_resource(cls, *args, **kwargs)
             kwargs['_web'] = _web
             kwargs['_api'] = _api
@@ -143,7 +143,7 @@ class UserManager(object):
         for cls, args, kwargs in self.apis.itervalues():
             _web = kwargs.pop('_web', False)
             _api = kwargs.pop('_api', True)
-            if _web == True:
+            if _web is True:
                 api.add_resource(cls, *args, **kwargs)
             kwargs['_web'] = _web
             kwargs['_api'] = _api

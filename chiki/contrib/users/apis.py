@@ -393,8 +393,7 @@ class Login(Resource):
         args = self.get_args()
         self.validate(args)
 
-        doc = db.Q(phone=args['account']) | db.Q(email=args['account'])
-        user = um.models.User.objects(doc).first()
+        user = self.get_user(args)
         if not user:
             abort(ACCOUNT_NOT_EXISTS)
         if user.is_lock:
@@ -404,6 +403,10 @@ class Login(Resource):
             abort(PASSWORD_ERROR)
 
         return self.success(user, args)
+
+    def get_user(self, args):
+        doc = db.Q(phone=args['account']) | db.Q(email=args['account'])
+        return um.models.User.objects(doc).first()
 
     def success(self, user, args):
         key = 'phone' if user.phone == args['account'] else 'email'
