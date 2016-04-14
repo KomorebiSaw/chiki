@@ -150,7 +150,9 @@ class SendPhoneCode(Resource):
         args = self.get_args()
         self.validate(action, args)
 
-        if current_app.is_web and not current_user.is_authenticated():
+        PhoneCode = um.models.PhoneCode
+        if current_app.is_web and not current_user.is_authenticated() \
+                and action not in PhoneCode.PASS_ACTIONS:
             verify_code = request.form.get('verify_code')
             code_len = current_app.config.get('VERIFY_CODE_LEN', 4)
             key = 'users_' + action + '_phone'
@@ -159,7 +161,6 @@ class SendPhoneCode(Resource):
                 validate_code(key)
                 abort(VERIFY_CODE_ERROR, refresh=True)
 
-        PhoneCode = um.models.PhoneCode
         code = PhoneCode.objects(phone=args['phone'], action=action).first()
         if code:
             if code.timelimit:

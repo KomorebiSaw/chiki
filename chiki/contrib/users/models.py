@@ -475,8 +475,9 @@ class PhoneCode(db.Document):
         (ACTION_RESET_PASSWORD, '重置密码'),
     )
     ACTION_VALUES = [x[0] for x in ACTION_CHOICES]
-    REGISTERED_ACTIONS = (ACTION_REGISTER,)
-    UNREGISTERED_ACTIONS = (ACTION_RESET_PASSWORD,)
+    REGISTERED_ACTIONS = [ACTION_REGISTER]
+    UNREGISTERED_ACTIONS = [ACTION_RESET_PASSWORD]
+    PASS_ACTIONS = []
 
     phone = db.StringField(max_length=20, verbose_name='手机')
     action = db.StringField(choices=ACTION_CHOICES, verbose_name='类型')
