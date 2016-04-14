@@ -141,3 +141,8 @@ class Form(with_metaclass(FormMeta, _Form), FormMixin):
         d = super(Form, self).data
         d.pop('csrf_token')
         return d
+
+    def populate_obj(self, obj):
+        for name, field in self._fields.iteritems():
+            if field.type != 'Label':
+                field.populate_obj(obj, name)

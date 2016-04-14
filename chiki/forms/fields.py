@@ -6,6 +6,7 @@ from flask.ext.admin.model.fields import InlineFieldList
 from flask.ext.mongoengine.wtf.fields import ModelSelectMultipleField as _ModelSelectMultipleField
 from wtforms.fields import Field, StringField, SelectField, SelectMultipleField, DateTimeField, TextAreaField
 from wtforms.fields import FileField as _FileField
+from wtforms.fields import Label as _Label
 from wtforms.widgets import RadioInput, CheckboxInput
 from wtforms.validators import ValidationError
 from wtforms.utils import unset_value
@@ -17,7 +18,7 @@ from ..mongoengine.fields import FileProxy
 __all__ = [
     'VerifyCodeField', 'KDateField', 'KRadioField', 'KCheckboxField', 'UEditorField',
     'FileField', 'ImageField', 'AreaField', 'ListField',
-    'ModelSelectMultipleField', 'WangEditorField',
+    'ModelSelectMultipleField', 'WangEditorField', 'Label',
 ]
 
 
@@ -243,3 +244,10 @@ class ModelSelectMultipleField(_ModelSelectMultipleField):
 
 class WangEditorField(TextAreaField):
     widget = WangEditor()
+
+
+class Label(_Label, Field):
+
+    def __init__(self, text, field_id='', **kwargs):
+        _Label.__init__(self, field_id, text)
+        Field.__init__(self, **kwargs)

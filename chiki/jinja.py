@@ -88,7 +88,9 @@ class JinjaManager(object):
         error = kwargs.pop('error', True)
         label_class = 'control-label col-%s-%d' % (grid, label)
         out = []
-        if field.type not in['CSRFTokenField', 'HiddenField']:
+        if field.type == 'Label':
+            out.append(field(class_='form-title'))
+        elif field.type not in['CSRFTokenField', 'HiddenField']:
             out.append('<div class="%s">' % _class)
             out.append(field.label(class_=label_class))
             if field.type == 'KRadioField':
