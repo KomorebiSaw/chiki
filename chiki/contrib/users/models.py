@@ -469,11 +469,11 @@ class PhoneCode(db.Document):
     ACTION_BIND = 'bind'
     ACTION_REGISTER = 'register'
     ACTION_RESET_PASSWORD = 'reset_password'
-    ACTION_CHOICES = (
+    ACTION_CHOICES = [
         (ACTION_BIND, '绑定'),
         (ACTION_REGISTER, '注册'),
         (ACTION_RESET_PASSWORD, '重置密码'),
-    )
+    ]
     ACTION_VALUES = [x[0] for x in ACTION_CHOICES]
     REGISTERED_ACTIONS = [ACTION_REGISTER]
     UNREGISTERED_ACTIONS = [ACTION_RESET_PASSWORD]
