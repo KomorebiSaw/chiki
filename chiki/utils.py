@@ -14,7 +14,7 @@ __all__ = [
     'datetime2best', 'time2best', 'today',
     'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os', 'get_platform',
     'get_channel','get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
-    'randstr', 'AttrDict', 'url2image',
+    'randstr', 'AttrDict', 'url2image', 'retry',
 ]
 
 def down(url, source=None):
@@ -213,3 +213,15 @@ def str2datetime(datestr):
 def randstr(x=32):
     a = lambda: random.choice(string.ascii_letters + string.digits)
     return ''.join(a() for _ in range(x))
+
+
+def retry(times=3):
+    def wrapper(func):
+        for i in range(times):
+            try:
+                func()
+                break
+            except:
+                pass
+        return func
+    return wrapper

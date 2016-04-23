@@ -40,10 +40,11 @@ class UserMixin(object):
                 return user
 
         user = um.models.User.create_empty()
-        user.sync(wxuser)
         user.create()
         wxuser.user = user.id
         wxuser.save()
+        user.sync(wxuser)
+        user.save()
         return user
 
     @staticmethod
@@ -265,6 +266,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
         user = WeChatUser(mp_openid=openid, scene=scene)
         if current_user.is_authenticated() and current_user.is_user():
             user.user = current_user.id
+        user.save()
 
         user.update(True)
         user.save()
