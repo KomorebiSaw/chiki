@@ -65,7 +65,7 @@ class WXPay(object):
         kwargs.setdefault('appid', self.config.get('appid'))
         kwargs.setdefault('mch_id', self.config.get('mchid'))
         kwargs.setdefault('spbill_create_ip', get_ip())
-        kwargs.setdefault('notify_url', url_for('wxpay_callback', _external=True))
+        kwargs.setdefault('notify_url', url_for('wxpay_callback', _external=True, **kwargs.get('kwargs', {})))
         kwargs.setdefault('trade_type', 'JSAPI')
         kwargs.setdefault('body', '微信支付')
         kwargs.setdefault('out_trade_no', 'wxtest')
