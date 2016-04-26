@@ -62,10 +62,11 @@ class WXPay(object):
         return dict((x.tag, to_text(x.text)) for x in doc)
 
     def prepay(self, **kwargs):
+        xk = kwargs.pop('kwargs', {})
         kwargs.setdefault('appid', self.config.get('appid'))
         kwargs.setdefault('mch_id', self.config.get('mchid'))
         kwargs.setdefault('spbill_create_ip', get_ip())
-        kwargs.setdefault('notify_url', url_for('wxpay_callback', _external=True, **kwargs.get('kwargs', {})))
+        kwargs.setdefault('notify_url', url_for('wxpay_callback', _external=True, **xk))
         kwargs.setdefault('trade_type', 'JSAPI')
         kwargs.setdefault('body', '微信支付')
         kwargs.setdefault('out_trade_no', 'wxtest')
