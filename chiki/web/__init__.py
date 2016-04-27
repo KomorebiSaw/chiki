@@ -2,16 +2,16 @@
 from flask import request, render_template
 
 
-def message(msg, style='info', url=''):
-    return render_template('msg.html', msg=msg, style=style, url=url)
+def message(msg, style='info', url='', timeout=0):
+    return render_template('msg.html', msg=msg, style=style, url=url, timeout=timeout)
 
 
-def success(msg, url=''):
-    return message(msg, style='success', url=url)
+def success(msg, url='', timeout=0):
+    return message(msg, style='success', url=url, timeout=timeout)
 
 
-def error(msg, url=''):
-    return message(msg, style='danger', url=url)
+def error(msg, url='', timeout=0):
+    return message(msg, style='danger', url=url, timeout=timeout)
 
 
 def is_ajax():
