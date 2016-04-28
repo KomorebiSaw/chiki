@@ -84,7 +84,7 @@ class ModelView(_ModelView):
                     self.column_choices[field] = choices
 
         #初始化筛选器
-        types = (IntField, ReferenceField, StringField, BooleanField, DateTimeField)if self.robot_filters else(ReferenceField,)
+        types = (IntField, ReferenceField, StringField, BooleanField, DateTimeField) if self.robot_filters else (ReferenceField,)
         self.column_filters = list(self.column_filters or [])
 
         for field in model._fields:

@@ -14,11 +14,11 @@ def escape(*args):
     return tuple(_escape(unicode(x)) for x in args)
 
 
-def get_span(text, short):
+def get_span(text, short, cls=''):
     if text.startswith('http://'):
-        return '<a href=%s title=%s target="_blank">%s</a>' % (
-            quote(text, text) + escape(short))
-    return '<span title=%s>%s</span>' % (quote(text) + escape(short))
+        return '<a class=%s href=%s title=%s target="_blank">%s</a>' % (
+            quote(cls, text, text) + escape(short))
+    return '<span class=%s title=%s>%s</span>' % (quote(cls, text) + escape(short))
 
 
 def get_link(text, link, max_len=20, blank=True, html=False, **kwargs):
@@ -68,22 +68,27 @@ def formatter_model(func):
     return wrapper
 
 
-def formatter_len(max_len=20):
+def formatter_len(max_len=20, cls=''):
     @formatter
     def wrapper(data):
         if len(data) > max_len + 1:
-            return get_span(data, data[:max_len] + '...')
+            return get_span(data, data[:max_len] + '...', cls=cls)
         return data
     return wrapper
 
 
-def formatter_text(func, max_len=20):
+def formatter_text(func, max_len=20, cls=''):
     @formatter_model
     def span(model):
-        short, text = func(model)
+        xcls = ''
+        res = func(model)
+        if len(res) == 2:
+            short, text = res
+        else:
+            short, text, xcls = res
         short, text = unicode(short), unicode(text)
         short = short[:max_len] + '...' if len(short) > max_len + 1 else short
-        return get_span(text, short)
+        return get_span(text, short, cls=xcls or cls)
     return span
 
 
