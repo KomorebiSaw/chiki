@@ -34,6 +34,8 @@ def wechat_login(wxuser):
     if model == 'auto' and not wxuser.user:
         um.models.User.from_wechat(wxuser)
 
+    wxuser.update()
+
 
 def on_wechat_login(action, next):
     pass

@@ -293,6 +293,10 @@ class WeChatUser(db.Document, ThirdUserMixin):
             self.update_info(current_app.wxauth.get_user_info(self.mp_openid), 'mp')
             self.save()
 
+            if um.config.oauth_auto_update is True and self.user:
+                self.sync(self.user, True)
+                self.user.save()
+
     def update_info(self, userinfo, action):
         setattr(self, action + '_openid', userinfo['openid'])
         self.unionid = userinfo.get('unionid', '')
