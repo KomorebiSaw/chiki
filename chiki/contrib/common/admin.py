@@ -10,6 +10,7 @@ class ItemView(ModelView):
     column_list = ('name', 'key', 'type', 'value', 'modified', 'created')
     column_center_list = ('type', 'modified', 'created')
     column_filters = ('key', 'modified', 'created')
+    column_formatters = dict(value=formatter_len(32))
 
     form_overrides = dict(value=TextAreaField)
 
