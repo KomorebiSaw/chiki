@@ -69,6 +69,7 @@ class Item(db.Document):
         (TYPE_STRING, '字符'),
     )
 
+    name = db.StringField(max_length=40, verbose_name='名称')
     key = db.StringField(max_length=40, verbose_name='键名')
     type = db.StringField(default=TYPE_INT, choices=TYPE_CHOICES, verbose_name='类型')
     value = db.DynamicField(verbose_name='值')
@@ -83,52 +84,59 @@ class Item(db.Document):
     }
 
     @staticmethod
-    def get(key, default=0):
+    def get(key, default=0, name=None):
         item = Item.objects(key=key).first()
         if item:
             return item.value
 
-        Item(key=key, type=Item.TYPE_INT, value=default).save()
+        Item(key=key, type=Item.TYPE_INT, value=default, name=name).save()
         return default
 
     @staticmethod
-    def set(key, value):
+    def set(key, value, name=None):
         item = Item.objects(key=key).first()
         if not item:
             item = Item(key=key)
 
+        if name:
+            item.name = name
         item.type = Item.TYPE_INT
         item.value = value
         item.modified = datetime.now()
         item.save()
 
     @staticmethod
-    def inc(key, default=0):
-        item = Item.objects(key=key).modify(
-            inc__value=1,
-            set__modified=datetime.now(),
-        )
+    def inc(key, default=0, name=None):
+        query = dict(inc__value=1, set__modified=datetime.now())
+        if name:
+            query['set__name'] = name
+        item = Item.objects(key=key).modify(**query)
         if not item:
-            Item(key=key, type=Item.TYPE_INT, value=default + 1).save()
+            query = dict(key=key, type=Item.TYPE_INT, value=default + 1)
+            if name:
+                query['name'] = name
+            Item(**query).save()
             return default + 1
         else:
             return item.value + 1
 
     @staticmethod
-    def data(key, default=''):
+    def data(key, default='', name=None):
         item = Item.objects(key=key).first()
         if item:
             return item.value
 
-        Item(key=key, type=Item.TYPE_STRING, value=default).save()
+        Item(key=key, type=Item.TYPE_STRING, value=default, name=name).save()
         return default
 
     @staticmethod
-    def set_data(key, value):
+    def set_data(key, value, name=None):
         item = Item.objects(key=key).first()
         if not item:
             item = Item(key=key)
 
+        if name:
+            item.name = name
         item.type = Item.TYPE_STRING
         item.value = value
         item.modified = datetime.now()
