@@ -522,8 +522,24 @@ class OptionItem(db.Document):
     modified = db.DateTimeField(default=lambda: datetime.now(), verbose_name='修改时间')
     created = db.DateTimeField(default=lambda: datetime.now(), verbose_name='创建时间')
 
-    meta = {
-        'indexes': [
-            '-created',
-        ]
-    }
+    meta = dict(indexes=['-created'])
+
+
+class Page(db.Document):
+    """ 网页模型 """
+
+    id = db.IntField(primary_key=True, verbose_name='ID')
+    key = db.StringField(verbose_name='键名')
+    name = db.StringField(verbose_name='名称')
+    content = db.StringField(verbose_name='正文')
+    modified = db.DateTimeField(default=lambda: datetime.now(), verbose_name='修改时间')
+    created = db.DateTimeField(default=lambda: datetime.now(), verbose_name='创建时间')
+
+    meta = dict(indexes=['-created'])
+
+    def create(self):
+        """ 创建用户 """
+        if not self.id:
+            self.id = Item.inc('page_index', 1000)
+            self.save()
+        return self.id
