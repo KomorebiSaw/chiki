@@ -3,6 +3,7 @@ import json
 import time
 import hashlib
 import requests
+import inspect
 from chiki.utils import get_ip, randstr
 from flask import request, url_for, current_app
 from werobot.utils import to_text
@@ -29,9 +30,9 @@ class WXPay(object):
         self.config = app.config.get('WXPAY')
         app.wxpay = self
 
-        @app.route('/wxpay/callback', methods=['POST'])
-        def wxpay_callback():
-            self.callback()
+        @app.route('/wxpay/<type>/callback/', methods=['POST'])
+        def wxpay_callback(type='normal'):
+            self.callback(type)
             return """
 <xml>
   <return_code><![CDATA[SUCCESS]]></return_code>
@@ -39,16 +40,20 @@ class WXPay(object):
 </xml>
 """
 
-    def callback(self):
+    def callback(self, type='normal'):
         res = ''
         try:
             data = self.xml2dict(request.data)
             sign = data.pop('sign', None)
             if sign != self.sign(**data):
-                current_app.logger.error('wxpay callbck: %s' % request.data)
+                tpl = 'wxpay sign callbck: \nsign: %s\ncurr_sign: %s\ndata:\n%s'
+                current_app.logger.error(tpl % (sign, self.sign(**data), request.data))
                 return 'sign error'
             if self.wxpay_callback:
-                res = self.wxpay_callback(data)
+                if len(inspect.getargspec(self.wxpay_callback)[0]) == 1:
+                    res = self.wxpay_callback(data)
+                else:
+                    res = self.wxpay_callback(data, type)
         except Exception, e:
             current_app.logger.error('wxpay callbck except: %s' % str(e))
         return res or ''
@@ -62,10 +67,11 @@ class WXPay(object):
         return dict((x.tag, to_text(x.text)) for x in doc)
 
     def prepay(self, **kwargs):
+        type = kwargs.pop('type', 'normal')
         kwargs.setdefault('appid', self.config.get('appid'))
         kwargs.setdefault('mch_id', self.config.get('mchid'))
         kwargs.setdefault('spbill_create_ip', get_ip())
-        kwargs.setdefault('notify_url', url_for('wxpay_callback', _external=True))
+        kwargs.setdefault('notify_url', url_for('wxpay_callback', type=type, _external=True))
         kwargs.setdefault('trade_type', 'JSAPI')
         kwargs.setdefault('body', '微信支付')
         kwargs.setdefault('out_trade_no', 'wxtest')
@@ -106,6 +112,9 @@ class WXPay(object):
             return self.xml2dict(xml)
         except Exception, e:
             return dict(return_code='ERROR', return_msg=str(e))
+
+    def refund(self):
+        pass
 
     def sign(self, **kwargs):
         text = '&'.join(['%s=%s' % x for x in sorted(kwargs.iteritems(), key=lambda x: x[0])])

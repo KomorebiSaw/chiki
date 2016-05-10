@@ -7,6 +7,7 @@ from flask import abort, request, redirect
 from flask.ext.babelex import Babel
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
+from .contrib.common import Item
 from .jinja import init_jinja
 from .logger import init_logger
 from .oauth import init_oauth
@@ -117,9 +118,13 @@ def init_app(init=None, config=None, pyfile=None,
     init_logger(app)
     init_oauth(app)
 
+    @app.context_processor
+    def context_processor():
+        return dict(Item=Item)
+
     if error:
         init_error_handler(app)
-    
+
     if callable(init):
         init(app)
 

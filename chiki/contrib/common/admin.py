@@ -2,15 +2,17 @@
 from chiki.admin import ModelView, formatter_len, formatter_icon
 from chiki.admin import formatter_text
 from datetime import datetime
-from wtforms.fields import TextField
+from wtforms.fields import TextAreaField
 
 
 class ItemView(ModelView):
-    column_list = ('key', 'type', 'value', 'modified', 'created')
+    column_default_sort = ('key', False)
+    column_list = ('name', 'key', 'type', 'value', 'modified', 'created')
     column_center_list = ('type', 'modified', 'created')
     column_filters = ('key', 'modified', 'created')
+    column_formatters = dict(value=formatter_len(32))
 
-    form_overrides = dict(value=TextField)
+    form_overrides = dict(value=TextAreaField)
 
     def pre_model_change(self, form, model, create=False):
         if model.type == model.TYPE_INT:

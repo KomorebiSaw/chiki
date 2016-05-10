@@ -67,6 +67,7 @@ class UserManager(object):
                 'static', 'verify_code', 'uploads'])
         self.config.oauth_model = config.get('oauth_model', 'select')
         self.config.oauth_remember = config.get('oauth_remeber', True)
+        self.config.oauth_auto_update = config.get('oauth_auto_update', False)
         self.config.bind_url = config.get('bind_url', '/users/bind.html')
         self.config.login_next = config.get('login_next', '/')
 

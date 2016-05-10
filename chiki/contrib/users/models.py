@@ -40,10 +40,11 @@ class UserMixin(object):
                 return user
 
         user = um.models.User.create_empty()
-        user.sync(wxuser)
         user.create()
         wxuser.user = user.id
         wxuser.save()
+        user.sync(wxuser)
+        user.save()
         return user
 
     @staticmethod
@@ -270,6 +271,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
         user = WeChatUser(mp_openid=openid, scene=scene)
         if current_user.is_authenticated() and current_user.is_user():
             user.user = current_user.id
+        user.save()
 
         user.update(True)
         user.save()
@@ -295,6 +297,10 @@ class WeChatUser(db.Document, ThirdUserMixin):
             self.updated = datetime.now()
             self.update_info(current_app.wxauth.get_user_info(self.mp_openid), 'mp')
             self.save()
+
+            if um.config.oauth_auto_update is True and self.user:
+                self.sync(self.user, True)
+                self.user.save()
 
     def update_info(self, userinfo, action):
         setattr(self, action + '_openid', userinfo['openid'])
