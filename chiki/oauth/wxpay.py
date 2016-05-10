@@ -18,6 +18,7 @@ __all__ = [
 class WXPay(object):
 
     PREPAY_URL = 'https://api.mch.weixin.qq.com/pay/unifiedorder'
+    REFUND_URL = 'https://api.mch.weixin.qq.com/secapi/pay/refund'
     SEND_RED_PACK = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack'
 
     def __init__(self, app=None):
@@ -113,8 +114,27 @@ class WXPay(object):
         except Exception, e:
             return dict(return_code='ERROR', return_msg=str(e))
 
-    def refund(self):
-        pass
+    def refund(self, **kwargs):
+        if 'out_trade_no' not in kwargs:
+            raise ValueError('out_trade_no is required.')
+
+        kwargs.setdefault('appid', self.config.get('appid'))
+        kwargs.setdefault('mch_id', self.config.get('mchid'))
+        kwargs.setdefault('device_info', 'WEB')
+        kwargs.setdefault('out_refund_no', kwargs.get('out_refund_no'))
+        kwargs.setdefault('total_fee', 1)
+        kwargs.setdefault('refund_fee', 1)
+        kwargs.setdefault('refund_fee_type', 'CNY')
+        kwargs.setdefault('op_user_id', self.config.get('mchid'))
+        kwargs.setdefault('nonce_str', randstr(32))
+        kwargs.setdefault('sign', self.sign(**kwargs))
+
+        data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
+        try:
+            xml = requests.post(self.REFUND_URL, data=data, cert=self.config.get('cert')).content
+            return self.xml2dict(xml)
+        except Exception, e:
+            return dict(return_code='ERROR', return_msg=str(e))
 
     def sign(self, **kwargs):
         text = '&'.join(['%s=%s' % x for x in sorted(kwargs.iteritems(), key=lambda x: x[0])])

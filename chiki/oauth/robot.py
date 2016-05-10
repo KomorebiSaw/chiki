@@ -4,6 +4,7 @@ import time
 import requests
 import werobot.client
 from chiki.contrib.common import Item
+from flask import current_app
 from flask.ext.werobot import WeRoBot
 from werobot.messages import handle_for_type, WeChatMessage
 from urllib import urlencode
