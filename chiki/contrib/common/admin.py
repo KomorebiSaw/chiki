@@ -178,3 +178,8 @@ class PageView(ModelView):
         id=formatter_link(lambda m: (m.id, get_link(str(m.id)))),
         key=formatter_link(lambda m: (m.key, get_link(str(m.key)))),
     )
+    form_excluded_columns = ('id', )
+
+    def on_model_change(self, form, model, created=False):
+        model.create()
+        model.modified = datetime.now()
