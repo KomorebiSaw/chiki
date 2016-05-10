@@ -146,6 +146,7 @@ class User(db.Document, UserMixin):
         (SEX_FEMALE, '女'),
     )
     SEX_VALUES = [x[0] for x in SEX_CHOICES]
+    SEX_DICT = dict(SEX_CHOICES)
     SEX_FROM_WECHAT = {0: SEX_UNKNOWN, 1: SEX_MALE, 2: SEX_FEMALE}
 
     id = db.IntField(primary_key=True, verbose_name='ID')
@@ -178,6 +179,10 @@ class User(db.Document, UserMixin):
             '-registered',
         ],
     }
+
+    @property
+    def sex_text(self):
+        return self.SEX_DICT[self.sex]
 
 
 class ThirdUserMixin(object):
