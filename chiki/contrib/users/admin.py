@@ -58,7 +58,6 @@ class WeiBoUser(ModelView):
     column_filters = ('user', 'uid')
 
 
-
 class UserLogView(ModelView):
     pass
 

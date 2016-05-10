@@ -10,6 +10,7 @@ from flask.ext.debugtoolbar import DebugToolbarExtension
 from .contrib.common import Item, Page
 from .jinja import init_jinja
 from .logger import init_logger
+from .media import MediaManager
 from .oauth import init_oauth
 from .settings import TEMPLATE_ROOT
 from .upimg import init_upimg
@@ -32,6 +33,8 @@ DEBUG_TB_PANELS = (
     'flask_debugtoolbar_lineprofilerpanel.panels.LineProfilerPanel',
     'chiki.debug_toolbar_mongo.panel.MongoDebugPanel',
 )
+
+media = MediaManager()
 
 
 def init_page(app):
@@ -131,6 +134,7 @@ def init_app(init=None, config=None, pyfile=None,
     init_logger(app)
     init_oauth(app)
     init_page(app)
+    media.init_app(app)
 
     @app.context_processor
     def context_processor():

@@ -1,6 +1,7 @@
 # coding: utf-8
 from chiki.admin import ModelView, formatter_len, formatter_icon
 from chiki.admin import formatter_text, formatter_link
+from chiki.forms.fields import WangEditorField
 from datetime import datetime
 from wtforms.fields import TextAreaField
 from flask import current_app, url_for
@@ -179,6 +180,7 @@ class PageView(ModelView):
         key=formatter_link(lambda m: (m.key, get_link(str(m.key)))),
     )
     form_excluded_columns = ('id', )
+    form_overrides = dict(content=WangEditorField)
 
     def on_model_change(self, form, model, created=False):
         model.create()
