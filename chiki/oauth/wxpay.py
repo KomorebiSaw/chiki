@@ -113,6 +113,9 @@ class WXPay(object):
         except Exception, e:
             return dict(return_code='ERROR', return_msg=str(e))
 
+    def refund(self):
+        pass
+
     def sign(self, **kwargs):
         text = '&'.join(['%s=%s' % x for x in sorted(kwargs.iteritems(), key=lambda x: x[0])])
         text += '&key=%s' % self.config.get('key')

@@ -1,10 +1,12 @@
 # coding: utf-8
 import json
 import time
+import requests
+import werobot.client
 from chiki.contrib.common import Item
 from flask.ext.werobot import WeRoBot
-from werobot.client import Client
 from werobot.messages import handle_for_type, WeChatMessage
+from urllib import urlencode
 
 __all__ = [
     'patch_monkey', 'WeRoBot',
@@ -13,26 +15,38 @@ __all__ = [
 
 def patch_monkey():
 
-    @property
-    def common_token(self):
-        now = time.time()
-        key = 'wxauth:access_token'
-        token = json.loads(Item.data(key, '{}'))
-        if not token or token['deadline'] <= now:
+    class Client(werobot.client.Client):
+
+        SEND_TPL_URL = 'https://api.weixin.qq.com/cgi-bin/message/template/send'
+
+        @property
+        def common_token(self):
+            now = time.time()
+            key = 'wxauth:access_token'
+            token = json.loads(Item.data(key, '{}'))
+            if not token or token['deadline'] <= now:
+                token = self.grant_token()
+                token['deadline'] = now + token['expires_in']
+                Item.set_data(key, json.dumps(token))
+            return token['access_token']
+
+        def refresh_token(self):
+            now = time.time()
+            key = 'wxauth:access_token'
             token = self.grant_token()
             token['deadline'] = now + token['expires_in']
             Item.set_data(key, json.dumps(token))
-        return token['access_token']
 
-    def refresh_token(self):
-        now = time.time()
-        key = 'wxauth:access_token'
-        token = self.grant_token()
-        token['deadline'] = now + token['expires_in']
-        Item.set_data(key, json.dumps(token))
+        def send_tpl(self, openid, tpl, url='', data=dict()):
+            data = json.dumps(dict(touser=openid, data=data, template_id=tpl, url=url))
+            xurl = '%s?%s' % (self.SEND_TPL_URL, urlencode(access_token=self.common_token))
+            res = requests.post(xurl, data=data).json()
+            if res['errcode'] == 0:
+                return True
+            current_app.logger.error('robot send_tpl error: %s' % json.dumps(res))
+            return False
 
-    Client.refresh_token = refresh_token
-    Client.token = common_token
+    werobot.client.Client = Client
 
     @handle_for_type('event')
     class EventMessage(WeChatMessage):
