@@ -3,6 +3,7 @@ from chiki import is_json
 from chiki.api.const import *
 from flask import current_app, request, redirect
 from flask.ext.login import current_user, login_user
+from urllib import urlencode
 from . import wechat
 from .wechat import *
 
@@ -34,5 +35,5 @@ def init_oauth(app):
             if is_json():
                 abort(NEED_BIND)
 
-            current_app.logger.error('goto_bind: %s' + str(type(current_user._get_current_object())))
-            return redirect(current_app.user_manager.config.bind_url)
+            current_app.logger.error('goto_bind: ' + str(type(current_user._get_current_object())))
+            return redirect('%s?%s' % (current_app.user_manager.config.bind_url, urlencode(next=request.url)))

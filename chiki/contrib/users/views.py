@@ -119,10 +119,10 @@ def reset_password_email():
 @login_required
 def bind():
     next = request.args.get('next', url_for('users.login'))
-    if current_user.is_user():
+    if um.need_email or um.need_phone:
         return redirect(next)
 
-    if current_user.user:
+    if not current_user.is_user() and current_user.user:
         user = um.models.User.objects(id=current_user.user).first()
         if user:
             login_user(user)
