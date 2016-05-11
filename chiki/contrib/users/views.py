@@ -119,7 +119,7 @@ def reset_password_email():
 @login_required
 def bind():
     next = request.args.get('next', url_for('users.login'))
-    if um.need_email or um.need_phone:
+    if not um.need_email and not um.need_phone:
         return redirect(next)
 
     if not current_user.is_user() and current_user.user:
