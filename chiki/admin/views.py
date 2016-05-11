@@ -266,9 +266,9 @@ class ModelView(_ModelView):
 
     @contextfunction
     def get_list_value(self, context, model, name):
-        if not self._init_referenced:
-            self._init_referenced = True
-            self.init_referenced()
+        # if not self._init_referenced:
+        #     self._init_referenced = True
+        #     self.init_referenced()
 
         column_fmt = self.column_formatters.get(name)
         if column_fmt is not None:
