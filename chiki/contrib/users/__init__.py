@@ -56,12 +56,12 @@ class UserManager(object):
     @property
     def need_email(self):
         return self.allow_email and current_user.is_authenticated() \
-            and (not current_user.is_user() or current_user.email)
+            and (not current_user.is_user() or not current_user.email)
 
     @property
     def need_phone(self):
         return self.allow_phone and current_user.is_authenticated() \
-            and (not current_user.is_user() or current_user.phone)
+            and (not current_user.is_user() or not current_user.phone)
 
     def init_config(self):
         config = self.app.config.get('CHIKI_USER', {})
