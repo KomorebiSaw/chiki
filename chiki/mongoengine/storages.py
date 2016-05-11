@@ -1,6 +1,5 @@
 # coding: utf-8
 import os
-import json
 import shutil
 from flask import current_app
 
@@ -114,7 +113,7 @@ class OSSFile(BaseFile):
         res = self.oss.put_object_from_string(self.conf['bucket'], name, content)
         if (res.status / 100) == 2:
             return name
-        current_app.logger.error('oss error: ' + json.dumps(res))
+        current_app.logger.error('oss error: \n' + res.read())
         return ''
 
     def remove(self, name):
