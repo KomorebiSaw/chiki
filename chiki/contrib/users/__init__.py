@@ -3,7 +3,7 @@ from chiki import AttrDict, init_verify
 from chiki.base import db
 from chiki.contrib.users import admin, apis, forms, funcs, models, oauth, views
 from chiki.contrib.users.base import user_manager
-from flask.ext.login import LoginManager
+from flask.ext.login import LoginManager, current_user
 
 __all__ = [
     'user_manager', 'um', 'UserManager',
@@ -52,6 +52,16 @@ class UserManager(object):
                 elif id.startswith('weibo:'):
                     return um.models.WeiBoUser.objects(id=id.split(':')[-1]).first()
             return um.models.User.objects(id=id).first()
+
+    @property
+    def need_email(self):
+        return self.allow_email and current_user.is_authenticated() \
+            and (not current_user.is_user() or current_user.email)
+
+    @property
+    def need_phone(self):
+        return self.allow_phone and current_user.is_authenticated() \
+            and (not current_user.is_user() or current_user.phone)
 
     def init_config(self):
         config = self.app.config.get('CHIKI_USER', {})

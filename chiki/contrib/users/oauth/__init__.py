@@ -16,17 +16,21 @@ def init_oauth(app):
 
     @app.before_request
     def before_request():
-        if current_user.is_authenticated() and not current_user.is_user() \
+        if current_user.is_authenticated() \
                 and request.endpoint not in current_app.user_manager.config.allow_oauth_urls \
                 and not request.path.startswith('/admin'):
 
             um = current_app.user_manager
             model = um.config.oauth_model
             remember = um.config.oauth_remember
-            if model == 'auto':
-                user = um.models.User.from_oauth(current_user)
-                login_user(user, remember=remember)
+            if not current_user.is_user():
+                if model == 'auto':
+                    user = um.models.User.from_oauth(current_user)
+                    login_user(user, remember=remember)
+                    return
+            elif current_user.phone or current_user.email or model == 'auto':
                 return
+
             if is_json():
                 abort(NEED_BIND)
             return redirect(current_app.user_manager.config.bind_url)

@@ -6,7 +6,7 @@
 <div class="row">
 	<div class="col-lg-4 col-lg-offset-4 col-md-6 col-md-offset-3">
 		<div class="box">
-			{% if um.allow_email %}
+			{% if um.need_email %}
 			<div class="bind-email" style="display:none">
 				<div class="message-box">
 					<ul class="nav nav-tabs nav-justified" role="tablist">
@@ -47,7 +47,7 @@
 				<div class="email-access"></div>
 			</div>
 			{% endif %}
-			{% if um.allow_phone %}
+			{% if um.need_phone %}
 			<div class="bind-phone" style="display:none">
 				<div class="message-box">
 					<ul class="nav nav-tabs nav-justified" role="tablist">
