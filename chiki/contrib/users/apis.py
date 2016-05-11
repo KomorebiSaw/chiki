@@ -567,6 +567,7 @@ class BindPhone(Bind):
 
             current_user.phone = args['phone']
             current_user.password = args['password']
+            current_user.save()
             return current_user
 
         user = um.models.User.objects(phone=args['phone']).first()
@@ -607,6 +608,7 @@ class BindEmail(Bind):
 
             current_user.email = args['email']
             current_user.password = args['password']
+            current_user.save()
             return current_user
 
         user = um.models.User.objects(email=args['email']).first()
