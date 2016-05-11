@@ -129,8 +129,8 @@ def userinfo(user):
 def login(user, device='', key='', remember=True):
     if current_user is not user:
         login_user(user, remember=remember)
-    user.login()
-    um.models.UserLog.login(user.id, device, key)
+        user.login()
+        um.models.UserLog.login(user.id, device, key)
     return success(**um.funcs.userinfo(user))
 
 
