@@ -71,6 +71,7 @@ def init_wxauth(app):
 
         login_user(user, remember=True)
         if current_user.is_authenticated() and current_user.is_user():
+            um.models.UserLog.login(user.id, 'web', 'wechat')
             user.login()
 
         return um.funcs.on_wechat_login(action, next)

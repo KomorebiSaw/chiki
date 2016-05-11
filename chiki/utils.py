@@ -14,8 +14,9 @@ __all__ = [
     'datetime2best', 'time2best', 'today',
     'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os', 'get_platform',
     'get_channel','get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
-    'randstr', 'AttrDict', 'url2image', 'retry',
+    'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data',
 ]
+
 
 def down(url, source=None):
     if source:
@@ -42,7 +43,7 @@ class AttrDict(dict):
 
 
 def today():
-    return datetime.strptime(str(date.today()),'%Y-%m-%d')
+    return datetime.strptime(str(date.today()), '%Y-%m-%d')
 
 
 def strip(val, *args):
@@ -225,3 +226,10 @@ def retry(times=3):
                 pass
         return func
     return wrapper
+
+
+def tpl_data(color="#33aaff", **kwargs):
+    res = dict()
+    for key, value in kwargs.iteritems():
+        res[key] = dict(value=value, color=color)
+    return res

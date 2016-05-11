@@ -1,8 +1,10 @@
 # coding: utf-8
 from chiki.admin import ModelView, formatter_len, formatter_icon
-from chiki.admin import formatter_text
+from chiki.admin import formatter_text, formatter_link
+from chiki.forms.fields import WangEditorField
 from datetime import datetime
 from wtforms.fields import TextAreaField
+from flask import current_app, url_for
 
 
 class ItemView(ModelView):
@@ -160,3 +162,26 @@ class SlideModuleView(ModelView):
 
 class OptionItemView(ModelView):
     pass
+
+
+def get_link(key):
+    url = url_for('page2', key=key)
+    if current_app.config.get('WEB_HOST'):
+        return 'http://%s%s' % (current_app.config.get('WEB_HOST'), url)
+    return url
+
+
+class PageView(ModelView):
+    column_default_sort = ('-created', )
+    column_list = ('id', 'key', 'name', 'content', 'modified', 'created')
+    column_center_list = ('id', 'key', 'modified', 'created')
+    column_formatters = dict(
+        id=formatter_link(lambda m: (m.id, get_link(str(m.id)))),
+        key=formatter_link(lambda m: (m.key, get_link(str(m.key)))),
+    )
+    form_excluded_columns = ('id', )
+    form_overrides = dict(content=WangEditorField)
+
+    def on_model_change(self, form, model, created=False):
+        model.create()
+        model.modified = datetime.now()

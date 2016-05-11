@@ -7,9 +7,10 @@ from flask import abort, request, redirect
 from flask.ext.babelex import Babel
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
-from .contrib.common import Item
+from .contrib.common import Item, Page
 from .jinja import init_jinja
 from .logger import init_logger
+from .media import MediaManager
 from .oauth import init_oauth
 from .settings import TEMPLATE_ROOT
 from .upimg import init_upimg
@@ -32,6 +33,21 @@ DEBUG_TB_PANELS = (
     'flask_debugtoolbar_lineprofilerpanel.panels.LineProfilerPanel',
     'chiki.debug_toolbar_mongo.panel.MongoDebugPanel',
 )
+
+media = MediaManager()
+
+
+def init_page(app):
+
+    @app.route('/page/<int:id>.html')
+    def page(id):
+        page = Page.objects(id=id).get_or_404()
+        return render_template('page.html', page=page)
+
+    @app.route('/page/<key>.html')
+    def page2(key):
+        page = Page.objects(key=key).get_or_404()
+        return render_template('page.html', page=page)
 
 
 def init_babel(app):
@@ -117,6 +133,8 @@ def init_app(init=None, config=None, pyfile=None,
     init_jinja(app)
     init_logger(app)
     init_oauth(app)
+    init_page(app)
+    media.init_app(app)
 
     @app.context_processor
     def context_processor():
