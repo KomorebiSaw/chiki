@@ -1,5 +1,6 @@
 # coding: utf-8
 import os
+import gc
 import traceback
 from datetime import datetime
 from flask import current_app, redirect, flash, request
@@ -157,6 +158,12 @@ class ModelView(_ModelView):
         elif hasattr(model, 'modified'):
             model.modified = datetime.now()
 
+    @expose('/')
+    def index_view(self):
+        res = super(ModelView, self).index_view()
+        gc.collect()
+        return res
+
     def get_ref_type(self, attr):
         document, ref_type = attr.document_type, None
         if hasattr(document, 'id'):
@@ -266,9 +273,9 @@ class ModelView(_ModelView):
 
     @contextfunction
     def get_list_value(self, context, model, name):
-        # if not self._init_referenced:
-        #     self._init_referenced = True
-        #     self.init_referenced()
+        if not self._init_referenced:
+            self._init_referenced = True
+            self.init_referenced()
 
         column_fmt = self.column_formatters.get(name)
         if column_fmt is not None:
