@@ -35,6 +35,5 @@ def init_oauth(app):
             if is_json():
                 abort(NEED_BIND)
 
-            current_app.logger.error('goto_bind: ' + str(type(current_user._get_current_object())))
             query = urlencode(dict(next=request.url))
             return redirect('%s?%s' % (current_app.user_manager.config.bind_url, query))
