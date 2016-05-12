@@ -121,7 +121,7 @@ class WXPay(object):
         kwargs.setdefault('appid', self.config.get('appid'))
         kwargs.setdefault('mch_id', self.config.get('mchid'))
         kwargs.setdefault('device_info', 'WEB')
-        kwargs.setdefault('out_refund_no', kwargs.get('out_refund_no'))
+        kwargs.setdefault('out_refund_no', kwargs.get('out_trade_no'))
         kwargs.setdefault('total_fee', 1)
         kwargs.setdefault('refund_fee', kwargs.get('total_fee'))
         kwargs.setdefault('refund_fee_type', 'CNY')
