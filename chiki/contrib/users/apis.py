@@ -644,6 +644,8 @@ class BindAuto(Resource):
 
     @login_required
     def post(self):
+        args = self.get_args()
+        self.validate(args)
         if current_user.is_user():
             return self.success(current_user, args)
 
@@ -653,8 +655,6 @@ class BindAuto(Resource):
         if um.config.oauth_model == 'force':
             abort(NEED_BIND)
 
-        args = self.get_args()
-        self.validate(args)
         user = um.models.User.from_oauth(current_user)
         um.models.UserLog.bind(user.id, args['device'], key=self.key)
         return self.success(user, args)
