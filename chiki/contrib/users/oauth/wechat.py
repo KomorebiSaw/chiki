@@ -67,7 +67,12 @@ def init_wxauth(app):
         um.funcs.wechat_login(user)
 
         if user.user:
-            user = um.models.User.objects(id=user.user).first() or user
+            real_user = um.models.User.objects(id=user.user).first()
+            if not real_user:
+                user.user = 0
+                user.save()
+            else:
+                user = real_user
 
         login_user(user, remember=True)
         if current_user.is_authenticated() and current_user.is_user():

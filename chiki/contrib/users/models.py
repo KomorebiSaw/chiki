@@ -294,8 +294,10 @@ class WeChatUser(db.Document, ThirdUserMixin):
             self.save()
 
             if um.config.oauth_auto_update is True and self.user:
-                self.sync(self.user, True)
-                self.user.save()
+                user = um.models.User.objects(self.user).first()
+                if user:
+                    self.sync(user, True)
+                    user.save()
 
     def update_info(self, userinfo, action):
         setattr(self, action + '_openid', userinfo['openid'])
