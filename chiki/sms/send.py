@@ -45,7 +45,7 @@ def send_ihuyi_sms(phone, text):
             res = urllib.urlopen(url).read()
             break
         except:
-            current_app.logger.error('短信接触出错：' + traceback.format_exc())
+            current_app.logger.error('短信接口出错：' + traceback.format_exc())
     if not re.search(r'<code>2</code>', res):
-        current_app.logger.error('短信接触出错：' + str(res))
+        current_app.logger.error('短信接口出错：' + str(res))
     return True if re.search(r'<code>2</code>', res) else False
