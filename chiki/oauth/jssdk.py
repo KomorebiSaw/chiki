@@ -68,14 +68,17 @@ class JSSDK(object):
 
         return self._ticket
 
-    def refresh(self):
+    def refresh(self, retry=True):
         url = self.TPL % current_app.wxclient.token
         res = requests.get(url).json()
 
         if res['errcode'] != 0:
+            if retry and 'access_token' in res['errmsg']:
+                current_app.wxclient.refresh_token()
+                return self.refresh(False)
             current_app.logger.error(str(res))
             return ''
-        
+
         self._ticket = res['ticket']
         self._expires_at = res['expires_in'] + time.time()
         return self._ticket
@@ -94,5 +97,4 @@ class JSSDK(object):
         if request.args.get('debug') == 'true':
             res['text'] = text
             Item.set_data('jssdk:info', json.dumps(res))
-            
         return res
