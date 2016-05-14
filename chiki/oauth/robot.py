@@ -21,7 +21,7 @@ def patch_monkey():
         SEND_TPL_URL = 'https://api.weixin.qq.com/cgi-bin/message/template/send'
 
         @property
-        def common_token(self):
+        def token(self):
             now = time.time()
             key = 'wxauth:access_token'
             token = json.loads(Item.data(key, '{}'))
