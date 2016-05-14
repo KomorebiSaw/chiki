@@ -40,7 +40,7 @@ def patch_monkey():
 
         def send_tpl(self, openid, tpl, url='', data=dict(), retry=True):
             data = json.dumps(dict(touser=openid, data=data, template_id=tpl, url=url))
-            xurl = '%s?%s' % (self.SEND_TPL_URL, urlencode(dict(access_token=self.common_token)))
+            xurl = '%s?%s' % (self.SEND_TPL_URL, urlencode(dict(access_token=self.token)))
             res = requests.post(xurl, data=data).json()
             if res['errcode'] == 0:
                 return True
