@@ -348,13 +348,12 @@ class ModelView(_ModelView):
         if type(val) == int:
             val = int(val)
 
-        if model.objects(id=id):
-            models = model.objects(id=id).first()
-            models[name] = val
-
+        obj = model.objects(id=id).first()
+        if obj:
+            obj[name] = val
             if hasattr(model, 'modified'):
-                models['modified'] = datetime.now()
-            models.save()
+                obj['modified'] = datetime.now()
+            obj.save()
             return json_success()
 
         return json_error(msg='该记录不存在')

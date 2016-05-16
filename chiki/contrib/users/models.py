@@ -294,7 +294,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
             self.save()
 
             if um.config.oauth_auto_update is True and self.user:
-                user = um.models.User.objects(self.user).first()
+                user = um.models.User.objects(id=self.user).first()
                 if user:
                     self.sync(user, True)
                     user.save()
