@@ -2,6 +2,7 @@
 from chiki import is_json
 from chiki.web import error
 from chiki.api.const import *
+from chiki.contrib.common import Item
 from flask import current_app, request, redirect
 from flask.ext.login import current_user, login_user, logout_user
 from urllib import urlencode
