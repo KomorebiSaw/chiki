@@ -11,7 +11,7 @@ def success(msg, url='', timeout=0):
 
 
 def error(msg, url='', timeout=0):
-    return message(msg, style='danger', url=url, timeout=timeout)
+    return message(msg, style='warn', url=url, timeout=timeout)
 
 
 def is_ajax():

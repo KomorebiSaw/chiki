@@ -1,5 +1,6 @@
 # coding: utf-8
 from chiki import is_json
+from chiki.web import error
 from chiki.api.const import *
 from flask import current_app, request, redirect
 from flask.ext.login import current_user, login_user, logout_user
@@ -19,7 +20,7 @@ def init_oauth(app):
     def before_request():
         if current_user.is_authenticated() and not current_user.active:
             logout_user()
-            return
+            return error(msg='你的帐号已被封号处理！')
 
         if current_user.is_authenticated() \
                 and request.endpoint not in current_app.user_manager.config.allow_oauth_urls \
