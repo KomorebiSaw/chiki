@@ -20,7 +20,7 @@ def init_oauth(app):
     def before_request():
         if current_user.is_authenticated() and not current_user.active:
             logout_user()
-            return error(msg='你的帐号已被封号处理！')
+            error(msg=Item.data('active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
 
         if current_user.is_authenticated() \
                 and request.endpoint not in current_app.user_manager.config.allow_oauth_urls \
