@@ -2,7 +2,7 @@
 from chiki import is_json
 from chiki.api.const import *
 from flask import current_app, request, redirect
-from flask.ext.login import current_user, login_user
+from flask.ext.login import current_user, login_user, logout_user
 from urllib import urlencode
 from . import wechat
 from .wechat import *
@@ -17,6 +17,10 @@ def init_oauth(app):
 
     @app.before_request
     def before_request():
+        if current_user.is_authenticated() and not current_user.active:
+            logout_user()
+            return
+
         if current_user.is_authenticated() \
                 and request.endpoint not in current_app.user_manager.config.allow_oauth_urls \
                 and not request.path.startswith('/admin'):
