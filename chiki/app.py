@@ -5,6 +5,7 @@ import traceback
 from flask import Blueprint, current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
+from flask.ext.login import login_required
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
 from .contrib.common import Item, Page
@@ -39,15 +40,29 @@ media = MediaManager()
 
 def init_page(app):
 
-    @app.route('/page/<int:id>.html')
-    def page(id):
-        page = Page.objects(id=id).get_or_404()
-        return render_template('page.html', page=page)
+    if app.config.get('PAGE_LOGIN_REQUIRED'):
+        @app.route('/page/<int:id>.html')
+        @login_required
+        def page(id):
+            page = Page.objects(id=id).get_or_404()
+            return render_template('page.html', page=page)
 
-    @app.route('/page/<key>.html')
-    def page2(key):
-        page = Page.objects(key=key).get_or_404()
-        return render_template('page.html', page=page)
+        @app.route('/page/<key>.html')
+        @login_required
+        def page2(key):
+            page = Page.objects(key=key).get_or_404()
+            return render_template('page.html', page=page)
+
+    else:
+        @app.route('/page/<int:id>.html')
+        def page(id):
+            page = Page.objects(id=id).get_or_404()
+            return render_template('page.html', page=page)
+
+        @app.route('/page/<key>.html')
+        def page2(key):
+            page = Page.objects(key=key).get_or_404()
+            return render_template('page.html', page=page)
 
 
 def init_babel(app):
