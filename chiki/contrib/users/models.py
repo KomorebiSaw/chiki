@@ -302,19 +302,19 @@ class WeChatUser(db.Document, ThirdUserMixin):
     def update_info(self, userinfo, action):
         setattr(self, action + '_openid', userinfo['openid'])
         self.unionid = userinfo.get('unionid', '')
-        self.nickname = userinfo['nickname']
-        self.sex = userinfo['sex']
-        self.province = userinfo['province']
-        self.city = userinfo['city']
-        self.country = userinfo['country']
-        self.headimgurl = userinfo['headimgurl']
+        self.nickname = userinfo.get('nickname', self.nickname)
+        self.sex = userinfo.get('sex', self.sex)
+        self.province = userinfo.get('province', self.province)
+        self.city = userinfo.get('city', self.city)
+        self.country = userinfo.get('country', self.country)
+        self.headimgurl = userinfo.get('headimgurl', self.userinfo)
         self.privilege = userinfo.get('privilege', self.privilege)
         if userinfo.get('subscribe') == 1:
-            self.remark = userinfo['remark']
-            self.language = userinfo['language']
-            self.groupid = userinfo['groupid']
+            self.remark = userinfo.get('remark', self.remark)
+            self.language = userinfo.get('language', self.language)
+            self.groupid = userinfo.get('groupid', self.groupid)
             self.subscribe = True
-            self.subscribe_time = datetime.fromtimestamp(userinfo['subscribe_time'])
+            self.subscribe_time = datetime.fromtimestamp(userinfo.get('subscribe_time'))
 
     def unsubscribe(self):
         self.subscribe = False
