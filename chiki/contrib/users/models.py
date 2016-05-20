@@ -307,7 +307,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
         self.province = userinfo.get('province', self.province)
         self.city = userinfo.get('city', self.city)
         self.country = userinfo.get('country', self.country)
-        self.headimgurl = userinfo.get('headimgurl', self.userinfo)
+        self.headimgurl = userinfo.get('headimgurl', self.headimgurl)
         self.privilege = userinfo.get('privilege', self.privilege)
         if userinfo.get('subscribe') == 1:
             self.remark = userinfo.get('remark', self.remark)
