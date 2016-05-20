@@ -227,6 +227,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
     privilege = db.ListField(db.StringField(), verbose_name='特权信息')
     subscribe = db.BooleanField(default=False, verbose_name='是否关注公众号')
     subscribe_time = db.DateTimeField(verbose_name='关注时间')
+    language = db.StringField(verbose_name='语言')
     remark = db.StringField(max_length=40, verbose_name='备注')
     groupid = db.IntField(default=0, verbose_name='分组ID')
     access_token = db.StringField(verbose_name='令牌')
