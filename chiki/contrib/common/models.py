@@ -601,11 +601,11 @@ class Menu(db.Document):
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
-    meta = dict(indexes=[('module', 'sort')])
+    meta = dict(indexes=[('enable', 'module', 'sort')])
 
     @staticmethod
     def get(module):
-        return Menu.objects(module=module).order_by('sort')
+        return Menu.objects(module=module, enable=Enable.get()).order_by('sort')
 
 
 class Page(db.Document):
