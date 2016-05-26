@@ -185,3 +185,11 @@ class PageView(ModelView):
     def on_model_change(self, form, model, created=False):
         model.create()
         model.modified = datetime.now()
+
+
+class ChoicesView(ModelView):
+    pass
+
+
+class MenuView(ModelView):
+    pass

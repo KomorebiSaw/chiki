@@ -76,14 +76,6 @@ class ModelView(_ModelView):
                     if verbose_name:
                         self.column_labels[field] = verbose_name
 
-        # 初始化选择列
-        self.column_choices = self.column_choices or dict()
-        for field in model._fields:
-            if field not in self.column_choices:
-                choices = getattr(model, field).choices
-                if choices:
-                    self.column_choices[field] = choices
-
         #初始化筛选器
         types = (IntField, ReferenceField, StringField, BooleanField, DateTimeField) if self.robot_filters else (ReferenceField,)
         self.column_filters = list(self.column_filters or [])
@@ -114,6 +106,14 @@ class ModelView(_ModelView):
                                         menu_class_name=menu_class_name,
                                         menu_icon_type=menu_icon_type,
                                         menu_icon_value=menu_icon_value)
+
+    def _refresh_cache(self):
+        self.column_choices = self.column_choices or dict()
+        for field in self.model._fields:
+            choices = getattr(self.model, field).choices
+            if choices:
+                self.column_choices[field] = choices
+        super(ModelView, self)._refresh_cache()
 
     def create_model(self, form):
         try:

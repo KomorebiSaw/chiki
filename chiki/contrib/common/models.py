@@ -468,7 +468,6 @@ class SlideModule(db.Document):
         return self.name
 
 
-
 class SlideItem(db.Document):
     """ 广告模型 """
 
@@ -519,10 +518,94 @@ class OptionItem(db.Document):
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
     value = db.StringField(verbose_name='值')
-    modified = db.DateTimeField(default=lambda: datetime.now(), verbose_name='修改时间')
-    created = db.DateTimeField(default=lambda: datetime.now(), verbose_name='创建时间')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['-created'])
+
+
+class Choice(db.EmbeddedDocument):
+    """ 选项 """
+
+    key = db.StringField(verbose_name='键名')
+    name = db.StringField(verbose_name='名称')
+
+    def __unicode__(self):
+        return '%s - %s' % (self.key, self.name)
+
+
+class Choices(db.Document):
+    """ 选项模型 """
+
+    fields = dict()
+    key = db.StringField(verbose_name='键名')
+    name = db.StringField(verbose_name='名称')
+    default = db.StringField(verbose_name='默认值')
+    choices = db.XListField(db.EmbeddedDocumentField(Choice), verbose_name='选项')
+    enable = db.BooleanField(default=True, verbose_name='启用')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = dict(indexes=['key'])
+
+    @staticmethod
+    def init():
+        for key, field in Choices.fields.iteritems():
+            Choices.init_field(key, field[1], field[0])
+
+    @staticmethod
+    def init_field(key, name, field, choices=None):
+        choices = choices or Choices.objects(key=key).first()
+        if choices:
+            if choices.enable:
+                if choices.default:
+                    field.default = choices.default
+                field.choices = [(x.key, x.name) for x in choices.choices]
+            else:
+                field.default = None
+                field.choices = None
+        else:
+            Choices(key=key, name=name).save()
+        Choices.refresh(field.owner_document)
+
+    @staticmethod
+    def refresh(model):
+        if model:
+            for admin in current_app.extensions.get('admin', []):
+                for view in admin._views:
+                    if model == getattr(view, 'model', None):
+                        view._refresh_cache()
+
+    def save(self):
+        super(Choices, self).save()
+        field = self.fields.get(self.key)
+        if field:
+            self.init_field(self.key, field[1], field[0], self)
+
+
+def choice(field, key, name):
+    Choices.fields[key] = (field, name)
+    return field
+
+
+class Menu(db.Document):
+    """ 菜单模型 """
+
+    key = db.StringField(verbose_name='键名')
+    name = db.StringField(verbose_name='名称')
+    link = db.StringField(verbose_name='链接')
+    icon = db.XImageField(verbose_name='图标')
+    module = choice(db.StringField(verbose_name='模块'), 'menu_module', '菜单模块')
+    sort = db.IntField(verbose_name='排序')
+    enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = dict(indexes=[('module', 'sort')])
+
+    @staticmethod
+    def get(module):
+        return Menu.objects(module=module).order_by('sort')
 
 
 class Page(db.Document):
@@ -532,8 +615,8 @@ class Page(db.Document):
     key = db.StringField(verbose_name='键名')
     name = db.StringField(verbose_name='名称')
     content = db.StringField(verbose_name='正文')
-    modified = db.DateTimeField(default=lambda: datetime.now(), verbose_name='修改时间')
-    created = db.DateTimeField(default=lambda: datetime.now(), verbose_name='创建时间')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['-created'])
 

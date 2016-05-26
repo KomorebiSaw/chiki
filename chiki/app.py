@@ -8,7 +8,7 @@ from flask.ext.babelex import Babel
 from flask.ext.login import login_required
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
-from .contrib.common import Item, Page
+from .contrib.common import Item, Page, Choices, Menu
 from .jinja import init_jinja
 from .logger import init_logger
 from .media import MediaManager
@@ -153,13 +153,16 @@ def init_app(init=None, config=None, pyfile=None,
 
     @app.context_processor
     def context_processor():
-        return dict(Item=Item)
+        return dict(Item=Item, Menu=Menu)
 
     if error:
         init_error_handler(app)
 
     if callable(init):
         init(app)
+
+    with app.app_context():
+        Choices.init()
 
     if index:
         @app.route('/')
