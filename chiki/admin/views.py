@@ -158,11 +158,11 @@ class ModelView(_ModelView):
         elif hasattr(model, 'modified'):
             model.modified = datetime.now()
 
-    @expose('/')
-    def index_view(self):
-        res = super(ModelView, self).index_view()
-        gc.collect()
-        return res
+    # @expose('/')
+    # def index_view(self):
+    #     res = super(ModelView, self).index_view()
+    #     gc.collect()
+    #     return res
 
     def get_ref_type(self, attr):
         document, ref_type = attr.document_type, None
