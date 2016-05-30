@@ -8,6 +8,7 @@ from flask.ext.babelex import Babel
 from flask.ext.login import login_required
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
+from .base import db
 from .contrib.common import Item, Page, Choices, Menu
 from .jinja import init_jinja
 from .logger import init_logger
@@ -149,6 +150,7 @@ def init_app(init=None, config=None, pyfile=None,
     init_logger(app)
     init_oauth(app)
     init_page(app)
+    db.init_app(app)
     media.init_app(app)
 
     @app.context_processor
