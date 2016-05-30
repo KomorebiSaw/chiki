@@ -127,12 +127,13 @@ def init_app(init=None, config=None, pyfile=None,
     ENVVAR = app.config.get('ENVVAR')
     if ENVVAR and os.environ.get(ENVVAR):
         app.config.from_envvar(app.config['ENVVAR'])
-    else:
+
+    if app.debug:
         app.config.setdefault('DEBUG_TB_ENABLED', True)
         app.config.setdefault('DEBUG_TB_PANELS', DEBUG_TB_PANELS)
         app.config.setdefault('DEBUG_TB_INTERCEPT_REDIRECTS', False)
 
-    toolbar = DebugToolbarExtension(app)
+    DebugToolbarExtension(app)
 
     app.is_web = is_web
     app.is_api = is_api
