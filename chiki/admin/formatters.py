@@ -187,7 +187,7 @@ def format_best(t):
 
 @formatter
 def format_rmb(m):
-    return '￥.2f' % (m / 100.0)
+    return '￥%.2f' % (m / 100.0)
 
 
 def format_choices(view, context, model, name):
