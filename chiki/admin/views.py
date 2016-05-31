@@ -19,7 +19,8 @@ from bson.objectid import ObjectId
 from jinja2 import contextfunction
 from .convert import KModelConverter
 from .filters import KFilterConverter, ObjectIdEqualFilter
-from .formatters import type_best, type_image, type_file, type_select, type_bool
+from .formatters import type_best, type_image, type_file, type_select
+from .formatters import type_bool, type_images
 from .formatters import formatter_len, formatter_link, filter_sort
 from ..mongoengine.fields import FileProxy, ImageProxy
 from ..utils import json_success, json_error
@@ -294,6 +295,10 @@ class ModelView(_ModelView):
 
         if isinstance(value, bool):
             return type_bool(self, value, model, name)
+
+        if value and isinstance(value, list) and isinstance(value[0], ImageProxy):
+            self.show_popover = True
+            return type_images(self, value)
 
         type_fmt = None
         for typeobj, formatter in self.column_type_formatters.items():
