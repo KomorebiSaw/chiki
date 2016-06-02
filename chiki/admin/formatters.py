@@ -69,6 +69,7 @@ def formatter_model(func):
 def formatter_len(max_len=20, cls=''):
     @formatter
     def wrapper(data):
+        data = unicode(data)
         if len(data) > max_len + 1:
             return get_span(data, data[:max_len] + '...', cls=cls)
         return data
