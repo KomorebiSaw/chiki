@@ -19,6 +19,7 @@ class WXPay(object):
 
     PREPAY_URL = 'https://api.mch.weixin.qq.com/pay/unifiedorder'
     REFUND_URL = 'https://api.mch.weixin.qq.com/secapi/pay/refund'
+    REFUND_QUERY = 'https://api.mch.weixin.qq.com/pay/refundquery'
     SEND_RED_PACK = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack'
 
     def __init__(self, app=None):
@@ -132,6 +133,20 @@ class WXPay(object):
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:
             xml = requests.post(self.REFUND_URL, data=data, cert=self.config.get('cert')).content
+            return self.xml2dict(xml)
+        except Exception, e:
+            return dict(return_code='ERROR', return_msg=str(e))
+
+    def refund_query(self, **kwargs):
+        kwargs.setdefault('appid', self.config.get('appid'))
+        kwargs.setdefault('mch_id', self.config.get('mchid'))
+        kwargs.setdefault('device_info', 'WEB')
+        kwargs.setdefault('nonce_str', randstr(32))
+        kwargs.setdefault('sign', self.sign(**kwargs))
+
+        data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
+        try:
+            xml = requests.post(self.REFUND_QUERY, data=data).content
             return self.xml2dict(xml)
         except Exception, e:
             return dict(return_code='ERROR', return_msg=str(e))
