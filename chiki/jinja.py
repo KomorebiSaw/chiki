@@ -60,6 +60,7 @@ class JinjaManager(object):
             kfield_inline=self.kfield_inline_filter,
             alert=self.alert_filter,
             rmb=self.rmb_filter,
+            rmb2=self.rmb2_filter,
         )
 
     def context_processor(self):
@@ -158,6 +159,9 @@ class JinjaManager(object):
 
     def rmb_filter(self, money):
         return '%.2f' % money
+
+    def rmb2_filter(self, money):
+        return '%.2f' % (money / 100.0)
 
     def time2best(self, input):
         return _time2best(input)
