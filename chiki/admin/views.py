@@ -36,7 +36,6 @@ def create_blueprint(self, admin):
     if self.static_folder == 'static':
         root = os.path.dirname(os.path.dirname(__file__))
         self.static_folder = os.path.abspath(os.path.join(root, 'static'))
-        print self.static_folder
         self.static_url_path = '/static/admin'
     return old_create_blueprint(self, admin)
 

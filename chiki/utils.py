@@ -1,5 +1,7 @@
 # coding: utf-8
 import re
+import os
+import sys
 import time
 import random
 import string
@@ -14,7 +16,7 @@ __all__ = [
     'datetime2best', 'time2best', 'today',
     'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os', 'get_platform',
     'get_channel', 'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
-    'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data',
+    'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data', 'get_module',
 ]
 
 
@@ -233,3 +235,23 @@ def tpl_data(color="#33aaff", **kwargs):
     for key, value in kwargs.iteritems():
         res[key] = dict(value=value, color=color)
     return res
+
+
+def get_module():
+
+    def main_module_name():
+        mod = sys.modules['__main__']
+        file = getattr(mod, '__file__', None)
+        return file and os.path.splitext(os.path.basename(file))[0]
+
+    def modname(fvars):
+
+        file, name = fvars.get('__file__'), fvars.get('__name__')
+        if file is None or name is None:
+            return None
+
+        if name == '__main__':
+            name = main_module_name()
+        return name
+
+    return modname(globals())
