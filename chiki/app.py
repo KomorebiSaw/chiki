@@ -9,6 +9,7 @@ from flask.ext.login import login_required
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
 from .base import db
+from .cool import cm
 from .contrib.common import Item, Page, Choices, Menu
 from .jinja import init_jinja
 from .logger import init_logger
@@ -154,18 +155,19 @@ def init_app(init=None, config=None, pyfile=None,
     db.init_app(app)
     media.init_app(app)
 
+    with app.app_context():
+        cm.init_app(app)
+        Choices.init()
+
+    if callable(init):
+        init(app)
+
     @app.context_processor
     def context_processor():
         return dict(Item=Item, Menu=Menu)
 
     if error:
         init_error_handler(app)
-
-    if callable(init):
-        init(app)
-
-    with app.app_context():
-        Choices.init()
 
     if index:
         @app.route('/')

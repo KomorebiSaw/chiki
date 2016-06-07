@@ -1,10 +1,14 @@
 # coding: utf-8
+import json
 from chiki.admin import ModelView, formatter_len, formatter_icon
 from chiki.admin import formatter_text, formatter_link
-from chiki.forms.fields import WangEditorField
+from chiki.forms.fields import WangEditorField, KCheckboxField
+from chiki.utils import json_success
 from datetime import datetime
 from wtforms.fields import TextAreaField
-from flask import current_app, url_for
+from flask import current_app, url_for, request
+from flask.ext.admin import expose
+from .models import View, Item
 
 
 class ItemView(ModelView):
@@ -193,3 +197,55 @@ class ChoicesView(ModelView):
 
 class MenuView(ModelView):
     pass
+
+
+class ModelAdminView(ModelView):
+    pass
+
+
+class ViewView(ModelView):
+    tabs = [
+        dict(endpoint='.set_menu', title='菜单', text='菜单'),
+    ]
+    form_overrides = dict(column_list=KCheckboxField)
+
+    @property
+    def form_args(self):
+        choices = []
+        if self.model:
+            for field in self.model._fields:
+                choices.append((field, self.column_labels.get(field) or field))
+        return dict(column_list=dict(choices=choices))
+
+    @expose('/set_menu')
+    def set_menu(self):
+        menus = json.loads(Item.data('admin_menus', '', name='管理菜单'))
+        views = dict()
+        for view in View.objects.all():
+            if view.type == view.TYPE_CATE:
+                views[view.name] = dict(id=view.name, name=view.label, icon=view.icon, children=[])
+            else:
+                views[view.name] = dict(id=view.name, name=view.label, icon=view.icon)
+        if menus:
+            right = []
+            for menu in menus:
+                if menu['id'] in views:
+                    item = views[menu['id']]
+                    if 'children' in item and 'children' in menu:
+                        for child in menu['children']:
+                            if child['id'] in views:
+                                item['children'].append(views[child['id']])
+                                del views[child['id']]
+                    right.append(item)
+                    del views[menu['id']]
+        else:
+            right = [dict(name='仪表盘', icon='diamond')]
+        return self.render('common/menu.html', views=views, right=right)
+
+    @expose('/save_menu', methods=['POST'])
+    def save_menu(self):
+        menus = request.form.get('menus')
+        Item.set_data('admin_menus', menus, name='管理菜单')
+        for admin in current_app.extensions.get('admin', []):
+            admin._refresh()
+        return json_success(msg='保存成功')

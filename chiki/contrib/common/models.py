@@ -60,7 +60,7 @@ class Action(object):
 
 
 class Item(db.Document):
-    """ 通用选项 """
+    """ 选项 """
 
     TYPE_INT = 'int'
     TYPE_STRING = 'string'
@@ -189,6 +189,8 @@ class ShareItem(db.EmbeddedDocument):
 
 
 class StatLog(db.Document):
+    """ 统计日志 """
+
     key = db.StringField(verbose_name='KEY')
     tid = db.StringField(verbose_name='TID')
     label = db.StringField(verbose_name='标签')
@@ -395,6 +397,7 @@ class UserImage(db.Document):
 
 
 class ActionModule(db.Document):
+    """ 功能选项 """
 
     key = db.StringField(verbose_name='KEY')
     name = db.StringField(verbose_name='名称')
@@ -460,6 +463,7 @@ class TPLItem(db.Document):
 
 
 class SlideModule(db.Document):
+    """ 广告模块 """
 
     key = db.StringField(verbose_name='KEY')
     name = db.StringField(verbose_name='名称')
@@ -507,6 +511,7 @@ class SlideItem(db.Document):
 
 
 class ImageItem(db.Document):
+    """ 图片模型 """
 
     image = db.XImageField(verbose_name='图片')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
@@ -547,6 +552,9 @@ class Choices(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['key'])
+
+    def __unicode__(self):
+        return '%s - %s' % (self.key, self.name)
 
     @staticmethod
     def init():
@@ -626,3 +634,102 @@ class Page(db.Document):
             self.id = Item.inc('page_index', 1000)
             self.save()
         return self.id
+
+
+class Field(db.EmbeddedDocument):
+    """ 选项 """
+
+    TYPE_INT = 'IntField'
+    TYPE_STRING = 'StringField'
+    TYPE_REF = 'ReferenceField'
+    TYPE_IMAGE = 'XImageField'
+    TYPE_FILE = 'XFileField'
+    TYPE_DATETIME = 'DateTimeField'
+    TYPE_BOOL = 'BooleanField'
+    TYPE_CHOICES = [
+        (TYPE_INT, TYPE_INT),
+        (TYPE_STRING, TYPE_STRING),
+        (TYPE_REF, TYPE_REF),
+        (TYPE_IMAGE, TYPE_IMAGE),
+        (TYPE_FILE, TYPE_FILE),
+        (TYPE_DATETIME, TYPE_DATETIME),
+        (TYPE_BOOL, TYPE_BOOL),
+    ]
+
+    key = db.StringField(max_length=100, verbose_name='键名')
+    type = db.StringField(default=TYPE_INT, choices=TYPE_CHOICES, verbose_name='类型')
+    name = db.StringField(max_length=100, verbose_name='名称')
+    default = db.StringField(max_length=100, verbose_name='默认值')
+    model = db.ReferenceField('Model', verbose_name='引用')
+    choices = db.ReferenceField('Choices', verbose_name='选项')
+
+    def __unicode__(self):
+        return '%s - %s' % (self.key, self.name)
+
+
+class Model(db.Document):
+    """ 建模 """
+
+    name = db.StringField(max_length=100, verbose_name='名称')
+    desc = db.StringField(max_length=100, verbose_name='描述')
+    fields = db.XListField(db.EmbeddedDocumentField(Field), verbose_name='字段')
+    modified_field = db.BooleanField(default=True, verbose_name='修改')
+    created_field = db.BooleanField(default=True, verbose_name='创建')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    def __unicode__(self):
+        return self.name
+
+
+class View(db.Document):
+    """ 管理 """
+
+    TYPE_VIEW = 'view'
+    TYPE_MODEL = 'model'
+    TYPE_CATE = 'cate'
+    TYPE_CHOICES = [
+        (TYPE_VIEW, '默认'),
+        (TYPE_MODEL, '模型'),
+        (TYPE_CATE, '分类'),
+    ]
+
+    name = db.StringField(max_length=100, verbose_name='名称')
+    label = db.StringField(max_length=100, verbose_name='标识')
+    type = db.StringField(default=TYPE_VIEW, choices=TYPE_CHOICES, verbose_name='类型')
+    model = db.ReferenceField('Model', verbose_name='模型')
+    icon = db.StringField(verbose_name='图标')
+    column_default_sort = db.StringField(max_length=100, verbose_name='默认排序')
+    column_list = db.ListField(db.StringField(), verbose_name='显示列表')
+    column_center_list = db.ListField(db.StringField(), verbose_name='居中列表')
+    column_hidden_list = db.ListField(db.StringField(), verbose_name='隐藏列表')
+    column_filters = db.ListField(db.StringField(), verbose_name='过滤器列表')
+    column_searchable_list = db.ListField(db.StringField(), verbose_name='查找列表')
+    form_excluded_columns = db.ListField(db.StringField(), verbose_name='表单隐藏列表')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    def __unicode__(self):
+        return self.name
+
+    def setup(self, admin, view):
+        view.name = self.label or view.name
+        view.menu_icon_value = self.icon or view.menu_icon_value
+        view.column_list = self.column_list or view.column_list
+        view.column_center_list = self.column_center_list or getattr(view, 'column_center_list', None)
+        view.column_hidden_list = self.column_hidden_list or getattr(view, 'column_hidden_list', None)
+        view.column_filters = self.column_filters or view.column_filters
+        view.column_searchable_list = self.column_searchable_list or view.column_searchable_list
+        view.form_excluded_columns = self.form_excluded_columns or view.form_excluded_columns
+        view._refresh_cache()
+        admin._refresh()
+
+    def save(self):
+        super(View, self).save()
+
+        if current_app.cool_manager and not current_app.cool_manager.loading:
+            for admin in current_app.extensions.get('admin', []):
+                for view in admin._views:
+                    if view.__class__.__name__ == self.name:
+                        self.setup(admin, view)
+                        break

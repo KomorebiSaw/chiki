@@ -9,7 +9,7 @@
 {% block nav_menu_bar %}
 <ul class="nav nav-tabs actions-nav">
     <li>
-        <a href="{{ return_url }}">{{ _gettext('List') }}</a>
+        <a href="{{ get_url('.index_view') }}" title="{{ _gettext('List') }}">{{ _gettext('List') }}</a>
     </li>
 
     {% if admin_view.can_create %}

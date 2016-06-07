@@ -11,7 +11,7 @@ from flask.ext.admin.base import BaseView
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.mongoengine.helpers import format_error
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
-from flask.ext.admin._compat import string_types
+from flask.ext.admin._compat import string_types, with_metaclass
 from mongoengine.fields import IntField, LongField, DecimalField, FloatField
 from mongoengine.fields import StringField, ReferenceField, ObjectIdField, ListField
 from mongoengine.fields import BooleanField, DateTimeField
@@ -22,6 +22,7 @@ from .filters import KFilterConverter, ObjectIdEqualFilter
 from .formatters import type_best, type_image, type_file, type_select
 from .formatters import type_bool, type_images
 from .formatters import formatter_len, formatter_link, filter_sort
+from .metaclass import CoolAdminMeta
 from ..mongoengine.fields import FileProxy, ImageProxy
 from ..utils import json_success, json_error
 
@@ -43,7 +44,7 @@ def create_blueprint(self, admin):
 BaseView.create_blueprint = create_blueprint
 
 
-class ModelView(_ModelView):
+class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
 
     page_size = 50
     can_view_details = True
