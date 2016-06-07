@@ -219,7 +219,7 @@ class ViewView(ModelView):
 
     @expose('/set_menu')
     def set_menu(self):
-        menus = json.loads(Item.data('admin_menus', '', name='管理菜单'))
+        menus = json.loads(Item.data('admin_menus', '[]', name='管理菜单'))
         views = dict()
         for view in View.objects.all():
             if view.type == view.TYPE_CATE:

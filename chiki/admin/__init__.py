@@ -31,7 +31,7 @@ class Admin(_Admin):
 
     def _refresh(self):
         from chiki.contrib.common import Item, View
-        menus = json.loads(Item.data('admin_menus', '', name='管理菜单'))
+        menus = json.loads(Item.data('admin_menus', '[]', name='管理菜单'))
         if menus:
             views = dict()
             for view in View.objects.all():
