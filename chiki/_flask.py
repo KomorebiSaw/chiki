@@ -6,7 +6,7 @@ from flask.ext.login import login_required
 from flask.ext.restful.representations.json import settings
 from werkzeug.datastructures import ImmutableDict
 from bson import ObjectId
-from .utils import json_success
+from .utils import json_success, is_ajax
 
 
 __all__ = [
@@ -57,7 +57,7 @@ def bp_list(self, model, url, tpl, endpoint=None, login=False,
             if callable(value):
                 kwargs[key] = value()
         pag = handle(model.objects(**kwargs)).paginate(page=page, per_page=per)
-        if page > 1:
+        if page > 1 or is_ajax():
             return json_success(
                 html=render_template(tpl, pag=pag),
                 next=pag.next_link,
