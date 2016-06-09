@@ -8,6 +8,7 @@ from flask.ext.babelex import Babel
 from flask.ext.login import login_required
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
+from flask.ext.session import Session
 from .base import db
 from .cool import cm
 from .contrib.common import Item, Page, Choices, Menu
@@ -86,6 +87,8 @@ def init_redis(app):
             password=conf.get('password', ''),
             db=conf.get('db', 0),
         )
+        app.config.setdefault('SESSION_REDIS', app.redis)
+        app.config.setdefault('SESSION_KEY_PREFIX', conf.get('prefix', '') + '_sess_')
 
 
 def init_error_handler(app):
@@ -148,6 +151,9 @@ def init_app(init=None, config=None, pyfile=None,
 
     init_babel(app)
     init_redis(app)
+
+    Session(app)
+
     init_jinja(app)
     init_logger(app)
     init_oauth(app)
