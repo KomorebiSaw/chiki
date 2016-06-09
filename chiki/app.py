@@ -88,6 +88,7 @@ def init_redis(app):
             db=conf.get('db', 0),
         )
         app.config.setdefault('SESSION_REDIS', app.redis)
+        app.config.setdefault('SESSION_USE_SIGNER', True)
         app.config.setdefault('SESSION_KEY_PREFIX', conf.get('prefix', '') + '_sess_')
 
 
