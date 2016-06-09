@@ -87,6 +87,7 @@ def init_redis(app):
             password=conf.get('password', ''),
             db=conf.get('db', 0),
         )
+        app.config.setdefault('SESSION_TYPE', 'redis')
         app.config.setdefault('SESSION_REDIS', app.redis)
         app.config.setdefault('SESSION_USE_SIGNER', True)
         app.config.setdefault('SESSION_KEY_PREFIX', conf.get('prefix', '') + '_sess_')
@@ -153,7 +154,8 @@ def init_app(init=None, config=None, pyfile=None,
     init_babel(app)
     init_redis(app)
 
-    Session(app)
+    if app.config.get('SESSION_TYPE'):
+        Session(app)
 
     init_jinja(app)
     init_logger(app)
