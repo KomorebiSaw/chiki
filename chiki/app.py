@@ -141,6 +141,7 @@ def init_app(init=None, config=None, pyfile=None,
 
     DebugToolbarExtension(app)
 
+    app.config.setdefault('SESSION_REFRESH_EACH_REQUEST', False)
     app.is_web = is_web
     app.is_api = is_api
     app.static_folder = app.config.get('STATIC_FOLDER')
