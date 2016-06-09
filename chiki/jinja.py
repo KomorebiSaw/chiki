@@ -61,7 +61,6 @@ class JinjaManager(object):
             alert=self.alert_filter,
             rmb=self.rmb_filter,
             rmb2=self.rmb2_filter,
-            is_ajax=is_ajax,
         )
 
     def context_processor(self):
@@ -69,6 +68,7 @@ class JinjaManager(object):
             SITE_NAME=current_app.config.get('SITE_NAME'),
             VERSION=current_app.config.get('VERSION'),
             alert=self.alert_filter,
+            is_ajax=is_ajax,
         )
 
     def line2br_filter(self, text):
