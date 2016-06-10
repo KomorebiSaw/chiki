@@ -284,7 +284,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
                 value = column_fmt(self, context, model, name)
             except:
                 current_app.logger.error(traceback.format_exc())
-                value = ''
+                value = '该对象被删了'
         else:
             value = self._get_field_value(model, name)
 
@@ -306,7 +306,11 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
                 type_fmt = formatter
                 break
         if type_fmt is not None:
-            value = type_fmt(self, value)
+            try:
+                value = type_fmt(self, value)
+            except:
+                current_app.logger.error(traceback.format_exc())
+                value = '该对象被删了'
 
         return value
 
