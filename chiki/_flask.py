@@ -2,7 +2,7 @@
 import datetime
 from flask import Flask as _Flask, Blueprint, request, render_template
 from flask.json import JSONEncoder as _JSONEncoder
-from flask.ext.login import login_required
+from flask.ext.login import login_required, current_user
 from flask.ext.restful.representations.json import settings
 from werkzeug.datastructures import ImmutableDict
 from bson import ObjectId
@@ -56,6 +56,8 @@ def bp_list(self, model, url, tpl, endpoint=None, login=False,
         for key, value in kwargs.iteritems():
             if callable(value):
                 kwargs[key] = value()
+            elif key == 'user' and value is True:
+                kwargs[key] = current_user.id
         pag = handle(model.objects(**kwargs)).paginate(page=page, per_page=per)
         if page > 1 or is_ajax():
             return json_success(
