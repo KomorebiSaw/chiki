@@ -19,7 +19,7 @@ def markupper(func):
         return markup(func(*args, **kwargs))
     return wrapper
 
-    
+
 def first_error(form):
     if form:
         for field in form:
@@ -69,6 +69,7 @@ class JinjaManager(object):
             VERSION=current_app.config.get('VERSION'),
             alert=self.alert_filter,
             is_ajax=is_ajax,
+            current_app=current_app,
         )
 
     def line2br_filter(self, text):
