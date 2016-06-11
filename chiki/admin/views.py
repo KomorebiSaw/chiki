@@ -344,6 +344,11 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
                 flash(gettext('Failed to delete records. %(error)s', error=str(ex)),
                       'error')
 
+    def on_field_change(self, model, name, value):
+        model[name] = value
+        if hasattr(model, 'modified'):
+            model['modified'] = datetime.now()
+
     @expose('/dropdown')
     def dropdown(self):
         id = request.args.get('id', 0, unicode)
@@ -359,9 +364,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
 
         obj = model.objects(id=id).first()
         if obj:
-            obj[name] = val
-            if hasattr(model, 'modified'):
-                obj['modified'] = datetime.now()
+            self.on_field_change(obj, name, val)
             obj.save()
             return json_success()
 

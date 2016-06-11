@@ -72,42 +72,39 @@ def json_error(**kwargs):
 
 
 def datetime2best(input):
-    return time2best(time.mktime(input.timetuple()))
+    tmp = datetime.now() - input
+    if tmp.days in [0, -1]:
+        seconds = tmp.days * 86400 + tmp.seconds
+        if seconds < -3600:
+            return '%d小时后' % (-seconds // 3600)
+        elif seconds < -60:
+            return '%d分钟后' % (-seconds // 60)
+        elif seconds < 0:
+            return '%d秒后' % -seconds
+        elif seconds < 60:
+            return '%d秒前' % seconds
+        elif seconds < 3600:
+            return '%d分钟前' % (seconds // 60)
+        else:
+            return '%d小时前' % (seconds // 3600)
+    elif tmp.days < -365:
+        return '%d年后' % (-tmp.days // 365)
+    elif tmp.days < -30:
+        return '%d个月后' % (-tmp.days // 30)
+    elif tmp.days < -1:
+        return '%d天后' % -(tmp.days + 1)
+    elif tmp.days < 30:
+        return '%d天前' % tmp.days
+    elif tmp.days < 365:
+        return '%d个月前' % (tmp.days // 30)
+    else:
+        return '%d年前' % (tmp.days // 365)
 
 
 def time2best(input):
-    if type(input) == datetime:
-        return datetime2best(input)
-        
-    now = max(time.time(), input) + 8 * 3600
-    tmp = input + 8 * 3600
-    if tmp + 86400 < now // 86400 * 86400:
-        if time.strftime('%Y', time.localtime(input)) == time.strftime('%Y', time.localtime()):
-            return time.strftime('%m.%d', time.localtime(input))
-        return time.strftime(u'%y年%m月', time.localtime(input))
-    elif tmp < now // 86400 * 86400:
-        return u'昨天'
-
-    offset = now - tmp
-    hours = offset // 3600
-    if hours > 0:
-        if hours >= 12: 
-            hours = 12
-        elif hours > 6:
-            hours = hours // 2 * 2
-        return u'%s小时前' % int(hours)
-
-    minutes = offset // 60
-    if minutes > 1:
-        if minutes >= 30:
-            minutes = 30
-        elif minutes >= 10:
-            minutes = minutes // 10 * 10
-        elif minutes >= 5:
-            minutes = 5
-        return u'%s分钟前' % int(minutes)
-
-    return u'刚刚'
+    if type(input) != datetime:
+        input = datetime.fromtimestamp(input)
+    return datetime2best(input)
 
 
 def err_logger(func):
