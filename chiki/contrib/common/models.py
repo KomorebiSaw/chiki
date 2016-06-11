@@ -106,19 +106,19 @@ class Item(db.Document):
         item.save()
 
     @staticmethod
-    def inc(key, default=0, name=None):
-        query = dict(inc__value=1, set__modified=datetime.now())
+    def inc(key, default=0, num=1, name=None):
+        query = dict(inc__value=num, set__modified=datetime.now())
         if name:
             query['set__name'] = name
         item = Item.objects(key=key).modify(**query)
         if not item:
-            query = dict(key=key, type=Item.TYPE_INT, value=default + 1)
+            query = dict(key=key, type=Item.TYPE_INT, value=default + num)
             if name:
                 query['name'] = name
             Item(**query).save()
-            return default + 1
+            return default + num
         else:
-            return item.value + 1
+            return item.value + num
 
     @staticmethod
     def data(key, default='', name=None):
