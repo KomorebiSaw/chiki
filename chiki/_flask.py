@@ -53,11 +53,14 @@ def bp_list(self, model, url, tpl, endpoint=None, login=False,
     def view():
         page = max(1, request.args.get('page', 1, int))
         per = max(1, min(100, request.args.get('per_page', per_page, int)))
+        query = dict()
         for key, value in kwargs.iteritems():
             if callable(value):
-                kwargs[key] = value()
+                query[key] = value()
             elif key == 'user' and value is True:
-                kwargs[key] = current_user.id
+                query[key] = current_user.id
+            else:
+                query[key] = value
         pag = handle(model.objects(**kwargs)).paginate(page=page, per_page=per)
         if page > 1 or is_ajax():
             return json_success(
