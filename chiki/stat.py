@@ -174,7 +174,7 @@ class Stat(object):
 
         if type(_value) is list:
             for item in _value:
-                StatLog.objects(key=_key.format(item), day=_day, hour=_hour).update(
+                StatLog.objects(key=_key.format(**item), day=_day, hour=_hour).update(
                     set__value=item['value'],
                     set__modified=datetime.now(),
                     set_on_insert__created=datetime.now(),
