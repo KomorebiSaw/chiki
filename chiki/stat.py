@@ -164,6 +164,7 @@ class Stat(object):
 
     def __init__(self):
         self.items = []
+        self.funcs = []
         self.start = datetime(2016, 1, 1)
         self.minutes = 1
 
@@ -171,17 +172,26 @@ class Stat(object):
         if callable(_value):
             _value = _value(**kwargs)
 
-        # print '%s: %d' % (_key, _value)
-        StatLog.objects(key=_key, day=_day, hour=_hour).update(
-            set__value=_value,
-            set__modified=datetime.now(),
-            set_on_insert__created=datetime.now(),
-            upsert=True,
-        )
+        if type(_value) is list:
+            for item in _value:
+                StatLog.objects(key=_key.format(item), day=_day, hour=_hour).update(
+                    set__value=item['value'],
+                    set__modified=datetime.now(),
+                    set_on_insert__created=datetime.now(),
+                    upsert=True,
+                )
+        else:
+            StatLog.objects(key=_key, day=_day, hour=_hour).update(
+                set__value=_value,
+                set__modified=datetime.now(),
+                set_on_insert__created=datetime.now(),
+                upsert=True,
+            )
 
     def save(self, _key, _day, _start, _end, _value, _hour=0, field='created', **kwargs):
-        kwargs.setdefault('%s__gte' % field, _start)
-        kwargs.setdefault('%s__lt' % field, _end)
+        if field is not None:
+            kwargs.setdefault('%s__gte' % field, _start)
+            kwargs.setdefault('%s__lt' % field, _end)
         return self._save(_key, _day, _hour, _value=_value, **kwargs)
 
     def stat(self, _key, _model, _query=lambda x: x.count(), _handle=lambda x: x, **kwargs):
@@ -202,10 +212,24 @@ class Stat(object):
     def distinct(self, _key, _model, _sub, **kwargs):
         return self.stat(_key, _model, _query=lambda x: x.distinct(_sub), _handle=len, **kwargs)
 
+    def aggregate(self, _key, _model, *pipline, **kwargs):
+        return self.stat(_key, _model, _query=lambda x: list(x.aggregate(*pipline)), **kwargs)
+
+    def aggregate2(self, _key, _model, _model2, _sub, *pipline, **kwargs):
+        handle = lambda x: list(_model.objects(id__in=x).aggregate(*pipline))
+        query = lambda x: x.distinct(_sub)
+        return self.stat(_key, _model2, _query=query, _handle=handle, **kwargs)
+
+    def func(self, f):
+        self.funcs.append(f)
+        return f
+
     def one(self, key, day, start, end, hour=0):
         for item in self.items:
             value = lambda **x: item['handle'](item['query'](item['model'].objects(**x)))
             self.save('%s_%s' % (key, item['key']), day, start, end, value, hour, **item['kwargs'])
+        for f in self.funcs:
+            f(key, day, start, end, hour)
 
     def day(self, day):
         start = datetime.strptime(str(day).split(' ')[0], '%Y-%m-%d')
