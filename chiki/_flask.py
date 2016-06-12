@@ -61,7 +61,7 @@ def bp_list(self, model, url, tpl, endpoint=None, login=False,
                 query[key] = current_user.id
             else:
                 query[key] = value
-        pag = handle(model.objects(**kwargs)).paginate(page=page, per_page=per)
+        pag = handle(model.objects(**query)).paginate(page=page, per_page=per)
         if page > 1 or is_ajax():
             return json_success(
                 html=render_template(tpl, pag=pag),
