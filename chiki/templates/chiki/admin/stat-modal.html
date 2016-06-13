@@ -44,7 +44,7 @@
 </div>
 
 <script type="text/javascript">
-$("a[data-target=#simple-modal]").click(function(ev) {
+$("a[data-target=#simple-modal]").unbind('click').click(function(ev) {
     ev.preventDefault();
     var target = $(this).attr("href");
 
