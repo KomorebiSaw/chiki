@@ -45,7 +45,7 @@ def get_dates(stat=True, start_key='start', end_key='end', start='', end=''):
     try:
         datetime.strptime(start, '%Y-%m-%d')
         datetime.strptime(end, '%Y-%m-%d')
-    except ValueError:
+    except (ValueError, TypeError):
         start = (datetime.now() - timedelta(days=6)).strftime('%Y-%m-%d')
         end = datetime.now().strftime('%Y-%m-%d')
 
