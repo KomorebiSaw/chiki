@@ -33,9 +33,14 @@ def get_date(key='day'):
     return day
 
 
-def get_dates(stat=True, start_key='start', end_key='end'):
-    start = request.args.get(start_key, '')
-    end = request.args.get(end_key, '')
+def get_dates(stat=True, start_key='start', end_key='end', start='', end=''):
+    if callable(start):
+        start = start()
+    if callable(end):
+        end = end()
+
+    start = request.args.get(start_key, start)
+    end = request.args.get(end_key, end)
 
     try:
         datetime.strptime(start, '%Y-%m-%d')
@@ -83,15 +88,15 @@ def hour_value_list(day, key, *args, **kwargs):
     return get_hour_list(key, day, **kwargs)
 
 
-def init_stat(cls, key, subs, tpl, modal):
+def init_stat(cls, key, subs, tpl, modal, **kwargs):
     """ 初始化统计 """
 
     @expose('/' if key == 'index' else '/%s' % key)
     def index(self):
         now = datetime.now()
-        start, end = get_dates(stat=True)
-        month_start = (now - timedelta(days=30)).strftime('%Y-%m-%d')
-        week_start = (now - timedelta(days=6)).strftime('%Y-%m-%d')
+        start, end = get_dates(stat=True, start=kwargs.get('start'), end=kwargs.get('end'))
+        month_start = kwargs.get('month_start', (now - timedelta(days=30)).strftime('%Y-%m-%d'))
+        week_start = kwargs.get('week_start', (now - timedelta(days=6)).strftime('%Y-%m-%d'))
         yesterday = (now - timedelta(days=1)).strftime('%Y-%m-%d')
         today = now.strftime('%Y-%m-%d')
         data_url = self.get_url('.%s_data' % key)
@@ -100,7 +105,7 @@ def init_stat(cls, key, subs, tpl, modal):
         return self.render(tpl,
             start=start, end=end, month_start=month_start, month_end=today,
             week_start=week_start, week_end=today, yesterday=yesterday,
-            today=today, data_url=data_url)
+            today=today, data_url=data_url, model=kwargs.get('model', 'day'))
 
     def get_series(sub, prefix, axis, value_list):
         res = []
@@ -155,7 +160,7 @@ def init_stat(cls, key, subs, tpl, modal):
     setattr(cls, '%s_data' % key, data)
 
 
-def statistics(tpl=None, modal=False):
+def statistics(tpl=None, modal=False, **kwargs):
     def wrapper(cls):
         default = 'admin/stat-modal.html' if modal else 'admin/stat.html'
         datas = getattr(cls, 'datas', None)
