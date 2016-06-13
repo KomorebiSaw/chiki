@@ -1,0 +1,72 @@
+{% extends "admin/model/tab.html" %}
+
+{% block main %}
+    <div class="row auto-page">
+        <div class="col-sm-8">
+            <div class="dd" id="nestable">
+                <ol class="dd-list dd-models">
+                    {% for view in views.itervalues() %}
+                    <li class="dd-item" data-id="{{ view.id }}">
+                        <div class="dd-handle">
+                            <i class="fa fa-{{ view.icon }}"></i>{{ view.name }} - {{ view.id }}
+                        </div>
+                    </li>
+                    {% endfor %}
+                    <li class="dd-item">
+                        <div class="dd-handle">
+                            <i class="fa fa-other"></i>其他
+                        </div>
+                    </li>
+                </ol>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+
+        <div class="col-sm-4">
+            <div class="dd dd-res">
+                <ol class="dd-list">
+                    {% for view in right %}
+                    <li class="dd-item" data-id="{{ view.id }}">
+                        <div class="dd-handle">
+                            <i class="fa fa-{{ view.icon }}"></i>{{ view.name }} - {{ view.id }}
+                        </div>
+                        {% if view.children %}
+                        <ol class="dd-list">
+                            {% for child in view.children %}
+                            <li class="dd-item" data-id="{{ child.id }}">
+                                <div class="dd-handle">
+                                    <i class="fa fa-{{ child.icon }}"></i>{{ child.name }} - {{ child.id }}
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ol>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ol>
+            </div>
+            <div class="save-btn-box">
+                <a class="btn btn-primary btn-block btn-save">保存菜单</a>
+            </div>
+        </div>
+    </div>            
+{% endblock %}
+
+{% block tail %}
+    {{ super() }}
+    <script type="text/javascript">
+        jQuery(function($){
+            $('.dd-models').nestable({
+                maxDepth: 1
+            });
+            $('.dd-res').nestable({
+                maxDepth: 2
+            });
+            $('.btn-save').click(function () {
+                $.post('{{ admin_view.get_url(".save_menu") }}', { menus: JSON.stringify($('.dd-res').nestable('serialize')) }, function (data) {
+                    window.location.reload()
+                })
+            })
+        });
+    </script>
+{% endblock %}

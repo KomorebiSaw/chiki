@@ -2,7 +2,7 @@
 from flask import current_app, get_flashed_messages
 from jinja2 import Markup
 from xml.sax.saxutils import escape
-from .utils import time2best as _time2best
+from .utils import time2best as _time2best, is_ajax
 
 __all__ = [
     'markup', 'markupper', 'first_error', 'text2html',
@@ -19,7 +19,7 @@ def markupper(func):
         return markup(func(*args, **kwargs))
     return wrapper
 
-    
+
 def first_error(form):
     if form:
         for field in form:
@@ -60,6 +60,7 @@ class JinjaManager(object):
             kfield_inline=self.kfield_inline_filter,
             alert=self.alert_filter,
             rmb=self.rmb_filter,
+            rmb2=self.rmb2_filter,
         )
 
     def context_processor(self):
@@ -67,6 +68,8 @@ class JinjaManager(object):
             SITE_NAME=current_app.config.get('SITE_NAME'),
             VERSION=current_app.config.get('VERSION'),
             alert=self.alert_filter,
+            is_ajax=is_ajax,
+            current_app=current_app,
         )
 
     def line2br_filter(self, text):
@@ -158,6 +161,9 @@ class JinjaManager(object):
 
     def rmb_filter(self, money):
         return '%.2f' % money
+
+    def rmb2_filter(self, money):
+        return '%.2f' % (money / 100.0)
 
     def time2best(self, input):
         return _time2best(input)

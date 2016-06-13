@@ -67,9 +67,18 @@ def init_wxauth(app):
         um.funcs.wechat_login(user)
 
         if user.user:
-            user = um.models.User.objects(id=user.user).first() or user
+            real_user = um.models.User.objects(id=user.user).first()
+            if not real_user:
+                user.user = 0
+                user.save()
+            else:
+                user = real_user
 
         login_user(user, remember=True)
+
+        if user.is_user() and not user.active:
+            return error(msg=Item.data('active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
+
         if current_user.is_authenticated() and current_user.is_user():
             um.models.UserLog.login(user.id, 'web', 'wechat')
             user.login()

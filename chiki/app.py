@@ -5,9 +5,13 @@ import traceback
 from flask import Blueprint, current_app, Response, render_template
 from flask import abort, request, redirect
 from flask.ext.babelex import Babel
+from flask.ext.login import login_required
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
-from .contrib.common import Item, Page
+from flask.ext.session import Session
+from .base import db
+from .cool import cm
+from .contrib.common import Item, Page, Choices, Menu
 from .jinja import init_jinja
 from .logger import init_logger
 from .media import MediaManager
@@ -39,15 +43,29 @@ media = MediaManager()
 
 def init_page(app):
 
-    @app.route('/page/<int:id>.html')
-    def page(id):
-        page = Page.objects(id=id).get_or_404()
-        return render_template('page.html', page=page)
+    if app.config.get('PAGE_LOGIN_REQUIRED'):
+        @app.route('/page/<int:id>.html')
+        @login_required
+        def page(id):
+            page = Page.objects(id=id).get_or_404()
+            return render_template('page.html', page=page)
 
-    @app.route('/page/<key>.html')
-    def page2(key):
-        page = Page.objects(key=key).get_or_404()
-        return render_template('page.html', page=page)
+        @app.route('/page/<key>.html')
+        @login_required
+        def page2(key):
+            page = Page.objects(key=key).get_or_404()
+            return render_template('page.html', page=page)
+
+    else:
+        @app.route('/page/<int:id>.html')
+        def page(id):
+            page = Page.objects(id=id).get_or_404()
+            return render_template('page.html', page=page)
+
+        @app.route('/page/<key>.html')
+        def page2(key):
+            page = Page.objects(key=key).get_or_404()
+            return render_template('page.html', page=page)
 
 
 def init_babel(app):
@@ -69,6 +87,10 @@ def init_redis(app):
             password=conf.get('password', ''),
             db=conf.get('db', 0),
         )
+        app.config.setdefault('SESSION_TYPE', 'redis')
+        app.config.setdefault('SESSION_REDIS', app.redis)
+        app.config.setdefault('SESSION_USE_SIGNER', True)
+        app.config.setdefault('SESSION_KEY_PREFIX', conf.get('prefix', '') + '_sess_')
 
 
 def init_error_handler(app):
@@ -111,13 +133,15 @@ def init_app(init=None, config=None, pyfile=None,
     ENVVAR = app.config.get('ENVVAR')
     if ENVVAR and os.environ.get(ENVVAR):
         app.config.from_envvar(app.config['ENVVAR'])
-    else:
+
+    if app.debug:
         app.config.setdefault('DEBUG_TB_ENABLED', True)
         app.config.setdefault('DEBUG_TB_PANELS', DEBUG_TB_PANELS)
         app.config.setdefault('DEBUG_TB_INTERCEPT_REDIRECTS', False)
 
-    toolbar = DebugToolbarExtension(app)
+    DebugToolbarExtension(app)
 
+    app.config.setdefault('SESSION_REFRESH_EACH_REQUEST', False)
     app.is_web = is_web
     app.is_api = is_api
     app.static_folder = app.config.get('STATIC_FOLDER')
@@ -130,21 +154,30 @@ def init_app(init=None, config=None, pyfile=None,
 
     init_babel(app)
     init_redis(app)
+
+    if app.config.get('SESSION_TYPE'):
+        Session(app)
+
     init_jinja(app)
     init_logger(app)
     init_oauth(app)
     init_page(app)
+    db.init_app(app)
     media.init_app(app)
 
-    @app.context_processor
-    def context_processor():
-        return dict(Item=Item)
-
-    if error:
-        init_error_handler(app)
+    with app.app_context():
+        cm.init_app(app)
+        Choices.init()
 
     if callable(init):
         init(app)
+
+    @app.context_processor
+    def context_processor():
+        return dict(Item=Item, Menu=Menu)
+
+    if error:
+        init_error_handler(app)
 
     if index:
         @app.route('/')

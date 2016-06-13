@@ -232,6 +232,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
     privilege = db.ListField(db.StringField(), verbose_name='特权信息')
     subscribe = db.BooleanField(default=False, verbose_name='是否关注公众号')
     subscribe_time = db.DateTimeField(verbose_name='关注时间')
+    language = db.StringField(verbose_name='语言')
     remark = db.StringField(max_length=40, verbose_name='备注')
     groupid = db.IntField(default=0, verbose_name='分组ID')
     access_token = db.StringField(verbose_name='令牌')
@@ -299,28 +300,35 @@ class WeChatUser(db.Document, ThirdUserMixin):
             self.save()
 
             if um.config.oauth_auto_update is True and self.user:
-                self.sync(self.user, True)
-                self.user.save()
+                user = um.models.User.objects(id=self.user).first()
+                if user:
+                    self.sync(user, True)
+                    user.save()
 
     def update_info(self, userinfo, action):
         setattr(self, action + '_openid', userinfo['openid'])
         self.unionid = userinfo.get('unionid', '')
-        self.nickname = userinfo['nickname']
-        self.sex = userinfo['sex']
-        self.province = userinfo['province']
-        self.city = userinfo['city']
-        self.country = userinfo['country']
-        self.headimgurl = userinfo['headimgurl']
+        self.nickname = userinfo.get('nickname', self.nickname)
+        self.sex = userinfo.get('sex', self.sex)
+        self.province = userinfo.get('province', self.province)
+        self.city = userinfo.get('city', self.city)
+        self.country = userinfo.get('country', self.country)
+        self.headimgurl = userinfo.get('headimgurl', self.headimgurl)
         self.privilege = userinfo.get('privilege', self.privilege)
         if userinfo.get('subscribe') == 1:
-            self.remark = userinfo['remark']
-            self.language = userinfo['language']
-            self.groupid = userinfo['groupid']
+            self.remark = userinfo.get('remark', self.remark)
+            self.language = userinfo.get('language', self.language)
+            self.groupid = userinfo.get('groupid', self.groupid)
             self.subscribe = True
-            self.subscribe_time = datetime.fromtimestamp(userinfo['subscribe_time'])
+            self.subscribe_time = datetime.fromtimestamp(userinfo.get('subscribe_time'))
 
     def unsubscribe(self):
         self.subscribe = False
+        self.subscribe_time = datetime.now()
+        self.save()
+
+    def dosubscribe(self):
+        self.subscribe = True
         self.subscribe_time = datetime.now()
         self.save()
 

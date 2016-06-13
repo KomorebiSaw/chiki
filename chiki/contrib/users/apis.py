@@ -127,9 +127,10 @@ def userinfo(user):
 
 
 def login(user, device='', key='', remember=True):
-    login_user(user, remember=remember)
-    user.login()
-    um.models.UserLog.login(user.id, device, key)
+    if current_user is not user:
+        login_user(user, remember=remember)
+        user.login()
+        um.models.UserLog.login(user.id, device, key)
     return success(**um.funcs.userinfo(user))
 
 
@@ -528,19 +529,13 @@ class Bind(Resource):
 
     @login_required
     def post(self):
-        if current_user.is_user():
-            abort(NOT_ALLOW_BIND)
-
-        if current_user.user:
-            abort(BINDED)
-
         args = self.get_args()
         self.validate(args)
         user = self.bind(args)
-
-        current_user.user = user.id
-        current_user.sync(user)
-        current_user.save()
+        if not current_user.is_user() and not current_user.user:
+            current_user.user = user.id
+            current_user.sync(user)
+            current_user.save()
 
         um.models.UserLog.bind(user.id, args['device'], key=self.key)
         return self.success(user, args)
@@ -566,6 +561,15 @@ class BindPhone(Bind):
         self.req.add_argument('phone', type=unicode, required=True)
 
     def bind(self, args):
+        if current_user.is_user():
+            if current_user.phone:
+                abort(BINDED)
+
+            current_user.phone = args['phone']
+            current_user.password = args['password']
+            current_user.save()
+            return current_user
+
         user = um.models.User.objects(phone=args['phone']).first()
         if not user:
             user = um.models.User(
@@ -598,6 +602,15 @@ class BindEmail(Bind):
         self.req.add_argument('email', type=unicode, required=True)
 
     def bind(self, args):
+        if current_user.is_user():
+            if current_user.email:
+                abort(BINDED)
+
+            current_user.email = args['email']
+            current_user.password = args['password']
+            current_user.save()
+            return current_user
+
         user = um.models.User.objects(email=args['email']).first()
         if not user:
             user = um.models.User(
@@ -631,8 +644,10 @@ class BindAuto(Resource):
 
     @login_required
     def post(self):
+        args = self.get_args()
+        self.validate(args)
         if current_user.is_user():
-            abort(NOT_ALLOW_BIND)
+            return self.success(current_user, args)
 
         if current_user.user:
             abort(BINDED)
@@ -640,8 +655,6 @@ class BindAuto(Resource):
         if um.config.oauth_model == 'force':
             abort(NEED_BIND)
 
-        args = self.get_args()
-        self.validate(args)
         user = um.models.User.from_oauth(current_user)
         um.models.UserLog.bind(user.id, args['device'], key=self.key)
         return self.success(user, args)

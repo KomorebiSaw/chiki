@@ -1,5 +1,6 @@
 # coding: utf-8
 import os
+import gc
 import traceback
 from datetime import datetime
 from flask import current_app, redirect, flash, request
@@ -10,7 +11,7 @@ from flask.ext.admin.base import BaseView
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.mongoengine.helpers import format_error
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
-from flask.ext.admin._compat import string_types
+from flask.ext.admin._compat import string_types, with_metaclass
 from mongoengine.fields import IntField, LongField, DecimalField, FloatField
 from mongoengine.fields import StringField, ReferenceField, ObjectIdField, ListField
 from mongoengine.fields import BooleanField, DateTimeField
@@ -18,8 +19,10 @@ from bson.objectid import ObjectId
 from jinja2 import contextfunction
 from .convert import KModelConverter
 from .filters import KFilterConverter, ObjectIdEqualFilter
-from .formatters import type_best, type_image, type_file, type_select, type_bool
+from .formatters import type_best, type_image, type_file, type_select
+from .formatters import type_bool, type_images
 from .formatters import formatter_len, formatter_link, filter_sort
+from .metaclass import CoolAdminMeta
 from ..mongoengine.fields import FileProxy, ImageProxy
 from ..utils import json_success, json_error
 
@@ -34,7 +37,6 @@ def create_blueprint(self, admin):
     if self.static_folder == 'static':
         root = os.path.dirname(os.path.dirname(__file__))
         self.static_folder = os.path.abspath(os.path.join(root, 'static'))
-        print self.static_folder
         self.static_url_path = '/static/admin'
     return old_create_blueprint(self, admin)
 
@@ -42,7 +44,7 @@ def create_blueprint(self, admin):
 BaseView.create_blueprint = create_blueprint
 
 
-class ModelView(_ModelView):
+class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
 
     page_size = 50
     can_view_details = True
@@ -75,14 +77,6 @@ class ModelView(_ModelView):
                     if verbose_name:
                         self.column_labels[field] = verbose_name
 
-        # 初始化选择列
-        self.column_choices = self.column_choices or dict()
-        for field in model._fields:
-            if field not in self.column_choices:
-                choices = getattr(model, field).choices
-                if choices:
-                    self.column_choices[field] = choices
-
         #初始化筛选器
         types = (IntField, ReferenceField, StringField, BooleanField, DateTimeField) if self.robot_filters else (ReferenceField,)
         self.column_filters = list(self.column_filters or [])
@@ -113,6 +107,14 @@ class ModelView(_ModelView):
                                         menu_class_name=menu_class_name,
                                         menu_icon_type=menu_icon_type,
                                         menu_icon_value=menu_icon_value)
+
+    def _refresh_cache(self):
+        self.column_choices = self.column_choices or dict()
+        for field in self.model._fields:
+            choices = getattr(self.model, field).choices
+            if choices:
+                self.column_choices[field] = choices
+        super(ModelView, self)._refresh_cache()
 
     def create_model(self, form):
         try:
@@ -156,6 +158,12 @@ class ModelView(_ModelView):
                 model.create()
         elif hasattr(model, 'modified'):
             model.modified = datetime.now()
+
+    # @expose('/')
+    # def index_view(self):
+    #     res = super(ModelView, self).index_view()
+    #     gc.collect()
+    #     return res
 
     def get_ref_type(self, attr):
         document, ref_type = attr.document_type, None
@@ -276,7 +284,7 @@ class ModelView(_ModelView):
                 value = column_fmt(self, context, model, name)
             except:
                 current_app.logger.error(traceback.format_exc())
-                value = ''
+                value = '该对象被删了'
         else:
             value = self._get_field_value(model, name)
 
@@ -288,13 +296,21 @@ class ModelView(_ModelView):
         if isinstance(value, bool):
             return type_bool(self, value, model, name)
 
+        if value and isinstance(value, list) and isinstance(value[0], ImageProxy):
+            self.show_popover = True
+            return type_images(self, value)
+
         type_fmt = None
         for typeobj, formatter in self.column_type_formatters.items():
             if isinstance(value, typeobj):
                 type_fmt = formatter
                 break
         if type_fmt is not None:
-            value = type_fmt(self, value)
+            try:
+                value = type_fmt(self, value)
+            except:
+                current_app.logger.error(traceback.format_exc())
+                value = '该对象被删了'
 
         return value
 
@@ -328,6 +344,11 @@ class ModelView(_ModelView):
                 flash(gettext('Failed to delete records. %(error)s', error=str(ex)),
                       'error')
 
+    def on_field_change(self, model, name, value):
+        model[name] = value
+        if hasattr(model, 'modified'):
+            model['modified'] = datetime.now()
+
     @expose('/dropdown')
     def dropdown(self):
         id = request.args.get('id', 0, unicode)
@@ -341,13 +362,10 @@ class ModelView(_ModelView):
         if type(val) == int:
             val = int(val)
 
-        if model.objects(id=id):
-            models = model.objects(id=id).first()
-            models[name] = val
-
-            if hasattr(model, 'modified'):
-                models['modified'] = datetime.now()
-            models.save()
+        obj = model.objects(id=id).first()
+        if obj:
+            self.on_field_change(obj, name, val)
+            obj.save()
             return json_success()
 
         return json_error(msg='该记录不存在')

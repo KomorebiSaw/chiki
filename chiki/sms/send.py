@@ -1,7 +1,8 @@
-# coding: utf-8 
+# coding: utf-8
 import re
 import urllib
 import socket
+import traceback
 import ConfigParser
 from flask import current_app
 from .CCPRestSDK import REST
@@ -24,7 +25,6 @@ def send_rong_sms(phone, datas, temp_id):
     rest.setAccount(sid, token)
     rest.setAppId(appid)
     result = rest.sendTemplateSMS(phone, datas, temp_id)
-    
     return result.get("statusCode") == "000000"
 
 
@@ -44,8 +44,8 @@ def send_ihuyi_sms(phone, text):
         try:
             res = urllib.urlopen(url).read()
             break
-        except (IOError, socket.error):
-            pass
-    
+        except:
+            current_app.logger.error('短信接口出错：' + traceback.format_exc())
+    if not re.search(r'<code>2</code>', res):
+        current_app.logger.error('短信接口出错：' + str(res))
     return True if re.search(r'<code>2</code>', res) else False
-        

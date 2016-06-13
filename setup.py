@@ -72,5 +72,6 @@ setup(
         'dicttoxml==1.6.6',
         'Flask-DebugToolbar==0.10.0',
         'Flask-DebugToolbar-LineProfilerPanel==1.0.2',
+        'Flask-Session==0.2.3',
     ],
 )

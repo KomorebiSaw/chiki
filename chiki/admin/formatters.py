@@ -55,8 +55,6 @@ def formatter(func):
         if hasattr(model.__class__, name):
             data = getattr(model, name)
             if data:
-                if type(data) == int:
-                    data = unicode(data)
                 return markup(func(data) or '')
         return ''
     return wrapper
@@ -71,6 +69,7 @@ def formatter_model(func):
 def formatter_len(max_len=20, cls=''):
     @formatter
     def wrapper(data):
+        data = unicode(data)
         if len(data) > max_len + 1:
             return get_span(data, data[:max_len] + '...', cls=cls)
         return data
@@ -121,7 +120,6 @@ def formatter_icon(func=None, height=40, **kwargs):
         </a>
     ''' % (exts, height)
 
-
     def icon(url):
         if url:
             if isinstance(url, list):
@@ -161,6 +159,7 @@ def formatter_ip(url=None, blank=True):
     tpl = '<a href=%s title=%s target="_blank">%s</a>'
     if not blank:
         tpl = '<a href=%s title=%s>%s</a>'
+
     @formatter
     def wrapper(ip):
         if ip:
@@ -185,6 +184,11 @@ def format_date(t):
 @formatter
 def format_best(t):
     return get_span(str(t).split('.')[0], datetime2best(t))
+
+
+@formatter
+def format_rmb(m):
+    return '￥%.2f' % (m / 100.0)
 
 
 def format_choices(view, context, model, name):
@@ -213,6 +217,19 @@ def type_image(view, image):
     return ''
 
 
+def format_images(images):
+    tpl = u'''
+        <a href=%s title=%s target="_blank" style="text-decoration:none; display: inline-block;">
+            <img src=%s style="width: 75px; height: 60px; margin: 0 3px 6px 0;border: 1px solid #ddd;">
+        </a>
+    '''
+    html = []
+    for image in images:
+        html.append(tpl % quote(image.get_link(), 
+            image.get_link(), image.get_link(75, 60)))
+    return ''.join(html)
+
+
 @markupper
 def type_file(view, proxy):
     if isinstance(proxy, ImageProxy):
@@ -221,8 +238,12 @@ def type_file(view, proxy):
 
 
 @markupper
-def type_select(view, value, model, name, choices):
+def type_images(view, images):
+    return popover(format_images(images), '%d张' % len(images))
 
+
+@markupper
+def type_select(view, value, model, name, choices):
     selects = ''
     url = view.get_url('.dropdown')
     id = str(model.id)+str(name)
