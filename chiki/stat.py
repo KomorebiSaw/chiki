@@ -83,7 +83,7 @@ def hour_value_list(day, key, *args, **kwargs):
     return get_hour_list(key, day, **kwargs)
 
 
-def init_stat(cls, key, subs, tpl):
+def init_stat(cls, key, subs, tpl, modal):
     """ 初始化统计 """
 
     @expose('/' if key == 'index' else '/%s' % key)
@@ -94,15 +94,21 @@ def init_stat(cls, key, subs, tpl):
         week_start = (now - timedelta(days=6)).strftime('%Y-%m-%d')
         yesterday = (now - timedelta(days=1)).strftime('%Y-%m-%d')
         today = now.strftime('%Y-%m-%d')
+        data_url = self.get_url('.%s_data' % key)
+        if modal:
+            data_url = self.get_url('.%s_data' % key, id=request.args.get('id'))
         return self.render(tpl,
             start=start, end=end, month_start=month_start, month_end=today,
             week_start=week_start, week_end=today, yesterday=yesterday,
-            today=today, data_url=self.get_url('.%s_data' % key))
+            today=today, data_url=data_url)
 
     def get_series(sub, prefix, axis, value_list):
         res = []
         for item in sub.get('series'):
-            value = value_list('%s%s' % (prefix, item.get('key')), axis)
+            key = '%s%s' % (prefix, item.get('key'))
+            if modal:
+                key = '%s_%s' % (key, request.args.get('id'))
+            value = value_list(key, axis)
             handle = item.get('handle')
             if callable(handle):
                 value = [handle(x) for x in value]
@@ -149,12 +155,13 @@ def init_stat(cls, key, subs, tpl):
     setattr(cls, '%s_data' % key, data)
 
 
-def statistics(tpl='admin/stat.html'):
+def statistics(tpl=None, modal=False):
     def wrapper(cls):
+        default = 'admin/stat-modal.html' if modal else 'admin/stat.html'
         datas = getattr(cls, 'datas', None)
         if datas:
             for key, subs in datas.iteritems():
-                init_stat(cls, key, subs, tpl)
+                init_stat(cls, key, subs, tpl if tpl is not None else default, modal)
         return type(cls.__name__, (cls,), {})
     return wrapper
 
