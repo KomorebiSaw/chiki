@@ -103,6 +103,13 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
             if type(attr) == StringField:
                 self.column_formatters.setdefault(attr.name, formatter_len(40))
 
+        self.form_ajax_refs = self.form_ajax_refs or dict()
+        for field in model._fields:
+            attr = getattr(model, field)
+            if type(attr) == ReferenceField:
+                if field not in self.form_ajax_refs:
+                    self.form_ajax_refs[field] = dict(fields=['id'], page_size=10)
+
         self._init_referenced = False
 
         super(ModelView, self).__init__(model, name, category, endpoint, url, static_folder,

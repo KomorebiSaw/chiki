@@ -733,3 +733,16 @@ class View(db.Document):
                     if view.__class__.__name__ == self.name:
                         self.setup(admin, view)
                         break
+
+
+class IP(db.Document):
+    """ IP名单 """
+
+    TYPE = db.choices(register='注册', sms='短信')
+
+    ip = db.StringField(verbose_name='IP')
+    type = db.StringField(default=TYPE.REGISTER, choices=TYPE.CHOICES, verbose_name='类型')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = dict(indexes=['-created', ('type', 'ip')])
