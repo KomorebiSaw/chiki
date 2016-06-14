@@ -69,6 +69,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
 
         # 初始化标识
         self.column_labels = self.column_labels or dict()
+        self.column_labels.setdefault('id', 'ID')
         for field in model._fields:
             if field not in self.column_labels:
                 attr = getattr(model, field)
@@ -81,19 +82,20 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         types = (IntField, ReferenceField, StringField, BooleanField, DateTimeField) if self.robot_filters else (ReferenceField,)
         self.column_filters = list(self.column_filters or [])
 
+        primary = False
         for field in model._fields:
             attr = getattr(model, field)
             if hasattr(attr, 'primary_key'):
                 if attr.primary_key is True:
                     self.column_filters = [field] + self.column_filters
-            else:
-                if hasattr(model, 'id'):
-                    self.column_filters = ['id'] + self.column_filters
-
-            if type(attr) in types and attr.name not in self.column_filters:
+                    primary = True
+            elif type(attr) in types and attr.name not in self.column_filters:
                 self.column_filters.append(attr.name)
+        if not primary:
+            self.column_filters = ['id'] + self.column_filters
 
-        self.column_filters = filter_sort(self.column_filters, self.column_list)
+        if self.robot_filters:
+            self.column_filters = filter_sort(self.column_filters, self.column_list)
 
         #初始化类型格式化
         for field in model._fields:
