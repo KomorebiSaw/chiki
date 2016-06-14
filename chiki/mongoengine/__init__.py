@@ -15,9 +15,9 @@ class Chocies(object):
     def __init__(self, **kwargs):
         self.CHOICES = []
         for key, value in kwargs.iteritems():
-            self.choices.append((key, value))
+            self.CHOICES.append((key, value))
             setattr(self, key.upper(), value)
-        self.DICT = dict(self.choices)
+        self.DICT = dict(self.CHOICES)
         self.VALUES = self.DICT.keys()
 
     def text(self, key):
