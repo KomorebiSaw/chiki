@@ -10,6 +10,20 @@ def _include_custom(obj):
     setattr(obj, 'abstract', abstract)
 
 
+class Chocies(object):
+
+    def __init__(self, **kwargs):
+        self.choices = []
+        for key, value in kwargs.iteritems():
+            self.choices.append((key, value))
+            setattr(self, key, value)
+        self.dict = dict(self.choices)
+        self.values = self.dict.keys()
+
+    def text(self, key):
+        return self.dict.get(key)
+
+
 class MongoEngine(mongoengine.MongoEngine):
 
     def __init__(self, app=None):
@@ -18,6 +32,9 @@ class MongoEngine(mongoengine.MongoEngine):
 
         self.Document = Document
         self.DynamicDocument = DynamicDocument
+
+    def choices(self, **kwargs):
+        return Chocies(**kwargs)
 
 
 class BaseQuerySet(mongoengine.BaseQuerySet):
