@@ -12,6 +12,7 @@ from wtforms.validators import ValidationError
 from wtforms.ext.csrf.fields import CSRFTokenField
 from .fields import VerifyCodeField
 
+
 __all__ = [
     'FormMeta', 'BaseForm', 'Form',
 ]

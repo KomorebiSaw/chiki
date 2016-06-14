@@ -126,7 +126,9 @@ def bind():
         user = um.models.User.objects(id=current_user.user).first()
         if user:
             login_user(user)
-        return redirect(next)
+            return redirect(next)
+        current_user.user = 0
+        current_user.save()
 
     email_form = um.forms.BindEmailForm()
     phone_form = um.forms.BindPhoneForm()
