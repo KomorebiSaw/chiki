@@ -13,12 +13,12 @@ def _include_custom(obj):
 class Chocies(object):
 
     def __init__(self, **kwargs):
-        self.choices = []
+        self.CHOICES = []
         for key, value in kwargs.iteritems():
             self.choices.append((key, value))
             setattr(self, key.upper(), value)
-        self.dict = dict(self.choices)
-        self.values = self.dict.keys()
+        self.DICT = dict(self.choices)
+        self.VALUES = self.DICT.keys()
 
     def text(self, key):
         return self.dict.get(key)
