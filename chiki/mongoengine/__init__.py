@@ -16,7 +16,7 @@ class Chocies(object):
         self.CHOICES = []
         for key, value in kwargs.iteritems():
             self.CHOICES.append((key, value))
-            setattr(self, key.upper(), value)
+            setattr(self, key.upper(), key)
         self.DICT = dict(self.CHOICES)
         self.VALUES = self.DICT.keys()
 
