@@ -210,13 +210,23 @@ class WXAuth(object):
             return '授权成功，请设置回调'
 
         res = callback(action, scope, access, next)
-        return res if res else (success() if is_json() else redirect(next))
+        if res:
+            return res
+
+        if is_json():
+            if current_user.is_authenticated():
+                return success()
+            return error(msg='登录出错')
+        return redirect(next)
 
     def error(self, err, action, next):
-        res = '授权失败(%s): %s' % (action, err)
         if self.error_callback:
-            res = self.error_callback(err, action, next) or res
-        return res
+            res = self.error_callback(err, action, next)
+            if res:
+                return res
+        if is_json():
+            return error(msg='授权失败(%s): %s' % (action, err))
+        return '授权失败(%s): %s' % (action, err)
 
     def success_handler(self, callback):
         self.success_callback = callback
