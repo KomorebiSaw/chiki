@@ -59,7 +59,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
 
     show_popover = False
     robot_filters = False
-    show_form_ajax_refs = False
+    auto_form_ajax_refs = True
 
     def __init__(
             self, model, name=None,
@@ -104,7 +104,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
             if type(attr) == StringField:
                 self.column_formatters.setdefault(attr.name, formatter_len(40))
 
-        if self.show_form_ajax_refs:
+        if self.auto_form_ajax_refs:
             self.form_ajax_refs = self.form_ajax_refs or dict()
             for field in model._fields:
                 attr = getattr(model, field)
