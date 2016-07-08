@@ -167,7 +167,7 @@ def statistics(tpl=None, modal=False, **kwargs):
         if datas:
             for key, subs in datas.iteritems():
                 init_stat(cls, key, subs, tpl if tpl is not None else default, modal)
-        return type(cls.__name__, (cls,), {})
+        return type(cls.__name__, (cls,), {"__doc__":cls.__doc__})
     return wrapper
 
 

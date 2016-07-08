@@ -49,7 +49,7 @@ class QQUserView(ModelView):
     column_filters = ('openid', 'is_yellow_vip', 'vip', 'yellow_vip_level', 'level', 'is_yellow_year_vip')
 
 
-class WeiBoUser(ModelView):
+class WeiBoUserView(ModelView):
     show_popover = True
     column_default_sort = ('created', True)
     column_list = ('user', 'uid', 'subscribe', 'subscribe_time', 'follow', 'access_token', 'expires_in', 'refresh_token', 'modified', 'created')

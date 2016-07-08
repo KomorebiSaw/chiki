@@ -6,6 +6,8 @@ from operator import itemgetter
 from flask import redirect
 from flask.ext.admin import expose
 from flask.ext.admin.contrib.fileadmin import FileAdmin
+from flask.ext.admin._compat import with_metaclass
+from .metaclass import CoolAdminMeta
 
 __all__ = [
     'get_static_admin',
@@ -13,7 +15,8 @@ __all__ = [
 
 
 def get_static_admin(name):
-    class StaticFileAdmin(FileAdmin):
+    class StaticFileAdmin(with_metaclass(CoolAdminMeta, FileAdmin)):
+        MENU_ICON = 'folder-o'
         list_template = 'admin/file/list2.html'
 
         def fileType(self, file_name):
@@ -80,5 +83,4 @@ def get_static_admin(name):
                                delete_form=delete_form,
                                base_static_url=base_static_url,
                                fileType=self.fileType)
-    StaticFileAdmin.__name__ = name
-    return StaticFileAdmin
+    return type(name, (StaticFileAdmin,), {"__doc__":"文件"})

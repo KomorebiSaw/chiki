@@ -62,6 +62,8 @@ class Action(object):
 class Item(db.Document):
     """ 选项 """
 
+    MENU_ICON = 'gear'
+
     TYPE_INT = 'int'
     TYPE_STRING = 'string'
     TYPE_CHOICES = (
@@ -191,6 +193,8 @@ class ShareItem(db.EmbeddedDocument):
 class StatLog(db.Document):
     """ 统计日志 """
 
+    MENU_ICON = 'bar-chart'
+
     key = db.StringField(verbose_name='KEY')
     tid = db.StringField(verbose_name='TID')
     label = db.StringField(verbose_name='标签')
@@ -253,6 +257,8 @@ class StatLog(db.Document):
 class TraceLog(db.Document):
     """ 监控统计 """
 
+    MENU_ICON = 'bug'
+
     key = db.StringField(verbose_name='KEY')
     tid = db.StringField(verbose_name='TID')
     user = db.IntField(verbose_name='用户')
@@ -272,6 +278,8 @@ class TraceLog(db.Document):
 
 class Channel(db.Document):
     """ 渠道模型 """
+
+    MENU_ICON = 'road'
 
     id = db.IntField(primary_key=True, verbose_name='ID')
     name = db.StringField(max_length=40, verbose_name='名称')
@@ -295,6 +303,8 @@ class Channel(db.Document):
 
 class AndroidVersion(db.Document):
     """ 安卓版本 """
+
+    MENU_ICON = 'android'
 
     id = db.IntField(primary_key=True, verbose_name='ID')
     version = db.StringField(max_length=200, verbose_name='版本')
@@ -325,6 +335,8 @@ class AndroidVersion(db.Document):
 class IOSVersion(db.Document):
     """ IOS版本 """
 
+    MENU_ICON = 'mobile'
+
     id = db.IntField(primary_key=True, verbose_name='ID')
     version = db.StringField(max_length=200, verbose_name='版本')
     log = db.StringField(verbose_name='更新日志')
@@ -354,6 +366,8 @@ class IOSVersion(db.Document):
 class APIItem(db.Document):
     """ 接口模型 """
 
+    MENU_ICON = 'server'
+
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
     url = db.StringField(verbose_name='链接')
@@ -382,6 +396,8 @@ class APIItem(db.Document):
 class UserImage(db.Document):
     """ 用户图片 """
 
+    MENU_ICON = 'picture-o'
+
     user = db.IntField(verbose_name='用户')
     source = db.StringField(verbose_name='来源')
     image = db.XImageField(config='USER_IMAGES', verbose_name='图片')
@@ -408,6 +424,8 @@ class ActionModule(db.Document):
 
 class ActionItem(db.Document):
     """ 功能模型 """
+
+    MENU_ICON = 'bars'
 
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
@@ -454,6 +472,8 @@ class ActionItem(db.Document):
 class TPLItem(db.Document):
     """ 模板模型 """
 
+    MENU_ICON = 'globe'
+
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
     tpl = db.XFileField(verbose_name='文件', allows=['html', 'htm'])
@@ -474,6 +494,8 @@ class SlideModule(db.Document):
 
 class SlideItem(db.Document):
     """ 广告模型 """
+
+    MENU_ICON = 'paw'
 
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
@@ -513,12 +535,16 @@ class SlideItem(db.Document):
 class ImageItem(db.Document):
     """ 图片模型 """
 
+    MENU_ICON = 'picture-o'
+
     image = db.XImageField(verbose_name='图片')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
 
 class OptionItem(db.Document):
     """ 配置模型 """
+
+    MENU_ICON = 'gear'
 
     name = db.StringField(verbose_name='名称')
     key = db.StringField(verbose_name='键名')
@@ -541,6 +567,8 @@ class Choice(db.EmbeddedDocument):
 
 class Choices(db.Document):
     """ 选项模型 """
+
+    MENU_ICON = 'plus-circle'
 
     fields = dict()
     key = db.StringField(verbose_name='键名')
@@ -599,6 +627,8 @@ def choice(field, key, name):
 class Menu(db.Document):
     """ 菜单模型 """
 
+    MENU_ICON = 'sitemap'
+
     key = db.StringField(verbose_name='键名')
     name = db.StringField(verbose_name='名称')
     link = db.StringField(verbose_name='链接')
@@ -618,6 +648,8 @@ class Menu(db.Document):
 
 class Page(db.Document):
     """ 网页模型 """
+
+    MENU_ICON = 'globe'
 
     id = db.IntField(primary_key=True, verbose_name='ID')
     key = db.StringField(verbose_name='键名')
@@ -670,6 +702,8 @@ class Field(db.EmbeddedDocument):
 class Model(db.Document):
     """ 建模 """
 
+    MENU_ICON = 'database'
+
     name = db.StringField(max_length=100, verbose_name='名称')
     desc = db.StringField(max_length=100, verbose_name='描述')
     fields = db.XListField(db.EmbeddedDocumentField(Field), verbose_name='字段')
@@ -685,6 +719,8 @@ class Model(db.Document):
 class View(db.Document):
     """ 管理 """
 
+    MENU_ICON = 'futbol-o'
+
     TYPE_VIEW = 'view'
     TYPE_MODEL = 'model'
     TYPE_CATE = 'cate'
@@ -698,12 +734,17 @@ class View(db.Document):
     label = db.StringField(max_length=100, verbose_name='标识')
     type = db.StringField(default=TYPE_VIEW, choices=TYPE_CHOICES, verbose_name='类型')
     model = db.ReferenceField('Model', verbose_name='模型')
-    icon = db.StringField(verbose_name='图标')
+    icon = db.StringField(max_length=100, verbose_name='图标')
+    page_size = db.IntField(default=50, verbose_name='分页数')
+    can_create = db.BooleanField(default=True, verbose_name='能创建')
+    can_edit = db.BooleanField(default=True, verbose_name='能修改')
+    can_delete = db.BooleanField(default=True, verbose_name='能删除')
     column_default_sort = db.StringField(max_length=100, verbose_name='默认排序')
     column_list = db.ListField(db.StringField(), verbose_name='显示列表')
     column_center_list = db.ListField(db.StringField(), verbose_name='居中列表')
     column_hidden_list = db.ListField(db.StringField(), verbose_name='隐藏列表')
     column_filters = db.ListField(db.StringField(), verbose_name='过滤器列表')
+    column_sortable_list = db.ListField(db.StringField(), verbose_name='排序列表')
     column_searchable_list = db.ListField(db.StringField(), verbose_name='查找列表')
     form_excluded_columns = db.ListField(db.StringField(), verbose_name='表单隐藏列表')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
@@ -715,13 +756,32 @@ class View(db.Document):
     def setup(self, admin, view):
         view.name = self.label or view.name
         view.menu_icon_value = self.icon or view.menu_icon_value
-        view.column_list = self.column_list or view.column_list
-        view.column_center_list = self.column_center_list or getattr(view, 'column_center_list', None)
-        view.column_hidden_list = self.column_hidden_list or getattr(view, 'column_hidden_list', None)
-        view.column_filters = self.column_filters or view.column_filters
-        view.column_searchable_list = self.column_searchable_list or view.column_searchable_list
-        view.form_excluded_columns = self.form_excluded_columns or view.form_excluded_columns
-        view._refresh_cache()
+        if hasattr(view, 'model'):
+            if not view.menu_icon_value:
+                if view.model and hasattr(view.model, 'MENU_ICON'):
+                    view.menu_icon_value = view.model.MENU_ICON
+                else:
+                    view.menu_icon_value = 'file-o'
+            view.page_size = self.page_size or view.page_size
+            view.can_create = self.can_create
+            view.can_edit = self.can_edit
+            view.can_delete = self.can_delete
+            if self.column_default_sort:
+                try:
+                    view.column_default_sort = json.loads(self.column_default_sort)
+                except:
+                    pass
+            view.column_list = self.column_list or view.column_list
+            view.column_center_list = self.column_center_list or getattr(view, 'column_center_list', None)
+            view.column_hidden_list = self.column_hidden_list or getattr(view, 'column_hidden_list', None)
+            view.column_filters = self.column_filters or view.column_filters
+            view.column_sortable_list = self.column_sortable_list or view.column_sortable_list
+            view.column_searchable_list = self.column_searchable_list or view.column_searchable_list
+            view.form_excluded_columns = self.form_excluded_columns or view.form_excluded_columns
+            view._refresh_cache()
+        elif not view.menu_icon_value:
+            if hasattr(view, 'MENU_ICON'):
+                view.menu_icon_value = view.MENU_ICON
         admin._refresh()
 
     def save(self):
@@ -734,10 +794,28 @@ class View(db.Document):
                         self.setup(admin, view)
                         break
 
+    def add_text(self, key):
+        attr = getattr(self, key)
+        if attr:
+            return '    %s = %s' % (key, json.dumps(attr))
+
+    @property
+    def code_text(self):
+        texts = []
+        keys = ['column_list', 'column_center_list', 'column_hidden_list',
+            'column_filters', 'column_sortable_list', 'column_searchable_list',
+            'form_excluded_columns']
+        for key in keys:
+            text = self.add_text(key)
+            if text:
+                texts.append(text)
+        return '\n'.join(texts)
+
 
 class IP(db.Document):
     """ IP名单 """
 
+    MENU_ICON = 'wifi'
     TYPE = db.choices(register='注册', sms='短信')
 
     ip = db.StringField(verbose_name='IP')

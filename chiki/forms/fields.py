@@ -1,24 +1,24 @@
 # coding: utf-8
-import itertools
 from datetime import datetime
 from flask import current_app
 from flask.ext.admin.model.fields import InlineFieldList
 from flask.ext.mongoengine.wtf.fields import ModelSelectMultipleField as _ModelSelectMultipleField
-from wtforms.fields import Field, StringField, SelectField, SelectMultipleField, DateTimeField, TextAreaField
-from wtforms.fields import FileField as _FileField
+from wtforms.fields import Field, StringField, SelectField, SelectMultipleField
+from wtforms.fields import FileField as _FileField, DateTimeField, TextAreaField
 from wtforms.fields import Label as _Label
 from wtforms.widgets import RadioInput, CheckboxInput
 from wtforms.validators import ValidationError
 from wtforms.utils import unset_value
-from .widgets import VerifyCode, UEditor, KListWidget
-from .widgets import FileInput, ImageInput, AreaInput, WangEditor
+from .widgets import VerifyCode, UEditor, KListWidget, DragSelectWidget
+from .widgets import FileInput, ImageInput, AreaInput, WangEditor, DragInput
 from ..verify import get_verify_code, validate_code
 from ..mongoengine.fields import FileProxy
 
 __all__ = [
-    'VerifyCodeField', 'KDateField', 'KRadioField', 'KCheckboxField', 'UEditorField',
-    'FileField', 'ImageField', 'AreaField', 'ListField',
-    'ModelSelectMultipleField', 'WangEditorField', 'Label',
+    'VerifyCodeField', 'KDateField', 'KRadioField', 'KCheckboxField',
+    'DragSelectWidget', 'UEditorField', 'FileField', 'ImageField',
+    'AreaField', 'ListField', 'ModelSelectMultipleField', 'WangEditorField',
+    'Label',
 ]
 
 
@@ -26,7 +26,7 @@ class VerifyCodeField(Field):
 
     widget = VerifyCode()
 
-    def __init__(self, label=None, key='verify_code', 
+    def __init__(self, label=None, key='verify_code',
             hidden=False, invalid_times=1, code_len=0, **kwargs):
         super(VerifyCodeField, self).__init__(label, **kwargs)
         self.key = key
@@ -78,6 +78,21 @@ class KRadioField(SelectField):
 class KCheckboxField(SelectMultipleField):
     widget = KListWidget(html_tag='div', sub_tag='label', prefix_label=False)
     option_widget = CheckboxInput()
+
+
+class DragSelectField(SelectMultipleField):
+    widget = DragSelectWidget()
+    option_widget = DragInput()
+
+    def iter_choices(self):
+        if self.choices:
+            for value, label in self.choices:
+                selected = self.data is not None and self.coerce(value) in self.data
+                if not selected:
+                    yield (value, label, selected)
+            choices = dict(self.choices)
+            for value in self.data:
+                yield (value, choices.get(value), True)
 
 
 class KDateField(DateTimeField):

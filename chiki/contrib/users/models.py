@@ -138,6 +138,8 @@ class UserMixin(object):
 class User(db.Document, UserMixin):
     """ 用户模型 """
 
+    MENU_ICON = 'user'
+
     SEX_UNKNOWN = 'unknown'
     SEX_MALE = 'male'
     SEX_FEMALE = 'female'
@@ -213,8 +215,9 @@ class ThirdUserMixin(object):
 
 
 class WeChatUser(db.Document, ThirdUserMixin):
-    """ 微信用户信息 """
+    """ 微信用户 """
 
+    MENU_ICON = 'wechat'
     key = 'wechat'
 
     user = db.IntField(verbose_name='用户')
@@ -334,8 +337,9 @@ class WeChatUser(db.Document, ThirdUserMixin):
 
 
 class QQUser(db.Document, ThirdUserMixin):
-    """ QQ用户信息 """
+    """ QQ用户 """
 
+    MENU_ICON = 'qq'
     key = 'qq'
 
     user = db.IntField(verbose_name='用户')
@@ -374,8 +378,9 @@ class QQUser(db.Document, ThirdUserMixin):
 
 
 class WeiBoUser(db.Document, ThirdUserMixin):
-    """ QQ用户信息 """
+    """ 微博用户 """
 
+    MENU_ICON = 'weibo'
     key = 'weibo'
 
     user = db.IntField(verbose_name='用户')
@@ -415,6 +420,8 @@ class WeiBoUser(db.Document, ThirdUserMixin):
 
 class UserLog(db.Document):
     """ 用户日志 """
+
+    MENU_ICON = 'info-circle'
 
     TYPE_BIND = 'bind'
     TYPE_REGISTER = 'register'
@@ -485,6 +492,8 @@ class UserLog(db.Document):
 class PhoneCode(db.Document):
     """ 手机验证码 """
 
+    MENU_ICON = 'volume-control-phone'
+
     ACTION_BIND = 'bind'
     ACTION_REGISTER = 'register'
     ACTION_RESET_PASSWORD = 'reset_password'
@@ -542,6 +551,8 @@ class PhoneCode(db.Document):
 
 class EmailCode(db.Document):
     """ 邮箱验证码 """
+
+    MENU_ICON = 'envelope'
 
     ACTION_BIND = 'bind'
     ACTION_REGISTER = 'register'

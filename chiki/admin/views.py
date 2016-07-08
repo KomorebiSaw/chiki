@@ -4,7 +4,7 @@ import gc
 import traceback
 from datetime import datetime
 from flask import current_app, redirect, flash, request
-from flask.ext.admin import AdminIndexView, expose
+from flask.ext.admin import AdminIndexView as _AdminIndexView, BaseView as _BaseView, expose
 from flask.ext.admin.actions import action
 from flask.ext.admin.babel import gettext, ngettext, lazy_gettext
 from flask.ext.admin.base import BaseView
@@ -27,7 +27,7 @@ from ..mongoengine.fields import FileProxy, ImageProxy
 from ..utils import json_success, json_error
 
 __all__ = [
-    "ModelView", "SModelView", "IndexView",
+    "ModelView", "SModelView", "IndexView", "AdminIndexView",
 ]
 
 old_create_blueprint = BaseView.create_blueprint
@@ -401,7 +401,18 @@ class SModelView(_SModelView):
             menu_icon_type=menu_icon_type, menu_icon_value=menu_icon_value)
 
 
+class AdminIndexView(with_metaclass(CoolAdminMeta, _AdminIndexView)):
+    """ 仪表盘 """
+
+    MENU_ICON = 'diamond'
+
+
+class BaseView(with_metaclass(CoolAdminMeta, _BaseView)):
+    """ 基础视图 """
+
+
 class IndexView(AdminIndexView):
+    """ 仪表盘 """
 
     @expose('/')
     def index(self):
