@@ -9,8 +9,7 @@ from .generators import BaseGenerator, RandomGenerator
 from .storages import get_storage
 
 __all__ = [
-    'XFileField', 'XImageField', 'XListField', 'AreaField',
-    'set_filename_generator',
+    'XFileField', 'XImageField', 'XListField', 'AreaField','set_filename_generator',
 ]
 DEFAULT_ALLOWS = ['txt', 'bz2', 'gz', 'tar', 'zip', 'rar', 'apk', 'jpg', 'jpeg', 'png', 'gif', 'bmp']
 DEFAULT_IMAGE_ALLOWS = ['jpg', 'jpeg', 'png', 'gif', 'bmp']
