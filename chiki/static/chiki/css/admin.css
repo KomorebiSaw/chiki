@@ -372,3 +372,7 @@ body {
     min-height: 20px;
     margin-top: 10px;
 }
+
+.modal-open {
+    overflow: auto;
+}
