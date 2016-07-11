@@ -19,6 +19,7 @@ def init_oauth(app):
 
     @app.before_request
     def before_request():
+
         if current_user.is_authenticated() and current_user.is_user() and not current_user.active:
             logout_user()
             error(msg=Item.data('active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
@@ -30,6 +31,8 @@ def init_oauth(app):
             um = current_app.user_manager
             model = um.config.oauth_model
             remember = um.config.oauth_remember
+
+            um.models.User.heart()
             if not current_user.is_user():
                 if model == 'auto':
                     user = um.models.User.from_oauth(current_user)

@@ -19,6 +19,14 @@ __all__ = [
 class UserMixin(object):
 
     @staticmethod
+    def heart(key=''):
+        if current_user.is_authenticated() and current_user.is_user():
+            if datetime.now() > current_user.logined + timedelta(hours=1):
+                current_user.logined = datetime.now()
+                current_user.save()
+                um.models.UserLog.active(current_user.id, key=key)
+
+    @staticmethod
     def get_wechat(**kwargs):
         user = um.models.WeChatUser.objects(**kwargs).first()
         if user:
@@ -429,6 +437,7 @@ class UserLog(db.Document):
     TYPE_LOGOUT = 'logout'
     TYPE_CHANGE_PASSWORD = 'change_password'
     TYPE_RESET_PASSWORD = 'reset_password'
+    TYPE_ACTIVE = 'active'
     TYPE_CHOICES = (
         (TYPE_BIND, '绑定手机'),
         (TYPE_REGISTER, '注册'),
@@ -463,6 +472,10 @@ class UserLog(db.Document):
         spm = spm if spm else get_spm()
         ip = ip if ip else get_ip()
         UserLog(user=id, type=type, device=device, key=key, spm=spm, ip=ip).save()
+
+    @staticmethod
+    def active(id, device, key='', spm=None, ip=None):
+        UserLog.log(UserLog.TYPE_ACTIVE, id, device, key, spm, ip)
 
     @staticmethod
     def bind(id, device, key='', spm=None, ip=None):

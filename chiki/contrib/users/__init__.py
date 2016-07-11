@@ -67,6 +67,7 @@ class UserManager(object):
         config = self.app.config.get('CHIKI_USER', {})
         self.allow_email = self.config.allow_email = config.get('allow_email', False)
         self.allow_phone = self.config.allow_phone = config.get('allow_phone', True)
+        self.config.auto_heart = config.get('auto_heart', True)
         self.config.register_auto_login = config.get('register_auto_login', True)
         self.config.reset_password_auto_login = config.get('reset_password_auto_login', True)
         self.config.include_apis = config.get('include_apis', {})
