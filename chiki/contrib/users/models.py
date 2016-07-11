@@ -445,6 +445,7 @@ class UserLog(db.Document):
         (TYPE_LOGOUT, '退出'),
         (TYPE_CHANGE_PASSWORD, '修改密码'),
         (TYPE_RESET_PASSWORD, '重置密码'),
+        (TYPE_ACTIVE, '活跃'),
     )
     TYPE_VALUES = [x[0] for x in TYPE_CHOICES]
 
