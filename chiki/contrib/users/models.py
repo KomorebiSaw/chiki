@@ -475,7 +475,7 @@ class UserLog(db.Document):
         UserLog(user=id, type=type, device=device, key=key, spm=spm, ip=ip).save()
 
     @staticmethod
-    def active(id, device, key='', spm=None, ip=None):
+    def active(id, device='', key='', spm=None, ip=None):
         UserLog.log(UserLog.TYPE_ACTIVE, id, device, key, spm, ip)
 
     @staticmethod
