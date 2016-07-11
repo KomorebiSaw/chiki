@@ -109,11 +109,11 @@ class JinjaManager(object):
                 out.append(field_div)
                 if hasattr(field, 'addon'):
                     out.append('<div class="input-group">')
-                    out.append(field(class_='form-control', data_label=field.label.text, placeholder=field.description))
+                    out.append(field(class_='form-control', data_label=field.label.text, placeholder=field.description or ''))
                     out.append('<span class="input-group-addon">%s</span>' % field.addon)
                     out.append('</div>')
                 else:
-                    out.append(field(class_='form-control', data_label=field.label.text, placeholder=field.description))
+                    out.append(field(class_='form-control', data_label=field.label.text, placeholder=field.description or ''))
             if error and field.errors:
                 out.append('<div class="error-msg">%s</div>' % field.errors[0])
             out.append('</div><div class="clearfix"></div></div>')

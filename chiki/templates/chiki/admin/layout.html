@@ -24,9 +24,9 @@
         {% set class_name = item.get_class_name() %}
         <li>
         {%- if item.is_active(admin_view) %}
-          <a class="active" href="javascript:void(0)">{% if item.class_name %}<i class="{{ item.class_name }}"></i> {% endif %}{{ item.name }}<span class="fa arrow"></span></a>
+          <a class="active" href="javascript:void(0)">{{ menu_icon(item) }}{{ item.name }}<span class="fa arrow"></span></a>
         {% else -%}
-          <a href="javascript:void(0)">{% if item.class_name %}<i class="{{ item.class_name }}"></i> {% endif %}{{ item.name }}<span class="fa arrow"></span></a>
+          <a href="javascript:void(0)">{{ menu_icon(item) }}{{ item.name }}<span class="fa arrow"></span></a>
         {%- endif %}
             <ul class="nav nav-second-level">
                 {%- for child in children -%}

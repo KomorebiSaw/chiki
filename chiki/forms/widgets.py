@@ -1,12 +1,12 @@
 # coding: utf-8
 from flask import url_for
-from wtforms.widgets import html_params, HTMLString, TextArea
+from wtforms.widgets import html_params, HTMLString, TextArea, Input
 from wtforms.compat import text_type
 from cgi import escape
 
 __all__ = [
     'VerifyCode', 'UEditor', 'KListWidget', 'FileInput',
-    'ImageInput', 'AreaInput', 'WangEditor',
+    'ImageInput', 'AreaInput', 'WangEditor', 'DragInput',
 ]
 
 
@@ -85,7 +85,7 @@ class KListWidget(object):
 
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
-        sub_kwargs = dict((k[4:],v) for k, v in kwargs.iteritems() if k.startswith(self.sub_startswith))
+        sub_kwargs = dict((k[4:], v) for k, v in kwargs.iteritems() if k.startswith(self.sub_startswith))
         kwargs = dict(filter(lambda x: not x[0].startswith(self.sub_startswith), kwargs.iteritems()))
         sub_html = '%s %s' % (self.sub_tag, html_params(**sub_kwargs))
         html = ['<%s %s>' % (self.html_tag, html_params(**kwargs))]
@@ -98,30 +98,98 @@ class KListWidget(object):
         return HTMLString(''.join(html))
 
 
+class DragInput(Input):
+    input_type = 'checkbox'
+
+    def __call__(self, field, **kwargs):
+        if getattr(field, 'checked', field.data):
+            kwargs['checked'] = True
+        return super(DragInput, self).__call__(field, **kwargs)
+
+
+class DragSelectWidget(object):
+
+    def __init__(self, html_tag='div', sub_tag='div', sub_startswith='sub_'):
+        self.html_tag = html_tag
+        self.sub_tag = sub_tag
+        self.sub_startswith = sub_startswith
+
+    def __call__(self, field, **kwargs):
+        kwargs.setdefault('id', field.id)
+        sub_kwargs = dict((k[4:], v) for k, v in kwargs.iteritems() if k.startswith(self.sub_startswith))
+        kwargs = dict(filter(lambda x: not x[0].startswith(self.sub_startswith), kwargs.iteritems()))
+        sub_html = '%s %s' % (self.sub_tag, html_params(**sub_kwargs))
+        left = ['<%s %s>' % (self.html_tag, html_params(id='%s-left' % field.id, class_='drag-left drag-part'))]
+        right = ['<%s %s>' % (self.html_tag, html_params(id='%s-right' % field.id, class_='drag-right drag-part'))]
+        for subfield in field:
+            if subfield.checked:
+                right.append('<%s>%s %s</%s>' % (sub_html, subfield.label, subfield(), self.sub_tag))
+            else:
+                left.append('<%s>%s %s</%s>' % (sub_html, subfield(), subfield.label, self.sub_tag))
+        left.append('</%s>' % self.html_tag)
+        right.append('</%s>' % self.html_tag)
+        html = """<div class="drag-select">%s%s</div><script type="text/javascript">
+            $(function() {
+
+                function initClick(id) {
+                    $('#' + id + '-left > div, #' + id + 'right > div').click(function () {})
+                    $('#' + id + '-left > div').unbind('click').click(function () {
+                        $(this).find('input[type="checkbox"]').get(0).checked = true;
+                        $('#' + id + '-right').append($(this).clone())
+                        $(this).remove()
+                        initClick(id);
+                    })
+                    $('#' + id + '-right > div').unbind('click').click(function () {
+                        $(this).find('input[type="checkbox"]').removeAttr('checked');
+                        $('#' + id + '-left').append($(this).clone())
+                        $(this).remove()
+                        initClick(id);
+                    })
+                }
+
+                function init(id) {
+                    dragula([document.getElementById(id + '-left'), document.getElementById(id + '-right')])
+                        .on('drop', function (el, target) {
+                            if (target === document.getElementById(id + '-left')) {
+                                $(el).find('input[type="checkbox"]').removeAttr('checked');
+                            } else {
+                                $(el).find('input[type="checkbox"]').get(0).checked = true;
+                            }
+                            initClick(id)
+                        })
+                    initClick(id);
+                }
+                init('%s')
+            });
+        </script>""" % (''.join(left), ''.join(right), field.id)
+        return HTMLString(html)
+
+
 class FileInput(object):
 
     template = """
-        <div>
-            <i class="icon-file"></i>%(filename)s
+        <div class="input-group">
+            <span class="input-group-btn">
+                <div id="btn-image" autocomplete="off" class="btn btn-default" style="width:80px;padding:0;">
+                    <span style="padding: 6px 12px;display:inline-block;">选择文件</span>
+                    %(input)s
+                </div>
+            </span>
+            <input autocomplete="off" type="text" class="col-sm-5 form-control input-insert-image"
+                placeholder='%(place)s' disabled="disabled" />
         </div>
-        <div class="checkbox">
-            <label>
-                <input name="%(name)s-delete" type="checkbox" value="true"> 删除
-            </label>
-        </div>
+        <div class="clearfix"></div>
     """
 
     def __call__(self, field, **kwargs):
         kwargs.setdefault('id', field.id)
         kwargs.pop('class', None)
-        kwargs.setdefault('style', 'margin: 10px 0;')
-
-        placeholder = ''
-        if field.data and field.data.filename:
-            placeholder = self.template % dict(name=field.name, filename=field.data.filename)
-
-        return HTMLString('%s<input %s>' % (placeholder, 
-            html_params(name=field.name, type='file', **kwargs)))
+        kwargs.setdefault('autocomplete', 'off')
+        kwargs.setdefault('style', 'width:100%;height:34px;margin-top:-34px;opacity:0;cursor:pointer;')
+        kwargs.setdefault('onchange', "$(this).parents('.input-group').find('.input-insert-image').val($(this).val())")
+        input = '<input %s>' % html_params(name=field.name, type='file', **kwargs)
+        html = self.template % dict(place=field.place or field.label.text, input=input)
+        return HTMLString(html)
 
 
 class ImageInput(object):

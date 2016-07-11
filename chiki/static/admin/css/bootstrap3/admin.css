@@ -89,7 +89,6 @@ div.container > .admin-form {
 /* hack to prevent cut-off left side of select2 inside of modal */
 /* may be able to remove this after Bootstrap v3.3.5 */
 body.modal-open {
-    overflow-y: scroll;
     padding-right: 0 !important;
 }
 
