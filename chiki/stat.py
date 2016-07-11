@@ -109,7 +109,10 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
 
     def get_series(sub, prefix, axis, value_list):
         res = []
-        for item in sub.get('series'):
+        series = sub.get('series')
+        if callable(series):
+            series = series()
+        for item in series:
             key = '%s%s' % (prefix, item.get('key'))
             if modal:
                 key = '%s_%s' % (key, request.args.get('id'))
