@@ -55,6 +55,11 @@
 
 微信登录模块只需要设置配置就可以了，其他功能一般都在 `chiki.contrib.users` 中被封装。
 
+.. admonition:: 注意
+
+    微信登录需要在微信公众号中配置授权登录域名：接口权限->网页授权获取用户基本信息。
+
+
 
 微信JSSDK
 ---------
@@ -68,6 +73,10 @@
 
     <!-- 支持调试 -->
     <script type="text/javascript" src="/weixin-config.js?debug=true">
+
+.. admonition:: 注意
+
+    微信JSSDK需要在微信公众号中配置JS接口安全域名：公众号设置->功能设置。
 
 微信支付
 --------
@@ -196,6 +205,13 @@ JS调起微信支付::
     # 查询退款
     res = current_app.wxpay.refund_query(out_trade_no=id)
 
+.. admonition:: 注意
+
+    微信支付需要在微信公众号中配置支付授权目录：微信支付->开发配置。另外，
+    密钥需要手动上传到相应目录，配置中的key需要自己随机生成，并到商户平台
+    进行设置。
+
+
 WeRobot支持
 -----------
 主要封装了模板消息的功能::
@@ -219,6 +235,15 @@ WeRobot支持
         )
         url = url_for('home.profile', _external=True)
         client.send_tpl(openid, tpl, data=data, url=url)
+
+werobot 一般需要配置::
+
+    WEROBOT_TOKEN = 'wechat'
+    WEROBOT_ROLE = '/wechat'
+
+.. admonition:: 注意
+
+    Werobot需要在微信公众号中配置接口，开启开发模式：基本配置->服务器配置。
 
 QQ/微博登录
 ------------

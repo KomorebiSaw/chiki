@@ -8,6 +8,7 @@
    quickstart
    projection
    admin
+   stat
    mongoengine
    forms
    oauth
