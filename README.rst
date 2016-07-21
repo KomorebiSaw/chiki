@@ -14,5 +14,19 @@ Chiki相关的还有一个项目模版 `CookieCutter Chiki`_ 。使用该模版�
 注意：Chiki主要采用mongodb数据库，SQLAlchemy支持较少，需要的话自己做支持。mongodb
 使用起来比mysql等其他数据库，简单得多，不需要建表就可以直接用。
 
+文档地址: http://www.chiki.org/
+后台Demo: http://demo.chiki.org/
+
+关于作者
+--------
+- 老龄菜鸟程序员一个
+- 19岁开始入门计算机编程
+- 喜欢长跑、TVB电视剧、电影
+- 喜欢一个人发呆、冥想
+- 喜欢创业
+- QQ: 438985635
+- 微信: Tinysh
+- 博客: http://yaosimin.com/
+
 
 .. _CookieCutter Chiki: https://github.com/endsh/cookiecutter-chiki

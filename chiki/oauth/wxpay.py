@@ -16,6 +16,21 @@ __all__ = [
 
 
 class WXPay(object):
+    """微信支付目前只封装了公众号支付的相关功能：支付、发红包、退款、查询退款。
+    微信支付的配置(WXPAY)，加上即启用::
+
+        WXPAY = dict(
+            appid='wx5d4a******b12c76',              # APPID
+            mchid='13******01',                      # 商户号
+            key='206ef4acf8c2******b43480712cc762',  # 支付key，对应在商户平台设置
+            send_name='月光宝石',                     # 发红包的名字(发红包才需要)
+            client_ip='127.0.0.1',                   # 服务器的公网IP(发红包才需要)
+            cert=(                                   # 发红包、退款用到的密钥
+                os.path.join(ETC_FOLDER, 'cert/apiclient_cert.pem'),
+                os.path.join(ETC_FOLDER, 'cert/apiclient_key.pem'),
+            )
+        )
+    """
 
     PREPAY_URL = 'https://api.mch.weixin.qq.com/pay/unifiedorder'
     REFUND_URL = 'https://api.mch.weixin.qq.com/secapi/pay/refund'
@@ -61,6 +76,15 @@ class WXPay(object):
         return res or ''
 
     def wxpay_handler(self, callback):
+        """支付结果回调::
+
+            @wxpay.wxpay_handler
+            def wxpay_handler(res, type):
+                pass
+
+        :param res: 回调的信息
+        :param type: 预支付传过来的类型
+        """
         self.wxpay_callback = callback
         return callback
 
@@ -69,6 +93,15 @@ class WXPay(object):
         return dict((x.tag, to_text(x.text)) for x in doc)
 
     def prepay(self, **kwargs):
+        """微信支付预付款下单，对接口进行封装。
+
+        :param body: 订单名称
+        :param detail: 订单详情
+        :param out_trade_no: 订单号
+        :param openid: 用户OpenID
+        :param type: 订单分类，默认为normal
+        :rtype: 微信接口返回结果
+        """
         type = kwargs.pop('type', 'normal')
         kwargs.setdefault('appid', self.config.get('appid'))
         kwargs.setdefault('mch_id', self.config.get('mchid'))
@@ -92,6 +125,16 @@ class WXPay(object):
             return dict(return_code='ERROR', return_msg=str(e))
 
     def send_red_pack(self, **kwargs):
+        """微信支付发红包，对接口进行封装。
+
+        :param total_amount: 金额总数
+        :param total_num: 红包数量
+        :param wishing: 祝福语
+        :param act_name: 活动名称
+        :param remark: 备注
+        :param re_openid: 用户OpenID
+        :rtype: 微信接口返回结果
+        """
         kwargs.setdefault('wxappid', self.config.get('appid'))
         kwargs.setdefault('mch_id', self.config.get('mchid'))
         kwargs.setdefault('client_ip', self.config.get('client_ip'))
@@ -116,6 +159,14 @@ class WXPay(object):
             return dict(return_code='ERROR', return_msg=str(e))
 
     def refund(self, **kwargs):
+        """微信支付申请退款，对接口进行封装。
+
+        :param out_trade_no: 订单号
+        :param out_refund_no: 退款记录ID
+        :param total_fee: 订单金额
+        :param refund_fee: 退款金额
+        :rtype: 微信接口返回结果
+        """
         if 'out_trade_no' not in kwargs:
             raise ValueError('out_trade_no is required.')
 
@@ -138,6 +189,11 @@ class WXPay(object):
             return dict(return_code='ERROR', return_msg=str(e))
 
     def refund_query(self, **kwargs):
+        """微信支付退款查询，对接口进行封装。
+
+        :param out_trade_no: 订单号
+        :rtype: 微信接口返回结果
+        """
         kwargs.setdefault('appid', self.config.get('appid'))
         kwargs.setdefault('mch_id', self.config.get('mchid'))
         kwargs.setdefault('device_info', 'WEB')

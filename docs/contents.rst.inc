@@ -15,6 +15,7 @@
    contrib
    front
    deploy
+   resources
 
 API文档
 --------

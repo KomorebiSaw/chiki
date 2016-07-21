@@ -18,6 +18,18 @@ __all__ = [
 
 
 class WXAuth(object):
+    """微信登录有三种方式：公众号授权登录(mp)、扫码登录(qrcode)、手机登录(mobile)，
+    只需相应加上配置，就支持相应的方式::
+
+        WXAUTH = dict(
+            mp=dict(
+                appid='wx5d4a******b12c76',
+                secret='bc1cdd******fd1496f1a8ae751f965b',
+            ),
+            mobile=dict(appid='', secret=''),
+            qrcode=dict(appid='', secret=''),
+        )
+    """
 
     ACTION_MP = 'mp'
     ACTION_MOBILE = 'mobile'
@@ -175,6 +187,13 @@ class WXAuth(object):
         return action
 
     def auth(self, action='', next='', scope=SNSAPI_BASE, state='STATE'):
+        """发起微信登录，在需要的地方带用即可。
+
+        :param action: 公众号授权登录(mp)、扫码登录(qrcode)
+        :param next: 授权后下一步链接
+        :param scope: snsapi_base|snsapi_userinfo
+        :param state: STATE
+        """
         action = self.get_action(action)
         if action == 'mobile' or is_json():
             return abort(WXAUTH_REQUIRED)
@@ -229,10 +248,33 @@ class WXAuth(object):
         return '授权失败(%s): %s' % (action, err)
 
     def success_handler(self, callback):
+        """授权成功回调::
+
+            @app.wxauth.success_handler
+            def wxauth_success(action, scope, access, next):
+                pass
+
+        :param action: mp|qrcode|mobile
+        :param scope: snsapi_base|snsapi_userinfo
+        :param access: 微信授权成功返回的信息
+        :param next: 下一步的链接
+        :rtype: None或自定义Response
+        """
         self.success_callback = callback
         return callback
 
     def error_handler(self, callback):
+        """授权失败回调::
+
+            @app.wxauth.error_handler
+            def wxauth_error(err, action, next):
+                pass
+
+        :param err: 错误吗
+        :param action: mp|qrcode|mobile
+        :param next: 下一步的链接
+        :rtype: None或自定义Response
+        """
         self.error_callback = callback
         return callback
 

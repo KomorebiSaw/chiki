@@ -23,7 +23,7 @@ class Lower(object):
 
 
 class Upper(object):
-    
+
     def __call__(self, form, field):
         if isinstance(field.data, string_types):
             field.data = field.data.upper()
@@ -31,9 +31,9 @@ class Upper(object):
 
 class Length(object):
 
-    def __init__(self, 
-            min=-1, 
-            max=-1, 
+    def __init__(self,
+            min=-1,
+            max=-1,
             min_message='%(label)s长度不能小于%(min)d个字符', 
             max_message='%(label)s长度不能超过%(max)d个字符'):
         assert min != -1 or max != -1, 'min和max必须至少设置一个'
