@@ -25,6 +25,7 @@ Chiki相关的还有一个项目模版 `CookieCutter Chiki`_ 。使用该模版�
 --------
 - 文档地址: http://www.chiki.org/
 - 后台Demo: http://demo.chiki.org/
+- Chiki交流群(QQ): 144782626
 
 关于作者
 --------
