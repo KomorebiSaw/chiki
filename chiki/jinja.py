@@ -61,6 +61,7 @@ class JinjaManager(object):
             alert=self.alert_filter,
             rmb=self.rmb_filter,
             rmb2=self.rmb2_filter,
+            best_num=self.best_num_filter,
         )
 
     def context_processor(self):
@@ -164,6 +165,17 @@ class JinjaManager(object):
 
     def rmb2_filter(self, money):
         return '%.2f' % (money / 100.0)
+
+    def best_num_filter(self, num):
+        if not num:
+            return 0
+        if num < 1000:
+            return num
+        if num < 100000:
+            return '%.1fk' % (num / 1000.0)
+        if num < 1000000:
+            return '%.1fw' % (num / 10000.0)
+        return '%dw' % (num / 10000)
 
     def time2best(self, input):
         return _time2best(input)
