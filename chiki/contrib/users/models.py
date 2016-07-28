@@ -275,6 +275,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
             user.user = current_user.id
 
         user.update_info(userinfo, action)
+        user.update(True)
         user.save()
         return user
 
@@ -332,6 +333,8 @@ class WeChatUser(db.Document, ThirdUserMixin):
             self.groupid = userinfo.get('groupid', self.groupid)
             self.subscribe = True
             self.subscribe_time = datetime.fromtimestamp(userinfo.get('subscribe_time'))
+        else:
+            self.subscribe = False
 
     def unsubscribe(self):
         self.subscribe = False
