@@ -70,6 +70,7 @@ class UserManager(object):
         self.config.auto_heart = config.get('auto_heart', True)
         self.config.register_auto_login = config.get('register_auto_login', True)
         self.config.reset_password_auto_login = config.get('reset_password_auto_login', True)
+        self.config.required_bind_password = config.get('required_bind_password', True)
         self.config.include_apis = config.get('include_apis', {})
         self.config.exclude_apis = config.get('exclude_apis', {})
         self.config.allow_oauth_urls = config.get('allow_oauth_urls',

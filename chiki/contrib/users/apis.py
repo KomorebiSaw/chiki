@@ -78,30 +78,30 @@ def auth_email_code(email, code, action):
         abort(EMAIL_CODE_TIMEOUT)
 
 
-def validate_email_code(args, action):
+def validate_email_code(args, action, required_password=True):
     if not args['email']:
         abort(EMAIL_NOT_NULL)
-    if not args['password']:
+    if required_password and not args['password']:
         abort(PASSWORD_NOT_NULL)
     if not args['authcode']:
         abort(EMAIL_CODE_NOT_NULL)
     if not re.match(u'[^\._-][\w\.-]+@(?:[A-Za-z0-9]+\.)+[A-Za-z]+$', args['email']):
         abort(EMAIL_FORMAT_ERROR)
-    if len(args['password']) < 6 or len(args['password']) > 18:
+    if required_password and (len(args['password']) < 6 or len(args['password']) > 18):
         abort(PASSWORD_LENGTH_LIMIT)
     um.funcs.auth_email_code(args['email'], args['authcode'], action)
 
 
-def validate_phone_code(args, action):
+def validate_phone_code(args, action, required_password=True):
     if not args['phone']:
         abort(PHONE_NOT_NULL)
-    if not args['password']:
+    if required_password and not args['password']:
         abort(PASSWORD_NOT_NULL)
     if not args['authcode']:
         abort(PHONE_CODE_NOT_NULL)
     if not re.match(u'^1[3578]\d{9}$|^147\d{8}$', args['phone']):
         abort(PHONE_FORMAT_ERROR)
-    if len(args['password']) < 6 or len(args['password']) > 18:
+    if required_password and (len(args['password']) < 6 or len(args['password']) > 18):
         abort(PASSWORD_LENGTH_LIMIT)
     um.funcs.auth_phone_code(args['phone'], args['authcode'], action)
 
@@ -522,7 +522,8 @@ class Bind(Resource):
 
     def add_args(self):
         super(Bind, self).add_args()
-        self.req.add_argument('password', type=unicode, required=True)
+        if um.config.required_bind_password:
+            self.req.add_argument('password', type=unicode, required=True)
         self.req.add_argument('authcode', type=unicode, required=True)
         self.req.add_argument('device', type=unicode, default='')
         self.not_strips = ('password', )
@@ -566,7 +567,8 @@ class BindPhone(Bind):
                 abort(BINDED)
 
             current_user.phone = args['phone']
-            current_user.password = args['password']
+            if um.config.required_bind_password:
+                current_user.password = args['password']
             current_user.save()
             return current_user
 
@@ -574,13 +576,13 @@ class BindPhone(Bind):
         if not user:
             user = um.models.User(
                 phone=args['phone'],
-                password=args['password'],
+                password=args['password'] if um.config.required_bind_password else '',
                 channel=get_channel(),
                 spm=get_spm(),
                 ip=get_ip(),
             )
             user.create()
-        elif user.password != args['password']:
+        elif um.config.required_bind_password and user.password != args['password']:
             abort(PASSWORD_ERROR)
         return user
 
@@ -588,7 +590,7 @@ class BindPhone(Bind):
         if not um.allow_phone:
             abort(ACCESS_DENIED)
 
-        validate_phone_code(args, um.models.PhoneCode.ACTION_BIND)
+        validate_phone_code(args, um.models.PhoneCode.ACTION_BIND, um.config.required_bind_password)
 
 
 @resource('/users/bind/email', _web=True)
@@ -607,7 +609,8 @@ class BindEmail(Bind):
                 abort(BINDED)
 
             current_user.email = args['email']
-            current_user.password = args['password']
+            if um.config.required_bind_password:
+                current_user.password = args['password']
             current_user.save()
             return current_user
 
@@ -615,13 +618,13 @@ class BindEmail(Bind):
         if not user:
             user = um.models.User(
                 email=args['email'],
-                password=args['password'],
+                password=args['password'] if um.config.required_bind_password else '',
                 channel=get_channel(),
                 spm=get_spm(),
                 ip=get_ip(),
             )
             user.create()
-        elif user.password != args['password']:
+        elif um.config.required_bind_password and user.password != args['password']:
             abort(PASSWORD_ERROR)
         return user
 
@@ -629,7 +632,7 @@ class BindEmail(Bind):
         if not um.allow_email:
             abort(ACCESS_DENIED)
 
-        validate_email_code(args, um.models.EmailCode.ACTION_BIND)
+        validate_email_code(args, um.models.EmailCode.ACTION_BIND, um.config.required_bind_password)
 
 
 @resource('/users/bind/auto', _web=True)
