@@ -292,7 +292,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         column_fmt = self.column_formatters.get(name)
         if column_fmt is not None:
             try:
-                value = column_fmt(self, context, model, name)
+                return column_fmt(self, context, model, name)
             except:
                 current_app.logger.error(traceback.format_exc())
                 value = '该对象被删了'

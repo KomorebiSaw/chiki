@@ -18,6 +18,7 @@ from .media import MediaManager
 from .oauth import init_oauth
 from .settings import TEMPLATE_ROOT
 from .upimg import init_upimg
+from .web import error
 from ._flask import Flask
 
 __all__ = [
@@ -149,6 +150,12 @@ def init_app(init=None, config=None, pyfile=None,
 
     def get_data_path(name):
         return os.path.abspath(os.path.join(app.config.get('DATA_FOLDER'), name))
+
+    if app.config.get('USER_AGENT_LIMIT'):
+        @app.before_request
+        def before_request():
+            if not app.debug and 'micromessenger' in request.headers['User-Agent'].lower():
+                return error('请用微信客户端扫一扫')
 
     app.get_data_path = get_data_path
 

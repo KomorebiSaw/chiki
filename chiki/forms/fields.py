@@ -21,6 +21,9 @@ __all__ = [
     'Label',
 ]
 
+DEFAULT_ALLOWS = ['txt', 'bz2', 'gz', 'tar', 'zip', 'rar', 'apk', 'jpg', 'jpeg', 'png', 'gif', 'bmp']
+DEFAULT_IMAGE_ALLOWS = ['jpg', 'jpeg', 'png', 'gif', 'bmp']
+
 
 class VerifyCodeField(Field):
 
@@ -132,7 +135,7 @@ class FileField(_FileField):
 
     widget = FileInput()
 
-    def __init__(self, label=None, max_size=None, allows=None, place=None, **kwargs):
+    def __init__(self, label=None, max_size=None, allows=DEFAULT_ALLOWS, place=None, **kwargs):
         self.delete = False
         self.max_size = max_size
         self.allows = allows
@@ -195,6 +198,9 @@ class FileField(_FileField):
 class ImageField(FileField):
 
     widget = ImageInput()
+
+    def __init__(self, label=None, max_size=None, allows=DEFAULT_IMAGE_ALLOWS, place=None, **kwargs):
+        super(ImageField, self).__init__(label=label, **kwargs)
 
 
 class AreaField(Field):

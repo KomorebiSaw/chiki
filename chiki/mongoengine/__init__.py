@@ -21,7 +21,7 @@ class Chocies(object):
         self.VALUES = self.DICT.keys()
 
     def text(self, key):
-        return self.dict.get(key)
+        return self.DICT.get(key)
 
 
 class MongoEngine(mongoengine.MongoEngine):

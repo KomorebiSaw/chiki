@@ -1,4 +1,5 @@
 # coding: utf-8
+import json
 from flask import current_app, get_flashed_messages
 from jinja2 import Markup
 from xml.sax.saxutils import escape
@@ -62,6 +63,7 @@ class JinjaManager(object):
             rmb=self.rmb_filter,
             rmb2=self.rmb2_filter,
             best_num=self.best_num_filter,
+            json=json.dumps,
         )
 
     def context_processor(self):
@@ -71,6 +73,7 @@ class JinjaManager(object):
             alert=self.alert_filter,
             is_ajax=is_ajax,
             current_app=current_app,
+            str=str,
         )
 
     def line2br_filter(self, text):
