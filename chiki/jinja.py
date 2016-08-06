@@ -62,6 +62,7 @@ class JinjaManager(object):
             alert=self.alert_filter,
             rmb=self.rmb_filter,
             rmb2=self.rmb2_filter,
+            rmb3=self.rmb3_filter,
             best_num=self.best_num_filter,
             json=json.dumps,
         )
@@ -168,6 +169,10 @@ class JinjaManager(object):
 
     def rmb2_filter(self, money):
         return '%.2f' % (money / 100.0)
+
+    def rmb3_filter(self, money):
+        d = float('%.2f' % (money / 100.0))
+        return str([str(d), int(d)][int(d) == d])
 
     def best_num_filter(self, num):
         if not num:
