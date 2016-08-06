@@ -154,6 +154,8 @@ def init_app(init=None, config=None, pyfile=None,
     if app.config.get('USER_AGENT_LIMIT'):
         @app.before_request
         def before_request():
+            if request.path == current_app.config.get('WEROBOT_ROLE'):
+                return
             if not app.debug and 'micromessenger' not in request.headers['User-Agent'].lower():
                 return error_msg('请用微信客户端扫一扫')
 
