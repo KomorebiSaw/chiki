@@ -144,11 +144,10 @@
     <script src="{{ admin_static.url(filename='chiki/dragula/dragula.min.js') }}" type="text/javascript"></script>
 
     <script type="text/javascript">
-    $(function(){
+    function initUploader($uploadContainer) {
         //获取dom节点
-        var $uploadContainer = $('#uploadContainer'),
-                $fileList = $('#fileList'),
-              $btnUpload = $('#btnUpload');
+        var $fileList = $uploadContainer.find('#fileList'),
+              $btnUpload = $uploadContainer.find('#btnUpload');
 
         //实例化一个上传对象
         var uploader = new plupload.Uploader({
@@ -215,7 +214,7 @@
             event = e;
             uploader.start();
         });
-    });
+    }
     </script>
     {% endblock %}
 

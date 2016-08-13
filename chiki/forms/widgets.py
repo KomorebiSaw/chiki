@@ -274,8 +274,10 @@ class WangEditor(TextArea):
         kwargs.setdefault('style', 'height:480px;')
         script = """<script type="text/javascript">
             $(function() {
+                var clone = $('#uploadContainer').clone();
+                initUploader(clone);
                 var editor = $('#%s').wangEditor({
-                    uploadImgComponent: $('#uploadContainer'),
+                    uploadImgComponent: clone,
                 });
                 window.WEditor = editor;
             });
