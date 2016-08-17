@@ -44,9 +44,6 @@ class JinjaManager(object):
         if app is not None:
             self.init_app(app)
 
-        from .contrib.common.models import Item
-        self.Item = Item
-
     def init_app(self, app):
         app.jinja_env.filters.update(self.filters)
         app.context_processor(self.context_processor)
@@ -196,7 +193,7 @@ class JinjaManager(object):
         return str(input)[:10]
 
     def cdn_filter(self, url, width, height):
-        url = self.Item.data('lazy_image', '', name='CDN背景图片')
+        url = current_app.config.get('LAZY_IMAGE', '')
         return url + ('@%sw_%sh_1e_1c_95Q.png' % (width, height))
 
 
