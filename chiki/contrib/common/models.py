@@ -283,7 +283,11 @@ class Channel(db.Document):
 
     id = db.IntField(primary_key=True, verbose_name='ID')
     name = db.StringField(max_length=40, verbose_name='名称')
+    password = db.StringField(max_length=40, verbose_name='密码')
     desc = db.StringField(verbose_name='描述')
+    url = db.StringField(verbose_name='链接')
+    image = db.XImageField(verbose_name='二维码')
+    active = db.BooleanField(default=True, verbose_name='激活')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
@@ -292,6 +296,25 @@ class Channel(db.Document):
             '-created',
         ]
     }
+
+    def is_user(self):
+        return True
+
+    def is_authenticated(self):
+        """ 是否登录 """
+        return True
+
+    def is_active(self):
+        """ 是否激活 """
+        return True
+
+    def is_anonymous(self):
+        """ 是否游客 """
+        return False
+
+    def get_id(self):
+        """ 获取用户ID """
+        return '%s:%s' % ('channel', str(self.id))
 
     def create(self):
         """ 创建渠道 """

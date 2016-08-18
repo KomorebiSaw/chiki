@@ -1,6 +1,7 @@
 # coding: utf-8
 from chiki import AttrDict, init_verify
 from chiki.base import db
+from chiki.contrib.common import Channel
 from chiki.contrib.users import admin, apis, forms, funcs, models, oauth, views
 from chiki.contrib.users.base import user_manager
 from flask.ext.login import LoginManager, current_user
@@ -51,6 +52,8 @@ class UserManager(object):
                     return um.models.QQUser.objects(id=id.split(':')[-1]).first()
                 elif id.startswith('weibo:'):
                     return um.models.WeiBoUser.objects(id=id.split(':')[-1]).first()
+                elif id.startswith('channel:'):
+                    return Channel.objects(id=int(id.split(':')[-1])).first()
             return um.models.User.objects(id=id).first()
 
     @property

@@ -1,8 +1,13 @@
 # coding: utf-8
 import json
+import urllib
+import qrcode as _qrcode
+from PIL import Image
+from StringIO import StringIO
 from chiki.admin import ModelView, formatter_len, formatter_icon
 from chiki.admin import formatter_text, formatter_link
-from chiki.forms.fields import WangEditorField, KCheckboxField, DragSelectField
+from chiki.forms.fields import WangEditorField, DragSelectField
+from chiki.stat import statistics
 from chiki.utils import json_success
 from datetime import datetime
 from wtforms.fields import TextAreaField, SelectField
@@ -52,19 +57,75 @@ class TraceLogView(ModelView):
     )
 
 
+def create_qrcode(url):
+    A, B, C = 480, 124, 108
+    qr = _qrcode.QRCode(version=2, box_size=10, border=1,
+        error_correction=_qrcode.constants.ERROR_CORRECT_M)
+    qr.add_data(url)
+    qr.make(fit=True)
+    im = qr.make_image()
+    im = im.convert("RGBA")
+    im = im.resize((A, A), Image.BILINEAR)
+
+    em = Image.new("RGBA", (B, B), "white")
+    im.paste(em, ((A - B) / 2, (A - B) / 2), em)
+
+    with open(current_app.get_data_path('logo.jpg')) as fd:
+        icon = Image.open(StringIO(fd.read()))
+    icon = icon.resize((C, C), Image.ANTIALIAS)
+    icon = icon.convert("RGBA")
+    im.paste(icon, ((A - C) / 2, (A - C) / 2), icon)
+
+    stream = StringIO()
+    im.save(stream, format='png')
+    return dict(stream=stream, format='png')
+
+
+@statistics(modal=True)
 class ChannelView(ModelView):
-    column_default_sort = ('created', )
-    column_center_list = ('id', 'name', 'modified', 'created')
-    column_formatters = dict(
-        desc=formatter_len(),
-    )
-    column_searchable_list = ('name',)
-    column_filters = ('id', 'created')
+    column_labels = dict(stat='统计')
+    column_list = ['id', 'name', 'password', 'url', 'image', 'modified', 'created', 'stat']
+    column_center_list = ['id', 'image', 'modified', 'created', 'stat']
     form_excluded_columns = ('id',)
+
+    column_formatters = dict(
+        stat=formatter_link(lambda m: ('<i class="fa fa-line-chart"></i>',
+            '/admin/channel/stat?%s' % urllib.urlencode(dict(id=str(m.id)))),
+            html=True, class_='btn btn-default btn-sm',
+            data_toggle="modal",
+            data_target="#simple-modal",
+            data_refresh="true",
+        ),
+        url=formatter_link(lambda m: (
+            'http://%s/outer/login/%d' % (current_app.config.get('WEB_HOST'), m.id),
+            'http://%s/outer/login/%d' % (current_app.config.get('WEB_HOST'), m.id))
+        ),
+    )
+
+    datas = dict(
+        stat=[
+            dict(title='注册用户', suffix='人', series=[
+                dict(name='汇总', key='channel_user_new'),
+            ]),
+            dict(title='活跃用户', suffix='人', series=[
+                dict(name='汇总', key='channel_user_active'),
+            ]),
+        ],
+    )
 
     def on_model_change(self, form, model, created=False):
         model.create()
         model.modified = datetime.now()
+
+        if not model.url:
+            data = dict(
+                action_name='QR_LIMIT_SCENE',
+                action_info=dict(scene=dict(scene_id=model.id)),
+            )
+            model.url = current_app.wxclient.create_qrcode(**data).get('url')
+            model.image = create_qrcode(model.url)
+        elif not model.image:
+            model.image = create_qrcode(model.url)
 
 
 class AndroidVersionView(ModelView):

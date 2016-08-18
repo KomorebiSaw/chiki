@@ -1,13 +1,11 @@
 # coding: utf-8
-import sys
 import time
 import functools
-import inspect
-from chiki.contrib.common import StatLog
+from chiki.contrib.common.models import StatLog
 from datetime import datetime, timedelta
 from flask import request
 from flask.ext.admin import expose
-from .utils import json_success, get_module
+from .utils import json_success
 
 
 def get_date_ranger(date_start, date_end):

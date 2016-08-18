@@ -19,6 +19,8 @@ def init_oauth(app):
 
     @app.before_request
     def before_request():
+        if current_user.is_authenticated() and 'channel' in current_user.get_id():
+            return
 
         if current_user.is_authenticated() and current_user.is_user() and not current_user.active:
             logout_user()
