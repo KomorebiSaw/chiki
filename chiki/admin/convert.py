@@ -87,5 +87,5 @@ class KModelConverter(CustomModelConverter):
         kwargs['widget'] = form.Select2Widget()
         queryset = kwargs.get('queryset')
         if callable(queryset):
-            kwargs['queryset'] = queryset(model)
+            kwargs['queryset'] = queryset(field.document_type)
         return orm.ModelConverter.conv_Reference(self, model, field, kwargs)
