@@ -75,3 +75,17 @@ class KModelConverter(CustomModelConverter):
 
         unbound_field = converter.convert(model, field.field, {})
         return ListField(unbound_field, min_entries=0, **kwargs)
+
+    @orm.converts('ReferenceField')
+    def conv_Reference(self, model, field, kwargs):
+        kwargs['allow_blank'] = not field.required
+
+        loader = getattr(self.view, '_form_ajax_refs', {}).get(field.name)
+        if loader:
+            return AjaxSelectField(loader, **kwargs)
+
+        kwargs['widget'] = form.Select2Widget()
+        queryset = kwargs.get('queryset')
+        if callable(queryset):
+            kwargs['queryset'] = queryset(model)
+        return orm.ModelConverter.conv_Reference(self, model, field, kwargs)

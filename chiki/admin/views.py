@@ -23,6 +23,7 @@ from .formatters import type_best, type_image, type_file, type_select
 from .formatters import type_bool, type_images
 from .formatters import formatter_len, formatter_link, filter_sort
 from .metaclass import CoolAdminMeta
+from .ajax import create_ajax_loader
 from ..mongoengine.fields import FileProxy, ImageProxy
 from ..utils import json_success, json_error
 
@@ -59,7 +60,6 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
 
     show_popover = False
     robot_filters = False
-    auto_form_ajax_refs = True
 
     def __init__(
             self, model, name=None,
@@ -104,13 +104,12 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
             if type(attr) == StringField:
                 self.column_formatters.setdefault(attr.name, formatter_len(40))
 
-        if self.auto_form_ajax_refs:
-            self.form_ajax_refs = self.form_ajax_refs or dict()
-            for field in model._fields:
-                attr = getattr(model, field)
-                if type(attr) == ReferenceField:
-                    if field not in self.form_ajax_refs:
-                        self.form_ajax_refs[field] = dict(fields=['id'], page_size=10)
+        self.form_ajax_refs = self.form_ajax_refs or dict()
+        for field in model._fields:
+            attr = getattr(model, field)
+            if type(attr) == ReferenceField:
+                if field not in self.form_ajax_refs and hasattr(attr.document_type, 'ajax_ref'):
+                    self.form_ajax_refs[field] = dict(fields=attr.document_type.ajax_ref, page_size=20)
 
         self._init_referenced = False
 
@@ -385,6 +384,9 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         if hasattr(self.model, field):
             return type(getattr(self.model, field)).__name__
         return 'LabelField'
+
+    def _create_ajax_loader(self, name, opts):
+        return create_ajax_loader(self.model, name, name, opts)
 
 
 class SModelView(_SModelView):
