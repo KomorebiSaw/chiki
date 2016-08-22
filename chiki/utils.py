@@ -228,7 +228,7 @@ def retry(times=3):
     return wrapper
 
 
-def tpl_data(color="#33aaff", **kwargs):
+def tpl_data(color="#333333", **kwargs):
     res = dict()
     for key, value in kwargs.iteritems():
         res[key] = dict(value=value, color=color)
