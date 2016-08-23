@@ -9,6 +9,7 @@ from chiki.contrib.users.base import user_manager as um
 from datetime import datetime, timedelta
 from flask import current_app, request
 from flask.ext.login import current_user
+from werkzeug.utils import cached_property
 
 __all__ = [
     'User', 'UserMixin', 'WeChatUser', 'QQUser', 'WeiBoUser',
@@ -73,7 +74,7 @@ class UserMixin(object):
     def __unicode__(self):
         return '%s - %s' % (self.phone, self.id)
 
-    @property
+    @cached_property
     def wechat_user(self):
         return um.models.WeChatUser.objects(user=self.id).first()
 
