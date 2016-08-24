@@ -111,7 +111,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
                 if field not in self.form_ajax_refs and hasattr(attr.document_type, 'ajax_ref'):
                     self.form_ajax_refs[field] = dict(fields=attr.document_type.ajax_ref, page_size=20)
 
-        if not self.column_default_sort and 'created' in self.model._fields:
+        if not self.column_default_sort and 'created' in model._fields:
             self.column_default_sort = ('-created', )
 
         self._init_referenced = False
