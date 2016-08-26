@@ -82,3 +82,4 @@ def patch_monkey():
 
 
 patch_monkey()
+robot = WeRoBot()

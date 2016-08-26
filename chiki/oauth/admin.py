@@ -2,9 +2,9 @@
 from chiki.admin import ModelView
 from chiki.admin.formatters import formatter_len
 from flask.ext.admin import expose
-from .models import WXMenu
-from chiki import json_error, json_success
-from flask import current_app
+from .models import WXMenu, Message
+from ..utils import json_error, json_success
+from flask import current_app, request
 
 
 class WXMenuView(ModelView):
@@ -58,3 +58,67 @@ $(function(){
 
         current_app.wxclient.create_menu(dict(button=buttons))
         return json_success()
+
+
+class MessageView(ModelView):
+    column_center_list = ('default', 'fl')
+
+    script = """
+$(function(){
+    function change(elem){
+        var $elem = $(elem),
+            id = $elem.data('id'),
+            name = $elem.data('name'),
+            value = $elem.data('value');
+        $.get("/admin/message/wxmessage", {id: id, name: name, value: value}, function(data){
+            if (data.code == 0){
+                $(data.name).find(".btn-default").each(function(index, e) {
+                    $(e).data("value", "False")
+                })
+                $(data.name).find("i").removeClass("fa-check-circle text-success")
+                $(data.name).find("i").addClass("fa-minus-circle text-danger")
+                $elem.find("i").removeClass("fa-minus-circle text-danger")
+                $elem.find("i").addClass("fa-check-circle text-success")
+                console.log(data.msg)
+            }else if (data.code == 1){
+                console.log(data.msg)
+            }else{
+                console.log(data.msg)
+            }
+        })
+    }
+
+    $(".col-default .btn-default").click(function(){
+        change(this)
+    })
+
+    $(".col-follow .btn-default").click(function() {
+        change(this)
+    })
+})
+"""
+
+    @expose('/wxmessage')
+    def wxmessage(self):
+        id = request.args.get('id', None)
+        name = request.args.get('name', None)
+        value = request.args.get('value', None)
+        if not id or not name or not value:
+            return json_error(msg='未知错误')
+
+        if name == 'default':
+            if value == 'False':
+                Message.objects(default=True).update(__raw__={'$set': dict(default=False)})
+                message = Message.objects(id=id).get_or_404()
+                message.default = True
+                message.save()
+                return json_success(name='.col-%s' % name, msg='完成了！')
+
+        if name == 'follow':
+            if value == 'False':
+                Message.objects(follow=True).update(__raw__={'$set': dict(follow=False)})
+                message = Message.objects(id=id).get_or_404()
+                message.follow = True
+                message.save()
+                return json_success(name='.col-%s' % name, msg='完成了！')
+        return json_error(msg='无动作')
