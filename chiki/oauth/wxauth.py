@@ -56,7 +56,8 @@ class WXAuth(object):
     USERINFO_URL = 'https://api.weixin.qq.com/sns/userinfo'
     CHECK_URL = 'https://api.weixin.qq.com/sns/auth'
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, config_key='WXAUTH'):
+        self.config_key = config_key
         self.success_callback = None
         self.error_callback = None
         if app:
@@ -64,9 +65,10 @@ class WXAuth(object):
 
     def init_app(self, app):
         self.app = app
-        app.wxauth = self
-        self.config = app.config.get('WXAUTH')
+        self.config = app.config.get(self.config_key)
         mp = self.config.get(self.ACTION_MP)
+        if not hasattr(app, 'wxauth'):
+            app.wxauth = self
         if mp:
             self.client = werobot.client.Client(mp.get('appid'), mp.get('secret'))
             app.wxclient = self.client
