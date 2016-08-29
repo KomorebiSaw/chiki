@@ -39,7 +39,13 @@ class WXMsg(object):
             res = self.subscribe_callback(message)
             if res:
                 return res
-        return self.on_text
+        follow_msg = Message.objects(follow=True).first()
+        if follow_msg:
+            return follow_msg.reply(message)
+        default_msg = Message.objects(default=True).first()
+        if default_msg:
+            return default_msg.reply(message)
+        return ''
 
     @robot.unsubscribe
     def on_unsubscribe(self, message):
