@@ -103,7 +103,8 @@ class WXAuth(object):
             resp.headers['Content-Type'] = 'text/javascript; charset=utf-8'
             return resp
 
-        app.jssdk = JSSDK(app)
+        if self.config.get('allow_jssdk', True):
+            app.jssdk = JSSDK(app)
 
     def quote(self, **kwargs):
         return dict((x, quote(y.encode('utf-8') if type(y) is unicode else y)) for x, y in kwargs.iteritems())
