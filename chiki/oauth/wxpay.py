@@ -48,10 +48,12 @@ class WXPay(object):
     def init_app(self, app):
         self.app = app
         self.config = app.config.get('WXPAY')
+        self.endpoint = self.config.get('endpoint', 'wxpay_callback')
         if not hasattr(app, 'wxpay'):
             app.wxpay = self
 
-        @app.route(self.callback_url, methods=['POST'])
+        @app.route(self.callback_url, methods=['POST'],
+                endpoint=self.endpoint)
         def wxpay_callback(type='normal'):
             self.callback(type)
             return """
@@ -110,7 +112,7 @@ class WXPay(object):
         kwargs.setdefault('appid', self.config.get('appid'))
         kwargs.setdefault('mch_id', self.config.get('mchid'))
         kwargs.setdefault('spbill_create_ip', get_ip())
-        kwargs.setdefault('notify_url', url_for('wxpay_callback', type=type, _external=True))
+        kwargs.setdefault('notify_url', url_for(self.endpoint, type=type, _external=True))
         kwargs.setdefault('trade_type', 'JSAPI')
         kwargs.setdefault('body', '微信支付')
         kwargs.setdefault('out_trade_no', 'wxtest')
