@@ -45,7 +45,7 @@ class WXPay(object):
 
     def init_app(self, app):
         self.app = app
-        self.config = app.config.get('WXPAY')
+        self.config = app.config.get(self.config_key)
         self.callback_url = self.config.get('callback_url', '/wxpay/<type>/callback/')
         self.endpoint = self.config.get('endpoint', 'wxpay_callback')
         if not hasattr(app, 'wxpay'):
