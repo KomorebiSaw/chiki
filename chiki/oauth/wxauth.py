@@ -73,11 +73,13 @@ class WXAuth(object):
             self.client = werobot.client.Client(mp.get('appid'), mp.get('secret'))
             app.wxclient = self.client
 
-        @app.route(self.config.get('wxauth_url', '/oauth/wechat/callback'))
+        @app.route(self.config.get('wxauth_url', '/oauth/wechat/callback'),
+                endpoint=self.config.get('wxauth_endpoint'))
         def wxauth_callback():
             return self.callback()
 
-        @app.route(self.config.get('wxauth_js_url', '/weixin-login.js'))
+        @app.route(self.config.get('wxauth_js_url', '/weixin-login.js'),
+                endpoint=self.config.get('wxauth_js_endpoint'))
         def weixin_login():
             qrcode = self.config.get(self.ACTION_QRCODE)
             js = ''
