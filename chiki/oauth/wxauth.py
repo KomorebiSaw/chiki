@@ -66,6 +66,7 @@ class WXAuth(object):
     def init_app(self, app):
         self.app = app
         self.config = app.config.get(self.config_key)
+        self.endpoint = self.config.get('wxauth_endpoint', 'wxauth_callback')
         mp = self.config.get(self.ACTION_MP)
         if not hasattr(app, 'wxauth'):
             app.wxauth = self
@@ -74,7 +75,7 @@ class WXAuth(object):
             app.wxclient = self.client
 
         @app.route(self.config.get('wxauth_url', '/oauth/wechat/callback'),
-                endpoint=self.config.get('wxauth_endpoint'))
+                endpoint=self.endpoint)
         def wxauth_callback():
             return self.callback()
 
@@ -89,7 +90,7 @@ class WXAuth(object):
                     appid=qrcode.get('appid', ''),
                     scope=self.SNSAPI_LOGIN,
                     redirect_uri=quote(url_for(
-                        'wxauth_callback', scope=self.SNSAPI_LOGIN,
+                        self.endpoint, scope=self.SNSAPI_LOGIN,
                         action=self.ACTION_QRCODE, _external=True)),
                     state='STATE',
                     style=request.args.get('style', 'white'),
@@ -172,7 +173,7 @@ class WXAuth(object):
         config = self.config.get(action)
         query = self.quote(
             appid=config.get('appid'),
-            callback=url_for('wxauth_callback', scope=scope, next=next, action=action, _external=True),
+            callback=url_for(self.endpoint, scope=scope, next=next, action=action, _external=True),
             scope=scope,
             state=state,
         )
