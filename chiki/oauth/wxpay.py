@@ -37,10 +37,8 @@ class WXPay(object):
     REFUND_QUERY = 'https://api.mch.weixin.qq.com/pay/refundquery'
     SEND_RED_PACK = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack'
 
-    def __init__(self, app=None, config_key='WXPAY',
-            callback_url='/wxpay/<type>/callback/'):
+    def __init__(self, app=None, config_key='WXPAY'):
         self.config_key = config_key
-        self.callback_url = callback_url
         self.wxpay_callback = None
         if app:
             self.init_app(app)
@@ -48,12 +46,12 @@ class WXPay(object):
     def init_app(self, app):
         self.app = app
         self.config = app.config.get('WXPAY')
+        self.callback_url = self.config.get('callback_url', '/wxpay/<type>/callback/')
         self.endpoint = self.config.get('endpoint', 'wxpay_callback')
         if not hasattr(app, 'wxpay'):
             app.wxpay = self
 
-        @app.route(self.callback_url, methods=['POST'],
-                endpoint=self.endpoint)
+        @app.route(self.callback_url, methods=['POST'], endpoint=self.endpoint)
         def wxpay_callback(type='normal'):
             self.callback(type)
             return """
