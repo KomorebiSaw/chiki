@@ -23,6 +23,13 @@
 
 {% block body %}
   {{ lib.render_form(form, return_url, extra(), form_opts=form_opts) }}
+
+  {% if admin_view.script %}
+    <script type="text/javascript">
+        {{ admin_view.script | safe }}
+    </script>
+  {% endif %}
+
 {% endblock %}
 
 {% block tail %}

@@ -5,6 +5,7 @@ from flask.ext.admin import expose
 from .models import WXMenu, Message
 from ..utils import json_error, json_success
 from flask import current_app, request
+from chiki.base import db
 
 
 class WXMenuView(ModelView):
@@ -122,3 +123,13 @@ $(function(){
                 message.save()
                 return json_success(name='.col-%s' % name, msg='完成了！')
         return json_error(msg='无动作')
+
+    def on_model_change(self, form, model, created=False):
+        if model.default and model.follow:
+            Message.objects(db.Q(default=True) | db.Q(follow=True)).update(
+                __raw__={'$set': dict(default=False, follow=False)}
+            )
+        elif model.follow:
+            Message.objects(follow=True).update(__raw__={'$set': dict(follow=False)})
+        else:
+            Message.objects(default=True).update(__raw__={'$set': dict(default=False)})

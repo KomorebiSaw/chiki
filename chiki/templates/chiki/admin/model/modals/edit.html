@@ -26,6 +26,13 @@
   });
 
   </script>
+
+  {% if admin_view.script %}
+    <script type="text/javascript">
+        {{ admin_view.script | safe }}
+    </script>
+  {% endif %}
+
   <script>
     $(document).ready(function(){
       $(document).off('focusin.modal');
