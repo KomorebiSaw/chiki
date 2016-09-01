@@ -198,10 +198,8 @@ class JinjaManager(object):
         url = current_app.config.get('LAZY_IMAGE', '')
         return url + ('@%sw_%sh_1e_1c_95Q.png' % (width, height))
 
-    def repr(self, str):
-        res = repr(str)
-        if type(res) == unicode:
-            res = res.encode('utf-8')
+    def repr(self, text):
+        res = unicode(repr(text)).encode('utf-8')
         return res[1:-1]
 
 
