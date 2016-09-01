@@ -66,6 +66,7 @@ class JinjaManager(object):
             best_num=self.best_num_filter,
             json=json.dumps,
             cdn=self.cdn_filter,
+            repr=repr,
         )
 
     def context_processor(self):
@@ -76,6 +77,7 @@ class JinjaManager(object):
             is_ajax=is_ajax,
             current_app=current_app,
             str=str,
+            repr=repr,
         )
 
     def line2br_filter(self, text):
