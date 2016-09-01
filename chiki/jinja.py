@@ -66,7 +66,7 @@ class JinjaManager(object):
             best_num=self.best_num_filter,
             json=json.dumps,
             cdn=self.cdn_filter,
-            repr=repr,
+            repr=self.repr,
         )
 
     def context_processor(self):
@@ -77,7 +77,7 @@ class JinjaManager(object):
             is_ajax=is_ajax,
             current_app=current_app,
             str=str,
-            repr=repr,
+            repr=self.repr,
         )
 
     def line2br_filter(self, text):
@@ -197,6 +197,12 @@ class JinjaManager(object):
     def cdn_filter(self, url, width, height):
         url = current_app.config.get('LAZY_IMAGE', '')
         return url + ('@%sw_%sh_1e_1c_95Q.png' % (width, height))
+
+    def repr(self, str):
+        res = repr(str)
+        if type(res) == unicode:
+            res = res.encode('utf-8')
+        return res[1:-1]
 
 
 def init_jinja(app):
