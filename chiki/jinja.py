@@ -199,8 +199,8 @@ class JinjaManager(object):
         return url + ('@%sw_%sh_1e_1c_95Q.png' % (width, height))
 
     def repr(self, text):
-        res = unicode(repr(text)).encode('utf-8')
-        return res[1:-1]
+        res = repr(text)
+        return res[2:-1]
 
 
 def init_jinja(app):
