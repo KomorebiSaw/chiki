@@ -1,5 +1,6 @@
 {% extends "page-base.html" %}
 {% block title %}{{ page.name }}{% endblock %}
+{% if page.bg %}{% block body_class %}" style="background:{{page.bg}}"{% endblock %}{% endif %}
 
 {% block body %}
 <div class="page-content">{{ page.content | safe }}</div>
