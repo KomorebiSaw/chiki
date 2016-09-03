@@ -1,5 +1,6 @@
 # coding: utf-8
 from xml.sax.saxutils import escape as _escape, quoteattr
+from markupsafe import Markup
 from ..iptools import parse_ip
 from ..jinja import markup, markupper
 from ..utils import datetime2best, time2best
@@ -257,7 +258,7 @@ def type_select(view, value, model, name, choices):
                     <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dLabel" style="min-width:100px">%s</ul>
-            </div>''' % (id, choices.get(value), selects)
+            </div>''' % (id, choices.get(str(value) if type(value) is Markup else value), selects)
 
     return html
 
