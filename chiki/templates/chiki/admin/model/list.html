@@ -13,6 +13,12 @@
         min-width: 60px;
         max-width: 60px;
     }
+    .nav-tabs > li.active.not-active > a, .nav-tabs > li.active.not-active > a:hover, .nav-tabs > li.active.not-active > a:focus {
+        color: #555;
+        background-color: transparent;
+        border: 1px solid transparent;
+        cursor: pointer;
+    }
     {% if admin_view.column_center_list %}
         {% for column in admin_view.column_center_list %}
             .col-{{ column }},
@@ -68,6 +74,19 @@
     {% if actions %}
     <li class="dropdown">
         {{ actionlib.dropdown(actions) }}
+    </li>
+    {% endif %}
+
+    {% if admin_view.links %}
+    <li class="dropdown not-active">
+        <a class="btn" data-toggle="dropdown" href="javascript:void(0)">链接<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+            {% for a in admin_view.links %}
+            <li>
+                <a href="{{ a.link }}"{% if a.target %} target="{{ a.target }}"{% endif %}>{{ a.label }}</a>
+            </li>
+            {% endfor %}
+        </ul>
     </li>
     {% endif %}
 
