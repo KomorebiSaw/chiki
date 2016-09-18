@@ -111,3 +111,15 @@ class KFilterConverter(FilterConverter):
     @_convert('ListField')
     def conv_list(self, column, name, ref_type=None):
         return [f(column, name, ref_type) for f in self.list_filters]
+
+
+def get_options(self, view):
+    options = self.options or self.column.choices
+    if options:
+        if callable(options):
+            options = options()
+        return options
+    return None
+
+
+BaseMongoEngineFilter.get_options = get_options

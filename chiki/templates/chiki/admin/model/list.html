@@ -57,6 +57,10 @@
     </li>
     {% endif %}
 
+    {% if admin_view.can_export %}
+        {{ model_layout.export_options() }}
+    {% endif %}
+
     {% if admin_view.tabs %}
     <li>
         {% for tab in admin_view.tabs %}

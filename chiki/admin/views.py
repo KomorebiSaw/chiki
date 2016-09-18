@@ -224,7 +224,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         return flt
 
     def get_list(self, page, sort_column, sort_desc, search, filters,
-                 execute=True):
+                 execute=True, page_size=None):
         query = self.get_query()
         if self._filters:
             for flt, flt_name, value in filters:
@@ -246,11 +246,14 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
                 else:
                     query = query.order_by('%s%s' % ('-' if order[1] else '', order[0]))
 
-        # Pagination
-        if page is not None:
-            query = query.skip(page * self.page_size)
+        if page_size is None:
+            page_size = self.page_size
 
-        query = query.limit(self.page_size)
+        if page_size:
+            query = query.limit(page_size)
+
+        if page and page_size:
+            query = query.skip(page * page_size)
 
         if execute:
             query = query.all()

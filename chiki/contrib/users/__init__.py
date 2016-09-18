@@ -128,16 +128,16 @@ class UserManager(object):
     def context_processor(self):
         return dict(um=self)
 
-    def add_model(self, model):
-        self.models[model.__name__] = model
+    def add_model(self, model, name=None):
+        self.models[name or model.__name__] = model
         return model
 
-    def add_form(self, form):
-        self.forms[form.__name__] = form
+    def add_form(self, form, name=None):
+        self.forms[name or form.__name__] = form
         return form
 
-    def add_func(self, func):
-        self.funcs[func.__name__] = func
+    def add_func(self, func, name=None):
+        self.funcs[name or func.__name__] = func
         return func
 
     def add_api(self, *args, **kwargs):

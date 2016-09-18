@@ -67,12 +67,15 @@ class WXAuth(object):
         self.app = app
         self.config = app.config.get(self.config_key)
         self.endpoint = self.config.get('wxauth_endpoint', 'wxauth_callback')
-        mp = self.config.get(self.ACTION_MP)
+
         if not hasattr(app, 'wxauth'):
             app.wxauth = self
+
+        mp = self.config.get(self.ACTION_MP)
         if mp:
             self.client = werobot.client.Client(mp.get('appid'), mp.get('secret'))
-            app.wxclient = self.client
+            if not hasattr(app, 'wxclient'):
+                app.wxclient = self.client
 
         @app.route(self.config.get('wxauth_url', '/oauth/wechat/callback'),
                 endpoint=self.endpoint)
