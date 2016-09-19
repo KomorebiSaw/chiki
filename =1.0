@@ -1,5 +1,0 @@
-Collecting Babel
-  Downloading https://pypi.doubanio.com/packages/b4/ec/acd307eac2e23f9cab1c8bdbe29b3b1d43215e31c32f8aa91b3a97925b5b/Babel-2.3.4-py2.py3-none-any.whl (7.1MB)
-Requirement already satisfied (use --upgrade to upgrade): pytz>=0a in /home/loony/.virtualenvs/whg/lib/python2.7/site-packages/pytz-2016.6.1-py2.7.egg (from Babel)
-Installing collected packages: Babel
-Successfully installed Babel-2.3.4

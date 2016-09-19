@@ -1,9 +1,0 @@
-Collecting chardet
-  Downloading https://pypi.doubanio.com/packages/7d/87/4e3a3f38b2f5c578ce44f8dc2aa053217de9f0b6d737739b0ddac38ed237/chardet-2.3.0.tar.gz (164kB)
-Building wheels for collected packages: chardet
-  Running setup.py bdist_wheel for chardet: started
-  Running setup.py bdist_wheel for chardet: finished with status 'done'
-  Stored in directory: /home/loony/.cache/pip/wheels/78/fa/5d/41d6cd954039411b672b96f302f5709cca543899502a572ce9
-Successfully built chardet
-Installing collected packages: chardet
-Successfully installed chardet-2.3.0

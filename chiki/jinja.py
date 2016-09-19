@@ -78,6 +78,8 @@ class JinjaManager(object):
             current_app=current_app,
             str=str,
             repr=self.repr,
+            callable=callable,
+            len=len,
         )
 
     def line2br_filter(self, text):

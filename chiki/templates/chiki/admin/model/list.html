@@ -64,7 +64,16 @@
     {% if admin_view.tabs %}
     <li>
         {% for tab in admin_view.tabs %}
-            <a href="{{ get_url(tab.endpoint, url=return_url) }}" title="{{ tab.title }}">{{ tab.text }}</a>
+            {% if tab.kwargs %}
+                {% if callable(tab.kwargs) %}
+                    {% set tab_url = get_url(tab.endpoint, url=return_url, **tab.kwargs()) %}
+                {% else %}
+                    {% set tab_url = get_url(tab.endpoint, url=return_url, **tab.kwargs) %}
+                {% endif %}
+            {% else %}
+                {% set tab_url = get_url(tab.endpoint, url=return_url) %}
+            {% endif %}
+            <a href="{{ tab_url }}" title="{{ tab.title }}">{{ tab.text }}</a>
         {% endfor %}
     </li>
     {% endif %}
