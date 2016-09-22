@@ -195,7 +195,7 @@
             try {
                 $.each(urls, function (key, value) {
                     if (!!value) {
-                        window.WEditor.command(event, 'insertHTML', '<img src="' + value + '"/>');
+                        $uploadContainer.WEditor.command(event, 'insertHTML', '<img src="' + value + '"/>');
                     }
                 });
             } catch (ex) {

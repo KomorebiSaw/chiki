@@ -279,7 +279,7 @@ class WangEditor(TextArea):
                 var editor = $('#%s').wangEditor({
                     uploadImgComponent: clone,
                 });
-                window.WEditor = editor;
+                clone.WEditor = editor;
             });
         </script>""" % field.name
         return super(WangEditor, self).__call__(field, **kwargs) + script
