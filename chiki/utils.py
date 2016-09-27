@@ -17,7 +17,7 @@ __all__ = [
     'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os', 'get_platform',
     'get_channel', 'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
     'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data', 'get_module',
-    'rmb3',
+    'rmb3', 'check_encode',
 ]
 
 
@@ -258,3 +258,12 @@ def get_module():
 def rmb3(num):
     d = float('%.2f' % (num / 100.0))
     return str([str(d), int(d)][int(d) == d])
+
+
+def check_encode(text, code='gb18030'):
+    try:
+        text.encode(code)
+        return True
+    except:
+        pass
+    return False
