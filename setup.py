@@ -70,6 +70,7 @@ setup(
         'Flask-WeRoBot==0.1.2',
         'xmltodict==0.9.2',
         'dicttoxml==1.6.6',
+        'qrcode==5.3',
         'Flask-DebugToolbar==0.10.0',
         'Flask-DebugToolbar-LineProfilerPanel==1.0.2',
         'Flask-Session==0.2.3',
