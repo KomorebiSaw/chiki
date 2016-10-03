@@ -4,8 +4,8 @@ from flask.ext.admin.contrib.mongoengine.form import CustomModelConverter
 from flask.ext.admin.model.fields import AjaxSelectField, AjaxSelectMultipleField
 from flask.ext.mongoengine.wtf import orm, fields as mongo_fields
 from mongoengine import ReferenceField
-from ..forms.fields import FileField, ImageField, AreaField, ListField
-from ..forms.fields import ModelSelectMultipleField
+from ..forms.fields import FileField, ImageField, Base64ImageField
+from ..forms.fields import AreaField, ListField, ModelSelectMultipleField
 
 
 class KModelConverter(CustomModelConverter):
@@ -13,12 +13,17 @@ class KModelConverter(CustomModelConverter):
     @orm.converts('XFileField')
     def conv_kfile(self, model, field, kwargs):
         return FileField(max_size=field.max_size, allows=field.allows,
-            place=field.place, **kwargs)
+                         place=field.place, **kwargs)
 
     @orm.converts('XImageField')
     def conv_kimage(self, model, field, kwargs):
         return ImageField(max_size=field.max_size, allows=field.allows,
-            place=field.place, **kwargs)
+                          place=field.place, **kwargs)
+
+    @orm.converts('Base64ImageField')
+    def conv_base64_image(self, model, field, kwargs):
+        return Base64ImageField(max_size=field.max_size, allows=field.allows,
+                                place=field.place, **kwargs)
 
     @orm.converts('AreaField')
     def conv_area(self, model, field, kwargs):

@@ -30,35 +30,6 @@ class Enable(object):
         return [Enable.ENABLED]
 
 
-class Action(object):
-    """ 动作选项 """
-
-    DEFAULT = 'default'
-    EMPTY = 'empty'
-    TABLIST = 'tablist'
-    WEBSTATIC = 'webstatic'
-    WEBVIEW = 'webview'
-    LISTVIEW = 'listview'
-    GRIDVIEW = 'gridview'
-    BROWSER = 'browser'
-    REDIRECT = 'redirect'
-    DIVIDER = 'divider'
-    CHOICES = (
-        (DEFAULT, '原生'),
-        (EMPTY, '无动作'),
-        (TABLIST, 'Tab'),
-        (WEBSTATIC, '静态网页'),
-        (WEBVIEW, '网页'),
-        (LISTVIEW, '列表'),
-        (GRIDVIEW, '表格'),
-        (BROWSER, '浏览器'),
-        (REDIRECT, '内部跳转'),
-        (DIVIDER, '分割线'),
-    )
-    VALUES = [x[0] for x in CHOICES]
-    DICT = dict(CHOICES)
-
-
 class Item(db.Document):
     """ 选项 """
 
@@ -145,7 +116,76 @@ class Item(db.Document):
         item.save()
 
 
-class ShareItem(db.EmbeddedDocument):
+class Choice(db.EmbeddedDocument):
+    """ 选项 """
+
+    key = db.StringField(verbose_name='键名')
+    name = db.StringField(verbose_name='名称')
+
+    def __unicode__(self):
+        return '%s - %s' % (self.key, self.name)
+
+
+class Choices(db.Document):
+    """ 选项模型 """
+
+    MENU_ICON = 'plus-circle'
+
+    fields = dict()
+    key = db.StringField(verbose_name='键名')
+    name = db.StringField(verbose_name='名称')
+    default = db.StringField(verbose_name='默认值')
+    choices = db.XListField(db.EmbeddedDocumentField(Choice), verbose_name='选项')
+    enable = db.BooleanField(default=True, verbose_name='启用')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = dict(indexes=['key'])
+
+    def __unicode__(self):
+        return '%s - %s' % (self.key, self.name)
+
+    @staticmethod
+    def init():
+        for key, field in Choices.fields.iteritems():
+            Choices.init_field(key, field[1], field[0])
+
+    @staticmethod
+    def init_field(key, name, field, choices=None):
+        choices = choices or Choices.objects(key=key).first()
+        if choices:
+            if choices.enable:
+                if choices.default:
+                    field.default = choices.default
+                field.choices = [(x.key, x.name) for x in choices.choices]
+            else:
+                field.default = None
+                field.choices = None
+        else:
+            Choices(key=key, name=name).save()
+        Choices.refresh(field.owner_document)
+
+    @staticmethod
+    def refresh(model):
+        if model:
+            for admin in current_app.extensions.get('admin', []):
+                for view in admin._views:
+                    if model == getattr(view, 'model', None):
+                        view._refresh_cache()
+
+    def save(self):
+        super(Choices, self).save()
+        field = self.fields.get(self.key)
+        if field:
+            self.init_field(self.key, field[1], field[0], self)
+
+
+def choice(field, key, name):
+    Choices.fields[key] = (field, name)
+    return field
+
+
+class Share(db.EmbeddedDocument):
     """ 分享模型 """
 
     title = db.StringField(verbose_name='标题')
@@ -386,7 +426,7 @@ class IOSVersion(db.Document):
         return self.id
 
 
-class APIItem(db.Document):
+class API(db.Document):
     """ 接口模型 """
 
     MENU_ICON = 'server'
@@ -395,7 +435,7 @@ class APIItem(db.Document):
     key = db.StringField(verbose_name='键名')
     url = db.StringField(verbose_name='链接')
     expire = db.IntField(default=0, verbose_name='缓存')
-    is_cache = db.BooleanField(verbose_name='已缓存')
+    cache = db.BooleanField(verbose_name='已缓存')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
@@ -412,7 +452,7 @@ class APIItem(db.Document):
             key=self.key,
             url=self.url,
             expire=self.expire,
-            is_cache=self.is_cache,
+            cache=self.cache,
         )
 
 
@@ -435,36 +475,26 @@ class UserImage(db.Document):
     }
 
 
-class ActionModule(db.Document):
-    """ 功能选项 """
-
-    key = db.StringField(verbose_name='KEY')
-    name = db.StringField(verbose_name='名称')
-
-    def __unicode__(self):
-        return self.name
-
-
-class ActionItem(db.Document):
+class Action(db.Document):
     """ 功能模型 """
 
     MENU_ICON = 'bars'
 
+    key = db.StringField(verbose_name='ID')
     name = db.StringField(verbose_name='名称')
-    key = db.StringField(verbose_name='键名')
     desc = db.StringField(verbose_name='描述')
-    icon = db.XImageField(verbose_name='图标')
-    module = db.ReferenceField('ActionModule', verbose_name='模块')
-    action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
-    url = db.StringField(verbose_name='链接')
-    share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
+    icon = db.Base64ImageField(verbose_name='图标')
+    active_icon = db.Base64ImageField(verbose_name='图标')
+    module = choice(db.StringField(verbose_name='模块'), 'action_module', '功能模块')
+    data = db.StringField(verbose_name='数据')
+    target = db.StringField(verbose_name='目标')
+    share = db.EmbeddedDocumentField(Share, verbose_name='分享')
     sort = db.IntField(verbose_name='排序')
-    android_version = db.ReferenceField(AndroidVersion, verbose_name='安卓版本')
-    android_version_end = db.ReferenceField(AndroidVersion, verbose_name='安卓最大版本')
-    ios_version = db.ReferenceField(IOSVersion, verbose_name='IOS版本')
-    ios_version_end = db.ReferenceField(IOSVersion, verbose_name='IOS最大版本')
+    android_start = db.ReferenceField(AndroidVersion, verbose_name='安卓版本')
+    android_end = db.ReferenceField(AndroidVersion, verbose_name='安卓最大版本')
+    ios_start = db.ReferenceField(IOSVersion, verbose_name='IOS版本')
+    ios_end = db.ReferenceField(IOSVersion, verbose_name='IOS最大版本')
     login = db.BooleanField(default=False, verbose_name='登陆')
-    login_show = db.BooleanField(default=False, verbose_name='登录显示')
     enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
@@ -480,19 +510,19 @@ class ActionItem(db.Document):
     @property
     def detail(self):
         return dict(
+            id=self.key,
             name=self.name,
-            key=self.key,
             desc=self.desc,
-            icon=self.icon.link,
-            action=self.action,
-            login=self.login,
-            url=self.url,
+            icon=self.icon.base64,
+            active_icon=self.active_icon.base64,
+            data=self.data,
+            target=self.target,
             share=unicode(self.share),
-            extras='',
+            login=self.login,
         )
 
 
-class TPLItem(db.Document):
+class TPL(db.Document):
     """ 模板模型 """
 
     MENU_ICON = 'globe'
@@ -505,29 +535,22 @@ class TPLItem(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
 
-class SlideModule(db.Document):
-    """ 广告模块 """
-
-    key = db.StringField(verbose_name='KEY')
-    name = db.StringField(verbose_name='名称')
-
-    def __unicode__(self):
-        return self.name
-
-
-class SlideItem(db.Document):
+class Slide(db.Document):
     """ 广告模型 """
 
     MENU_ICON = 'paw'
 
+    key = db.StringField(verbose_name='ID')
     name = db.StringField(verbose_name='名称')
-    key = db.StringField(verbose_name='键名')
     icon = db.XImageField(verbose_name='图标')
-    module = db.ReferenceField('SlideModule', verbose_name='模块')
-    action = db.StringField(default=Action.DEFAULT, verbose_name='动作', choices=Action.CHOICES)
-    url = db.StringField(verbose_name='链接')
-    share = db.EmbeddedDocumentField(ShareItem, verbose_name='分享')
+    module = choice(db.StringField(verbose_name='模块'), 'slide_module', '广告模块')
+    target = db.StringField(verbose_name='目标')
+    share = db.EmbeddedDocumentField(Share, verbose_name='分享')
     sort = db.IntField(verbose_name='排序')
+    android_start = db.ReferenceField(AndroidVersion, verbose_name='安卓版本')
+    android_end = db.ReferenceField(AndroidVersion, verbose_name='安卓最大版本')
+    ios_start = db.ReferenceField(IOSVersion, verbose_name='IOS版本')
+    ios_end = db.ReferenceField(IOSVersion, verbose_name='IOS最大版本')
     login = db.BooleanField(default=False, verbose_name='登陆')
     enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
@@ -544,8 +567,8 @@ class SlideItem(db.Document):
     @property
     def detail(self):
         return dict(
+            id=self.key,
             name=self.name,
-            key=self.key,
             icon=self.icon.link,
             action=self.action,
             login=self.login,
@@ -564,7 +587,7 @@ class ImageItem(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
 
-class OptionItem(db.Document):
+class Option(db.Document):
     """ 配置模型 """
 
     MENU_ICON = 'gear'
@@ -576,75 +599,6 @@ class OptionItem(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['-created'])
-
-
-class Choice(db.EmbeddedDocument):
-    """ 选项 """
-
-    key = db.StringField(verbose_name='键名')
-    name = db.StringField(verbose_name='名称')
-
-    def __unicode__(self):
-        return '%s - %s' % (self.key, self.name)
-
-
-class Choices(db.Document):
-    """ 选项模型 """
-
-    MENU_ICON = 'plus-circle'
-
-    fields = dict()
-    key = db.StringField(verbose_name='键名')
-    name = db.StringField(verbose_name='名称')
-    default = db.StringField(verbose_name='默认值')
-    choices = db.XListField(db.EmbeddedDocumentField(Choice), verbose_name='选项')
-    enable = db.BooleanField(default=True, verbose_name='启用')
-    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
-    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
-
-    meta = dict(indexes=['key'])
-
-    def __unicode__(self):
-        return '%s - %s' % (self.key, self.name)
-
-    @staticmethod
-    def init():
-        for key, field in Choices.fields.iteritems():
-            Choices.init_field(key, field[1], field[0])
-
-    @staticmethod
-    def init_field(key, name, field, choices=None):
-        choices = choices or Choices.objects(key=key).first()
-        if choices:
-            if choices.enable:
-                if choices.default:
-                    field.default = choices.default
-                field.choices = [(x.key, x.name) for x in choices.choices]
-            else:
-                field.default = None
-                field.choices = None
-        else:
-            Choices(key=key, name=name).save()
-        Choices.refresh(field.owner_document)
-
-    @staticmethod
-    def refresh(model):
-        if model:
-            for admin in current_app.extensions.get('admin', []):
-                for view in admin._views:
-                    if model == getattr(view, 'model', None):
-                        view._refresh_cache()
-
-    def save(self):
-        super(Choices, self).save()
-        field = self.fields.get(self.key)
-        if field:
-            self.init_field(self.key, field[1], field[0], self)
-
-
-def choice(field, key, name):
-    Choices.fields[key] = (field, name)
-    return field
 
 
 class Menu(db.Document):

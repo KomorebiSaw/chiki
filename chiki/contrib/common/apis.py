@@ -1,36 +1,34 @@
 # coding: utf-8
-import time
 from collections import defaultdict
-from chiki import strip, get_version, get_os
+from chiki.utils import get_version, get_os
 from chiki.api import success
-from flask import current_app, request, url_for
-from flask.ext.login import current_user, login_required
-from flask.ext.restful import Resource, reqparse
+from flask import current_app
+from flask.ext.restful import Resource
 from chiki.api.const import *
 from chiki.utils import parse_spm
 from chiki.base import db
 from chiki.contrib.common.models import (
-    Enable, Item, APIItem, TPLItem, AndroidVersion,
-    ActionItem, SlideItem, OptionItem
+    Enable, API, TPL, AndroidVersion,
+    Action, Slide, Option
 )
 
 
-class CommonAPI(Resource):
+class Global(Resource):
 
     def get(self):
         res = dict(apis={}, tpls={}, actions=defaultdict(list), options={})
         version = get_version()
 
-        apis = APIItem.objects.all()
+        apis = API.objects.all()
         for api in apis:
             res['apis'][api.key] = api.detail
 
-        for option in OptionItem.objects.all():
+        for option in Option.objects.all():
             res['options'][option.key] = option.value
         res['options']['uuid'] = '0'
         res['options']['channel'] = '0'
 
-        tpls = TPLItem.objects(enable__in=Enable.get()).order_by('sort')
+        tpls = TPL.objects(enable__in=Enable.get())
         for tpl in tpls:
             res['tpls'][tpl.key] = dict(
                 key=tpl.key,
@@ -41,28 +39,26 @@ class CommonAPI(Resource):
 
         query = db.Q(enable__in=Enable.get())
         if get_os() == 2:
-            query = query & (db.Q(android_version__lte=version) | db.Q(android_version=None)) & \
-                (db.Q(android_version_end__gte=version) | db.Q(android_version_end=None))
+            query = query & (db.Q(android_start__lte=version) | db.Q(android_start=None)) & \
+                (db.Q(android_end__gte=version) | db.Q(android_end=None))
         elif get_os() == 1:
-            query = query & (db.Q(ios_version__lte=version) | db.Q(ios_version=None)) & \
-                (db.Q(ios_version_end__gte=version) | db.Q(ios_version_end=None))
-        if not current_user.is_authenticated():
-            query = query & (db.Q(login_show=False) | db.Q(login_show=None))
+            query = query & (db.Q(ios_start__lte=version) | db.Q(ios_start=None)) & \
+                (db.Q(ios_end__gte=version) | db.Q(ios_end=None))
 
-        actions = ActionItem.objects(enable__in=Enable.get()).order_by('sort')
+        actions = Action.objects(enable__in=Enable.get()).order_by('sort')
         for action in actions:
-            if action.module and action.module.key:
-                res['actions'][action.module.key].append(action.detail)
+            if action.module:
+                res['actions'][action.module].append(action.detail)
 
-        slides = SlideItem.objects(enable__in=Enable.get()).order_by('sort')
+        slides = Slide.objects(enable__in=Enable.get()).order_by('sort')
         for slide in slides:
-            if slide.module and slide.module.key:
-                res['actions'][slide.module.key].append(slide.detail)
+            if slide.module:
+                res['actions'][slide.module].append(slide.detail)
 
         return res
 
 
-class AndroidAPI(Resource):
+class AndroidLatest(Resource):
 
     def get(self):
         item = AndroidVersion.objects(enable__in=Enable.get()).order_by('-id').first()
@@ -80,6 +76,6 @@ class AndroidAPI(Resource):
         abort(SERVER_ERROR)
 
 
-def init(api):
-    api.add_resource(CommonAPI, '/common')
-    api.add_resource(AndroidAPI, '/android/latest')
+def init_common_apis(api):
+    api.add_resource(Global, '/global')
+    api.add_resource(AndroidLatest, '/android/latest')

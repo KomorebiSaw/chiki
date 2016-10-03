@@ -1,4 +1,5 @@
 # coding: utf-8
+import base64
 import hashlib
 from flask import current_app
 from mongoengine import signals
@@ -9,9 +10,12 @@ from .generators import BaseGenerator, RandomGenerator
 from .storages import get_storage
 
 __all__ = [
-    'XFileField', 'XImageField', 'XListField', 'AreaField', 'set_filename_generator',
+    'XFileField', 'XImageField', 'Base64ImageField', 'XListField',
+    'AreaField', 'set_filename_generator',
+    
 ]
-DEFAULT_ALLOWS = ['txt', 'bz2', 'gz', 'tar', 'zip', 'rar', 'apk', 'jpg', 'jpeg', 'png', 'gif', 'bmp']
+DEFAULT_ALLOWS = ['txt', 'bz2', 'gz', 'tar', 'zip', 'rar', 'apk',
+                  'jpg', 'jpeg', 'png', 'gif', 'bmp']
 DEFAULT_IMAGE_ALLOWS = ['jpg', 'jpeg', 'png', 'gif', 'bmp']
 
 
@@ -242,6 +246,54 @@ class ImageProxy(FileProxy):
 class XImageField(XFileField):
     proxy_class = ImageProxy
     default_allows = DEFAULT_IMAGE_ALLOWS
+
+
+class Base64ImageProxy(FileProxy):
+
+    @property
+    def link(self):
+        return self.filename
+
+    @property
+    def base64(self):
+        return 'base://' + self.filename
+
+    def get_link(self, **kwargs):
+        return self.filename
+
+
+class Base64ImageField(XImageField):
+    """ Base64图片字段 """
+
+    proxy_class = Base64ImageProxy
+
+    def get_path(self, filename):
+        return filename
+
+    def get_link(self, filename, **kwargs):
+        return filename
+
+    def get_content(self, filename):
+        if filename and filename.find('base64,') != -1:
+            return filename[filename.index('base64,'):].decode('base64')
+
+    def put(self, stream, format='png', filename=None):
+        filename = 'data:image/%s;base64,' % format
+        filename += base64.b64encode(stream.read())
+        return filename
+
+    def remove(self, filename):
+        pass
+
+    def to_mongo(self, value):
+        if isinstance(value, self.proxy_class):
+            return value.filename
+        return value
+
+    def to_python(self, value):
+        if not isinstance(value, self.proxy_class):
+            return self.proxy_class(self, value)
+        return value
 
 
 class XListField(ListField):

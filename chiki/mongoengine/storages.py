@@ -70,7 +70,7 @@ class LocalFile(BaseFile):
 
 
 class OSSFile(BaseFile):
-    
+
     def __init__(self, conf):
         super(OSSFile, self).__init__(conf)
         from oss.oss_api import OssAPI
@@ -130,9 +130,10 @@ def _get_storage(conf):
 
 
 _storages = {}
+
+
 def get_storage(key, conf):
     global _storages
     if key not in _storages:
         _storages[key] = _get_storage(conf)
     return _storages[key]
-        

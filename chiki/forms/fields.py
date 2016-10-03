@@ -10,13 +10,13 @@ from wtforms.widgets import RadioInput, CheckboxInput
 from wtforms.validators import ValidationError
 from wtforms.utils import unset_value
 from .widgets import VerifyCode, UEditor, KListWidget, DragSelectWidget
-from .widgets import FileInput, ImageInput, AreaInput, WangEditor, DragInput
+from .widgets import FileInput, ImageInput, Base64ImageInput, AreaInput, WangEditor, DragInput
 from ..verify import get_verify_code, validate_code
 from ..mongoengine.fields import FileProxy
 
 __all__ = [
     'VerifyCodeField', 'KDateField', 'KRadioField', 'KCheckboxField',
-    'DragSelectWidget', 'UEditorField', 'FileField', 'ImageField',
+    'DragSelectWidget', 'UEditorField', 'FileField', 'ImageField', 'Base64ImageField',
     'AreaField', 'ListField', 'ModelSelectMultipleField', 'WangEditorField',
     'Label',
 ]
@@ -201,6 +201,11 @@ class ImageField(FileField):
 
     def __init__(self, label=None, max_size=None, allows=DEFAULT_IMAGE_ALLOWS, place=None, **kwargs):
         super(ImageField, self).__init__(label=label, **kwargs)
+
+
+class Base64ImageField(ImageField):
+
+    widget = Base64ImageInput()
 
 
 class AreaField(Field):
