@@ -185,6 +185,9 @@ def choice(field, key, name):
     return field
 
 
+db.dynamic = choice
+
+
 class Share(db.EmbeddedDocument):
     """ 分享模型 """
 

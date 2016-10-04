@@ -11,7 +11,7 @@ from werkzeug.http import HTTP_STATUS_CODES
 from .const import abort
 
 __all__ = [
-    'api', 'wapi', 'xapi', 'success',
+    'api', 'wapi', 'xapi', 'success', 'Resource',
 ]
 
 
