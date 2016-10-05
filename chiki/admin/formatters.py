@@ -4,7 +4,7 @@ from markupsafe import Markup
 from ..iptools import parse_ip
 from ..jinja import markup, markupper
 from ..utils import datetime2best, time2best
-from ..mongoengine.fields import ImageProxy
+from ..mongoengine.fields import ImageProxy, Base64ImageProxy
 
 
 def quote(*args):
@@ -233,7 +233,7 @@ def format_images(images):
 
 @markupper
 def type_file(view, proxy):
-    if isinstance(proxy, ImageProxy):
+    if isinstance(proxy, ImageProxy) or isinstance(proxy, Base64ImageProxy):
         return type_image(view, proxy)
     return get_link(proxy.filename, proxy.link, max_len=60)
 

@@ -11,8 +11,7 @@ from .storages import get_storage
 
 __all__ = [
     'XFileField', 'XImageField', 'Base64ImageField', 'XListField',
-    'AreaField', 'set_filename_generator',
-    
+    'AreaField', 'set_filename_generator', 'FileProxy', 'ImageProxy', 'Base64ImageProxy',
 ]
 DEFAULT_ALLOWS = ['txt', 'bz2', 'gz', 'tar', 'zip', 'rar', 'apk',
                   'jpg', 'jpeg', 'png', 'gif', 'bmp']

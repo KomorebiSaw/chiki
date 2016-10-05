@@ -24,7 +24,7 @@ from .formatters import type_bool, type_images
 from .formatters import formatter_len, formatter_link, filter_sort
 from .metaclass import CoolAdminMeta
 from .ajax import create_ajax_loader
-from ..mongoengine.fields import FileProxy, ImageProxy
+from ..mongoengine.fields import FileProxy, ImageProxy, Base64ImageProxy
 from ..utils import json_success, json_error
 
 __all__ = [
