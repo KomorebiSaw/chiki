@@ -18,7 +18,8 @@ class Admin(_Admin):
                  base_template=None,
                  template_mode='chiki',
                  category_icon_classes=None):
-        super(Admin, self).__init__(app=app, name=name,
+        super(Admin, self).__init__(
+            app=app, name=name,
             url=url, subdomain=subdomain,
             index_view=index_view,
             translations_path=translations_path,

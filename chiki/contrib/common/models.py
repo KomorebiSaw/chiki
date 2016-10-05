@@ -487,7 +487,7 @@ class Action(db.Document):
     name = db.StringField(verbose_name='名称')
     desc = db.StringField(verbose_name='描述')
     icon = db.Base64ImageField(verbose_name='图标')
-    active_icon = db.Base64ImageField(verbose_name='图标')
+    active_icon = db.Base64ImageField(verbose_name='激活图标')
     module = choice(db.StringField(verbose_name='模块'), 'action_module', '功能模块')
     data = db.StringField(verbose_name='数据')
     target = db.StringField(verbose_name='目标')

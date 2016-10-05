@@ -11,6 +11,7 @@ class CoolManager(object):
         self.models = dict()
         self.cates = {
             '运营': 'hdd-o',
+            '数据': 'gift',
             '日志': 'database',
             '工具': 'gears',
         }
