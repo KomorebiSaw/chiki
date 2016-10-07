@@ -21,6 +21,8 @@ class Global(Resource):
 
         apis = API.objects.all()
         for api in apis:
+            if api.key == 'global':
+                res['expire'] = api.expire
             res['apis'][api.key] = api.detail
 
         for option in Option.objects.all():
