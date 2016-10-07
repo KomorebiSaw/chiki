@@ -63,8 +63,9 @@ class AndroidLatest(Resource):
     def get(self):
         item = AndroidVersion.objects(enable__in=Enable.get()).order_by('-id').first()
         if item:
+            host = current_app.config.get('WEB_HOST')
             spm = parse_spm(request.args.get('spm'))
-            url = item.url or current_app.config.get('HOST') + '/android/latest.html?channel=%d' % (spm[2] or 1001)
+            url = item.url or 'http://%s/android/latest.html?channel=%d' % (host, spm[2] or 1001)
             return success(
                 version=item.version,
                 code=item.id,
