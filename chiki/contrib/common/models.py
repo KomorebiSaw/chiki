@@ -498,6 +498,7 @@ class Action(db.Document):
     ios_start = db.ReferenceField(IOSVersion, verbose_name='IOS版本')
     ios_end = db.ReferenceField(IOSVersion, verbose_name='IOS最大版本')
     login = db.BooleanField(default=False, verbose_name='登陆')
+    debug = db.BooleanField(default=False, verbose_name='调试')
     enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
@@ -522,6 +523,7 @@ class Action(db.Document):
             target=self.target,
             share=unicode(self.share),
             login=self.login,
+            debug=self.debug,
         )
 
 
