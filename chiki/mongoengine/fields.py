@@ -255,7 +255,7 @@ class Base64ImageProxy(FileProxy):
 
     @property
     def base64(self):
-        return 'base://' + self.filename
+        return ('base://' + self.filename) if self.filename else ''
 
     def get_link(self, width=0, height=0, ystart=0, yend=0):
         return self.filename
