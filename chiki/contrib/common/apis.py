@@ -2,7 +2,7 @@
 from collections import defaultdict
 from chiki.utils import get_version, get_os
 from chiki.api import success
-from flask import current_app
+from flask import current_app, request
 from flask.ext.restful import Resource
 from chiki.api.const import *
 from chiki.utils import parse_spm

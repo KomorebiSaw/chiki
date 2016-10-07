@@ -24,7 +24,7 @@ class Enable(object):
 
     @staticmethod
     def get():
-        if current_user.is_authenticated() and current_user.debug == True \
+        if current_user.is_authenticated() and current_user.debug \
                 or hasattr(current_app, 'enable_debug') and current_app.enable_debug():
             return [Enable.ENABLED, Enable.DEBUG]
         return [Enable.ENABLED]
