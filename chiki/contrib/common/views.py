@@ -9,7 +9,7 @@ from .models import AndroidVersion, Enable
 
 bp = Blueprint('common', __name__)
 ANDROID_URL = '/static/android/%(version)s/%(name)s_%(version)s_%(channel)d.apk'
-ANDROID_PATH = 'android/%(version)s/%(name)s_%(version)s.apk'
+ANDROID_PATH = '/android/%(version)s/%(name)s_%(version)s.apk'
 apkinfo = {
     'version': '',
     'version_code': 0,
@@ -54,15 +54,16 @@ def android_latest():
         abort(404)
 
     uid = request.args.get('uid')
+    name = current_app.config.get('NAME')
     if not uid:
         url = ANDROID_URL % dict(
-            name=current_app.config.get('NAME'),
+            name=name,
             version=item.version,
             channel=channel,
         )
         return redirect(url)
     res = get_apk(item.version, item.id, channel, uid)
-    filename = 'feizhuan_%s_%d_%s.apk' % (item.version, channel, uid)
+    filename = '%s_%s_%d_%s.apk' % (name, item.version, channel, uid)
     return Response(res.read(), headers={
         'Content-Type': "application/octet-stream",
         'Content-Disposition': 'attachment;filename=%s' % filename,
