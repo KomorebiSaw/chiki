@@ -5,6 +5,7 @@ from flask.ext.admin.menu import MenuView, MenuCategory, MenuLink
 from .formatters import *
 from .static import *
 from .views import *
+from .tools import *
 
 
 class Admin(_Admin):

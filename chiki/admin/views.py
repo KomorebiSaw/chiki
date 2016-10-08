@@ -4,10 +4,10 @@ import gc
 import traceback
 from datetime import datetime
 from flask import current_app, redirect, flash, request
-from flask.ext.admin import AdminIndexView as _AdminIndexView, BaseView as _BaseView, expose
+from flask.ext.admin import AdminIndexView as _AdminIndexView, expose
 from flask.ext.admin.actions import action
 from flask.ext.admin.babel import gettext, ngettext, lazy_gettext
-from flask.ext.admin.base import BaseView
+from flask.ext.admin.base import BaseView as _BaseView
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.mongoengine.helpers import format_error
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
@@ -28,10 +28,10 @@ from ..mongoengine.fields import FileProxy, ImageProxy, Base64ImageProxy
 from ..utils import json_success, json_error
 
 __all__ = [
-    "ModelView", "SModelView", "IndexView", "AdminIndexView",
+    "ModelView", "SModelView", "IndexView", "AdminIndexView", "BaseView",
 ]
 
-old_create_blueprint = BaseView.create_blueprint
+old_create_blueprint = _BaseView.create_blueprint
 
 
 def create_blueprint(self, admin):
@@ -42,7 +42,7 @@ def create_blueprint(self, admin):
     return old_create_blueprint(self, admin)
 
 
-BaseView.create_blueprint = create_blueprint
+_BaseView.create_blueprint = create_blueprint
 
 
 class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
