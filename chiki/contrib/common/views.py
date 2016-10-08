@@ -9,7 +9,7 @@ from .models import AndroidVersion, Enable
 
 bp = Blueprint('common', __name__)
 ANDROID_URL = '/static/android/%(version)s/%(name)s_%(version)s_%(channel)d.apk'
-ANDROID_PATH = '/android/%(version)s/%(name)s_%(version)s.apk'
+ANDROID_PATH = 'android/%(version)s/%(name)s_%(version)s.apk'
 apkinfo = {
     'version': '',
     'version_code': 0,
