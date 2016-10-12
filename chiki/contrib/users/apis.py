@@ -733,7 +733,7 @@ class UserInfo(Resource):
             pass
 
     def handle_sex(self, sex):
-        if sex not in User.SEX_VALUES:
+        if sex not in um.models.User.SEX_VALUES:
             abort(USER_SEX_ERROR)
         current_user.sex = sex
 
