@@ -704,7 +704,7 @@ class UserInfo(Resource):
 
     def handle(self, args, key):
         if args[key]:
-            if key in args:
+            if hasattr(self, 'handle_%s' % key):
                 getattr(self, 'handle_%s' % key)(args[key])
             else:
                 setattr(current_user, key, args[key])
