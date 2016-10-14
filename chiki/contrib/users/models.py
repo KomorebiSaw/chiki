@@ -171,6 +171,7 @@ class User(db.Document, UserMixin):
     sex = db.StringField(default=SEX_UNKNOWN, choices=SEX_CHOICES, verbose_name='性别')
     location = db.AreaField(verbose_name='所在地')
     address = db.StringField(max_length=100, verbose_name='通讯地址')
+    resume = db.StringField(max_length=100, verbose_name='简介')
     debug = db.BooleanField(default=False, verbose_name='允许调试')
     active = db.BooleanField(default=True, verbose_name='激活')
     channel = db.IntField(verbose_name='注册渠道ID')

@@ -681,6 +681,7 @@ class UserInfo(Resource):
         self.req.add_argument('sex', type=unicode)
         self.req.add_argument('location', type=unicode)
         self.req.add_argument('address', type=unicode)
+        self.req.add_argument('resume', type=unicode)
 
     @login_required
     def get(self):
@@ -695,19 +696,17 @@ class UserInfo(Resource):
         self.handles(args)
         current_user.save()
 
-        return success(**userinfo(current_user))
+        return success(**um.funcs.userinfo(current_user))
 
     def handles(self, args):
-        self.handle(args, 'nickname')
-        self.handle(args, 'avatar')
-        self.handle(args, 'birthday')
-        self.handle(args, 'sex')
-        self.handle(args, 'location')
-        self.handle(args, 'address')
+        for key in args:
+            self.handle(args, key)
 
     def handle(self, args, key):
         if key in args and args[key]:
             getattr(self, 'handle_%s' % key)(args[key])
+        else:
+            setattr(current_user, key, args[key])
 
     def handle_nickname(self, nickname):
         unique = current_app.config.get('NICKNAME_UNIQUE')
@@ -736,9 +735,3 @@ class UserInfo(Resource):
         if sex not in um.models.User.SEX_VALUES:
             abort(USER_SEX_ERROR)
         current_user.sex = sex
-
-    def handle_location(self, location):
-        current_user.location = location
-
-    def handle_address(self, address):
-        current_user.address = address
