@@ -703,10 +703,11 @@ class UserInfo(Resource):
             self.handle(args, key)
 
     def handle(self, args, key):
-        if key in args and args[key]:
-            getattr(self, 'handle_%s' % key)(args[key])
-        else:
-            setattr(current_user, key, args[key])
+        if args[key]:
+            if key in args:
+                getattr(self, 'handle_%s' % key)(args[key])
+            else:
+                setattr(current_user, key, args[key])
 
     def handle_nickname(self, nickname):
         unique = current_app.config.get('NICKNAME_UNIQUE')
