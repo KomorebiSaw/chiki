@@ -116,6 +116,7 @@ def userinfo(user):
         avatar_large=user.avatar.link,
         location=user.location or '',
         address=user.address or '',
+        resume=user.resume or '',
         debug=user.debug,
         registered=str(user.registered).split('.')[0],
     )
