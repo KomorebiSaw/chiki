@@ -44,15 +44,12 @@ class KModelConverter(CustomModelConverter):
             doc_type = field.field.document_type
             return ModelSelectMultipleField(model=doc_type, **kwargs)
 
-        # Create converter
-        view = self._get_subdocument_config(field.name)
-        converter = self.clone_converter(view)
-
+        field.field.name = '%s__field' % field.name
         if field.field.choices:
             kwargs['multiple'] = True
-            return converter.convert(model, field.field, kwargs)
+            return self.convert(model, field.field, kwargs)
 
-        unbound_field = converter.convert(model, field.field, {})
+        unbound_field = self.convert(model, field.field, {})
         return ListField(unbound_field, min_entries=0, **kwargs)
 
     @orm.converts('XListField')
@@ -70,15 +67,12 @@ class KModelConverter(CustomModelConverter):
             doc_type = field.field.document_type
             return ModelSelectMultipleField(model=doc_type, **kwargs)
 
-        # Create converter
-        view = self._get_subdocument_config(field.name)
-        converter = self.clone_converter(view)
-
+        field.field.name = '%s__field' % field.name
         if field.field.choices:
             kwargs['multiple'] = True
-            return converter.convert(model, field.field, kwargs)
+            return self.convert(model, field.field, kwargs)
 
-        unbound_field = converter.convert(model, field.field, {})
+        unbound_field = self.convert(model, field.field, {})
         return ListField(unbound_field, min_entries=0, **kwargs)
 
     @orm.converts('ReferenceField')

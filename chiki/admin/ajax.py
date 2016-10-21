@@ -1,6 +1,9 @@
 # coding: utf-8
 import mongoengine
-from flask.ext.admin.contrib.mongoengine.ajax import QueryAjaxModelLoader as _QueryAjaxModelLoader, DEFAULT_PAGE_SIZE
+from flask_admin._compat import string_types, as_unicode, iteritems
+from flask.ext.admin.contrib.mongoengine.ajax import (
+    QueryAjaxModelLoader as _QueryAjaxModelLoader, DEFAULT_PAGE_SIZE
+)
 
 
 class QueryAjaxModelLoader(_QueryAjaxModelLoader):
@@ -43,7 +46,7 @@ def create_ajax_loader(model, name, field_name, opts):
 
     ftype = type(prop).__name__
 
-    if ftype == 'ListField' or ftype == 'SortedListField':
+    if ftype in ['ListField', 'SortedListField', 'XListField']:
         prop = prop.field
         ftype = type(prop).__name__
 
@@ -52,3 +55,61 @@ def create_ajax_loader(model, name, field_name, opts):
 
     remote_model = prop.document_type
     return QueryAjaxModelLoader(name, remote_model, **opts)
+
+
+def process_ajax_references(references, view):
+    def make_name(base, name):
+        if base:
+            return ('%s-%s' % (base, name)).lower()
+        else:
+            return as_unicode(name).lower()
+
+    def handle_field(field, subdoc, base):
+        ftype = type(field).__name__
+
+        if ftype in ['ListField', 'SortedListField', 'XListField']:
+
+            child_doc = getattr(subdoc, '_form_subdocuments', {}).get(None)
+
+            if child_doc:
+                handle_field(field.field, child_doc, base)
+        elif ftype == 'EmbeddedDocumentField':
+            result = {}
+
+            ajax_refs = getattr(subdoc, 'form_ajax_refs', {})
+
+            for field_name, opts in iteritems(ajax_refs):
+                child_name = make_name(base, field_name)
+
+                if isinstance(opts, dict):
+                    loader = create_ajax_loader(field.document_type_obj, child_name, field_name, opts)
+                else:
+                    loader = opts
+
+                result[field_name] = loader
+                references[child_name] = loader
+
+            subdoc._form_ajax_refs = result
+
+            child_doc = getattr(subdoc, '_form_subdocuments', None)
+            if child_doc:
+                handle_subdoc(field.document_type_obj, subdoc, base)
+        else:
+            raise ValueError('Failed to process subdocument field %s' % (field,))
+
+    def handle_subdoc(model, subdoc, base):
+        documents = getattr(subdoc, '_form_subdocuments', {})
+
+        for name, doc in iteritems(documents):
+            if name.endswith('__field'):
+                name = name[:-7]
+            field = getattr(model, name, None)
+
+            if not field:
+                raise ValueError('Invalid subdocument field %s.%s' % (model, name))
+
+            handle_field(field, doc, make_name(base, name))
+
+    handle_subdoc(view.model, view, '')
+
+    return references

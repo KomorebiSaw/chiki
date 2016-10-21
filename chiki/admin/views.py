@@ -11,6 +11,7 @@ from flask.ext.admin.base import BaseView as _BaseView
 from flask.ext.admin.contrib.mongoengine import ModelView as _ModelView
 from flask.ext.admin.contrib.mongoengine.helpers import format_error
 from flask.ext.admin.contrib.sqla import ModelView as _SModelView
+from flask.ext.admin.model.base import BaseModelView
 from flask.ext.admin._compat import string_types, with_metaclass
 from mongoengine.fields import IntField, LongField, DecimalField, FloatField
 from mongoengine.fields import StringField, ReferenceField, ObjectIdField, ListField
@@ -23,7 +24,7 @@ from .formatters import type_best, type_image, type_file, type_select
 from .formatters import type_bool, type_images
 from .formatters import formatter_len, formatter_link, filter_sort
 from .metaclass import CoolAdminMeta
-from .ajax import create_ajax_loader
+from .ajax import create_ajax_loader, process_ajax_references
 from ..mongoengine.fields import FileProxy, ImageProxy, Base64ImageProxy
 from ..utils import json_success, json_error
 
@@ -128,6 +129,10 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
             if choices:
                 self.column_choices[field] = choices
         super(ModelView, self)._refresh_cache()
+
+    def _process_ajax_references(self):
+        references = BaseModelView._process_ajax_references(self)
+        return process_ajax_references(references, self)
 
     def create_model(self, form):
         try:
