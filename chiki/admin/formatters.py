@@ -226,8 +226,8 @@ def format_images(images):
     '''
     html = []
     for image in images:
-        html.append(tpl % quote(image.get_link(), 
-            image.get_link(), image.get_link(75, 60)))
+        html.append(tpl % quote(
+            image.get_link(), image.get_link(), image.get_link(75, 60)))
     return ''.join(html)
 
 

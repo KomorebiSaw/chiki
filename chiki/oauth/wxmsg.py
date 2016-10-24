@@ -14,6 +14,12 @@ class WXMsg(object):
 
     def __init__(self, app=None):
         self.subscribe_callback = None
+        if app:
+            self.init_app(app)
+
+    def init_app(self, app):
+        robot.init_app(app)
+        robot.logger = app.logger
 
     def subscribe_handler(self, callback):
         self.subscribe_callback = callback
