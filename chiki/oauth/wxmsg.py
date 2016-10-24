@@ -26,7 +26,8 @@ class WXMsg(object):
         return callback
 
     @robot.text
-    def on_text(self, message):
+    @staticmethod
+    def on_text(message):
         msg = Message.objects(keyword=message.content).first()
         if msg:
             reply = msg.reply(message)
@@ -40,7 +41,8 @@ class WXMsg(object):
 
     @robot.subscribe
     @robot.scan
-    def on_subscribe(self, message):
+    @staticmethod
+    def on_subscribe(message):
         if self.subscribe_callback:
             res = self.subscribe_callback(message)
             if res:
@@ -54,7 +56,8 @@ class WXMsg(object):
         return ''
 
     @robot.unsubscribe
-    def on_unsubscribe(self, message):
+    @staticmethod
+    def on_unsubscribe(message):
         user = um.models.User.get_wechat(mp_openid=message.source)
         if user:
             user.wechat_user.unsubscribe()
