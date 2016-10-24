@@ -63,7 +63,10 @@ def patch_monkey():
             if self.type == 'click':
                 self.key = message.pop('EventKey')
             elif self.type in ['subscribe', 'scan']:
-                self.key = int(message.pop('EventKey', '')[8:] or 0)
+                try:
+                    self.key = int(message.pop('EventKey', '')[8:] or 0)
+                except:
+                    self.key = 0
             elif self.type == 'location':
                 self.latitude = float(message.pop('Latitude'))
                 self.longitude = float(message.pop('Longitude'))
