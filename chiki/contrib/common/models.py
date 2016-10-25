@@ -459,20 +459,18 @@ class API(db.Document):
         )
 
 
-class UserImage(db.Document):
-    """ 用户图片 """
+class Icon(db.Document):
+    """ 图标模型 """
 
     MENU_ICON = 'picture-o'
 
-    user = db.IntField(verbose_name='用户')
-    source = db.StringField(verbose_name='来源')
-    image = db.XImageField(config='USER_IMAGES', verbose_name='图片')
+    key = db.StringField(verbose_name='ID')
+    icon = db.Base64ImageField(verbose_name='图标')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = {
         'indexes': [
-            'source',
             '-created',
         ]
     }
@@ -583,6 +581,27 @@ class Slide(db.Document):
             share=unicode(self.share),
             extras='',
         )
+
+
+
+
+class UserImage(db.Document):
+    """ 用户图片 """
+
+    MENU_ICON = 'picture-o'
+
+    user = db.IntField(verbose_name='用户')
+    source = db.StringField(verbose_name='来源')
+    image = db.XImageField(config='USER_IMAGES', verbose_name='图片')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            'source',
+            '-created',
+        ]
+    }
 
 
 class ImageItem(db.Document):

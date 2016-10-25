@@ -8,7 +8,7 @@ from chiki.api.const import *
 from chiki.utils import parse_spm
 from chiki.base import db
 from chiki.contrib.common.models import (
-    Enable, API, TPL, AndroidVersion,
+    Enable, API, Icon, TPL, AndroidVersion,
     Action, Slide, Option
 )
 
@@ -16,14 +16,16 @@ from chiki.contrib.common.models import (
 class Global(Resource):
 
     def get(self):
-        res = dict(apis={}, tpls={}, actions=defaultdict(list), options={})
+        res = dict(apis={}, icons={}, tpls={}, actions=defaultdict(list), options={})
         version = get_version()
 
-        apis = API.objects.all()
-        for api in apis:
+        for api in API.objects.all():
             if api.key == 'global':
                 res['expire'] = api.expire
             res['apis'][api.key] = api.detail
+
+        for icon in Icon.objects.all():
+            res['icons'][icon.key] = icon.icon.base64
 
         for option in Option.objects.all():
             res['options'][option.key] = option.value
