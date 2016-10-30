@@ -1,11 +1,14 @@
 # coding: utf-8
-from flask import request, url_for
+from ..utils import is_ajax, json_success
+from flask import request, url_for, render_template
 from flask.ext.mongoengine.pagination import Pagination as _Pagination
 
 
 class Pagination(_Pagination):
 
-    def __init__(self, iterable, page, per_page, endpoint=None, **kwargs):
+    def __init__(self, iterable, page=None, per_page=None, endpoint=None, **kwargs):
+        page = page or max(1, request.args.get('page', 1, int))
+        per_page = per_page or max(1, min(100, request.args.get('per_page', 10, int)))
         super(Pagination, self).__init__(iterable, page, per_page)
         self.endpoint = endpoint if endpoint else request.endpoint
         self.kwargs = kwargs
@@ -39,3 +42,11 @@ class Pagination(_Pagination):
             yield '>', self.get_link(self.next_num) if self.has_next else None
         if last:
             yield '>>', self.get_link(self.pages) if self.page < self.pages else None
+
+    def render(self, tpl, **kwargs):
+        if is_ajax():
+            return json_success(
+                html=render_template(tpl, pag=self, **kwargs),
+                next=self.next_link,
+            )
+        return render_template(tpl, pag=self, **kwargs),

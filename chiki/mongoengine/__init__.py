@@ -39,8 +39,8 @@ class MongoEngine(mongoengine.MongoEngine):
 
 class BaseQuerySet(mongoengine.BaseQuerySet):
 
-    def paginate(self, page, per_page, **kwargs):
-        return pagination.Pagination(self, page, per_page, **kwargs)
+    def paginate(self, **kwargs):
+        return pagination.Pagination(self, **kwargs)
 
 
 class Document(mongoengine.Document):
