@@ -145,6 +145,7 @@ def init_app(init=None, config=None, pyfile=None,
     app.config.setdefault('SESSION_REFRESH_EACH_REQUEST', False)
     app.is_web = is_web
     app.is_api = is_api
+    app.is_back = os.environ.get('CHIKI_BACK') == 'true'
     app.static_folder = app.config.get('STATIC_FOLDER')
     app.mail = Mail(app)
 
@@ -194,10 +195,10 @@ def init_app(init=None, config=None, pyfile=None,
             return redirect(app.config.get('INDEX_REDIRECT'))
 
     blueprint = Blueprint('chiki', __name__,
-        template_folder=os.path.join(TEMPLATE_ROOT, 'chiki'))
+                          template_folder=os.path.join(TEMPLATE_ROOT, 'chiki'))
     app.register_blueprint(blueprint)
 
-    if os.environ.get('CHIKI_BACK') == 'true':
+    if app.is_back:
         @app.route('/chiki_back')
         def chiki_back():
             return 'true'
