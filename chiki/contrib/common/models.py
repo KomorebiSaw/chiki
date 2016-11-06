@@ -574,15 +574,15 @@ class Slide(db.Document):
         return dict(
             id=self.key,
             name=self.name,
+            desc=self.desc,
             icon=self.icon.link,
-            action=self.action,
-            login=self.login,
-            url=self.url,
+            data=self.data,
+            target=self.target,
             share=unicode(self.share),
-            extras='',
+            login=self.login,
+            login_show=self.login_show,
+            debug=self.debug,
         )
-
-
 
 
 class UserImage(db.Document):
