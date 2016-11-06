@@ -574,7 +574,6 @@ class Slide(db.Document):
         return dict(
             id=self.key,
             name=self.name,
-            desc=self.desc,
             icon=self.icon.link,
             data=self.data,
             target=self.target,
