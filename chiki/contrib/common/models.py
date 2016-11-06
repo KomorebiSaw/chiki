@@ -575,7 +575,6 @@ class Slide(db.Document):
             id=self.key,
             name=self.name,
             icon=self.icon.link,
-            data=self.data,
             target=self.target,
             share=unicode(self.share),
             login=self.login,
