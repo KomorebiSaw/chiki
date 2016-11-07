@@ -189,7 +189,7 @@ class ActionView(ModelView):
         'sort', 'enable', 'modified', 'created'
     )
     column_list = (
-        'id', 'name', 'icon', 'active_icon', 'module', 'login',
+        'key', 'name', 'icon', 'active_icon', 'module', 'login',
         'sort', 'enable', 'modified', 'created'
     )
     column_center_list = ('icon', 'active_icon', 'module', 'sort', 'enable', 'modified', 'created')
