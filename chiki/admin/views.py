@@ -96,8 +96,8 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
             self.column_filters = ['id'] + self.column_filters
 
         if self.robot_filters:
-            columns = [x[0] for x in self._get_model_fields(model)]
-            self.column_filters = filter_sort(self.column_filters, self.column_list or columns)
+            columns = self.column_list or [x[0] for x in self._get_model_fields(model)]
+            self.column_filters = filter_sort(self.column_filters, columns)
 
         #初始化类型格式化
         for field in model._fields:
