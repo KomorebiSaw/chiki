@@ -557,6 +557,8 @@ class Slide(db.Document):
     ios_start = db.ReferenceField(IOSVersion, verbose_name='IOS版本')
     ios_end = db.ReferenceField(IOSVersion, verbose_name='IOS最大版本')
     login = db.BooleanField(default=False, verbose_name='登陆')
+    login_show = db.BooleanField(default=False, verbose_name='登陆显示')
+    debug = db.BooleanField(default=False, verbose_name='调试')
     enable = db.StringField(default=Enable.ENABLED, verbose_name='状态', choices=Enable.CHOICES)
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
@@ -575,11 +577,11 @@ class Slide(db.Document):
             id=self.key,
             name=self.name,
             icon=self.icon.link,
-            action=self.action,
-            login=self.login,
-            url=self.url,
+            target=self.target,
             share=unicode(self.share),
-            extras='',
+            login=self.login,
+            login_show=self.login_show,
+            debug=self.debug,
         )
 
 
