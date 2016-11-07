@@ -583,8 +583,6 @@ class Slide(db.Document):
         )
 
 
-
-
 class UserImage(db.Document):
     """ 用户图片 """
 
@@ -807,8 +805,8 @@ class View(db.Document):
     def code_text(self):
         texts = []
         keys = ['column_list', 'column_center_list', 'column_hidden_list',
-            'column_filters', 'column_sortable_list', 'column_searchable_list',
-            'form_excluded_columns']
+                'column_filters', 'column_sortable_list', 'column_searchable_list',
+                'form_excluded_columns']
         for key in keys:
             text = self.add_text(key)
             if text:

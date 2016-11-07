@@ -116,12 +116,14 @@ api = Api()
 wapi = WApi()
 
 
-def success(**kwargs):
+def success(_data=None, **kwargs):
     if kwargs.get('__external'):
         kwargs.setdefault('code', 0)
         kwargs.setdefault('key', 'SUCCESS')
         return dict(**kwargs)
     res = dict(code=0, key='SUCCESS')
-    if kwargs:
+    if _data is not None:
+        res['data'] = _data
+    elif kwargs:
         res['data'] = kwargs
     return res
