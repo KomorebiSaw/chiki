@@ -87,17 +87,17 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         primary = False
         for field in model._fields:
             attr = getattr(model, field)
-            if hasattr(attr, 'primary_key'):
-                if attr.primary_key is True:
-                    self.column_filters = [field] + self.column_filters
-                    primary = True
+            if hasattr(attr, 'primary_key') and attr.primary_key is True:
+                self.column_filters = [field] + self.column_filters
+                primary = True
             elif type(attr) in types and attr.name not in self.column_filters:
                 self.column_filters.append(attr.name)
         if not primary:
             self.column_filters = ['id'] + self.column_filters
 
         if self.robot_filters:
-            self.column_filters = filter_sort(self.column_filters, self.column_list)
+            columns = [x[0] for x in self._get_model_fields(model)]
+            self.column_filters = filter_sort(self.column_filters, self.column_list or columns)
 
         #初始化类型格式化
         for field in model._fields:
