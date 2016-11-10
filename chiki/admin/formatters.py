@@ -286,7 +286,7 @@ def filter_sort(column_filters, column_list):
             res[x] = c.get(x, 10000)
     e = sorted(res.iteritems(), key=lambda x: x[1])
     new_list = list()
-    if 'id' in column_filters:
+    if 'id' not in column_filters:
         new_list.append('id')
     for x, y in e:
         new_list.append(x)

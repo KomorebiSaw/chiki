@@ -89,7 +89,8 @@ class ChannelView(ModelView):
     form_excluded_columns = ('id',)
 
     column_formatters = dict(
-        stat=formatter_link(lambda m: ('<i class="fa fa-line-chart"></i>',
+        stat=formatter_link(lambda m: (
+            '<i class="fa fa-line-chart"></i>',
             '/admin/channel/stat?%s' % urllib.urlencode(dict(id=str(m.id)))),
             html=True, class_='btn btn-default btn-sm',
             data_toggle="modal",
@@ -185,6 +186,10 @@ class ActionView(ModelView):
     column_labels = dict(modified='修改', created='创建')
     column_filters = (
         'id', 'name', 'module', 'login',
+        'sort', 'enable', 'modified', 'created'
+    )
+    column_list = (
+        'key', 'name', 'icon', 'active_icon', 'module', 'login',
         'sort', 'enable', 'modified', 'created'
     )
     column_center_list = ('icon', 'active_icon', 'module', 'sort', 'enable', 'modified', 'created')
@@ -319,7 +324,8 @@ class ViewView(ModelView):
     column_searchable_list = ["name", "label"]
     form_excluded_columns = ["model"]
     column_formatters = dict(
-        icon=formatter_link(lambda m: (FA % (m.icon or 'file-o'), '/admin/view/get_icon?id=%s' % m.id),
+        icon=formatter_link(lambda m: (
+            FA % (m.icon or 'file-o'), '/admin/view/get_icon?id=%s' % m.id),
             html=True,
             id=lambda m: str(m.id) + '-icon',
             class_='btn btn-default btn-sm btn-icon',
@@ -329,8 +335,9 @@ class ViewView(ModelView):
             data_target="#simple-modal",
             data_refresh="true",
         ),
-        code=formatter_link(lambda m: (FA % 'code',
-                '/admin/view/get_code?id=%s' % m.id) if m.code_text else ('', ''),
+        code=formatter_link(lambda m: (
+            FA % 'code',
+            '/admin/view/get_code?id=%s' % m.id) if m.code_text else ('', ''),
             html=True,
             id=lambda m: str(m.id) + '-icon',
             class_='btn btn-default btn-sm btn-code',

@@ -286,7 +286,7 @@ class StatLog(db.Document):
     @staticmethod
     def date_inc(key, tid='', label='', value=1, day=None):
         day = time.strftime('%Y-%m-%d') if not day else day
-        doc = {'$inc':{'value':value}, '$set':{'modified':datetime.now()}, '$setOnInsert':{'created': datetime.now()}}
+        doc = {'$inc': {'value': value}, '$set': {'modified': datetime.now()}, '$setOnInsert': {'created': datetime.now()}}
         log = StatLog.objects(key=str(key), tid=tid, label=label, day=day, hour=-1).update_one(__raw__=doc, upsert=True)
         return StatLog.date_get(key, tid=tid, label=label, day=day)
 
@@ -807,8 +807,8 @@ class View(db.Document):
     def code_text(self):
         texts = []
         keys = ['column_list', 'column_center_list', 'column_hidden_list',
-            'column_filters', 'column_sortable_list', 'column_searchable_list',
-            'form_excluded_columns']
+                'column_filters', 'column_sortable_list', 'column_searchable_list',
+                'form_excluded_columns']
         for key in keys:
             text = self.add_text(key)
             if text:
