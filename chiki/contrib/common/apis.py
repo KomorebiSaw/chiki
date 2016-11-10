@@ -59,6 +59,9 @@ class Global(Resource):
             if slide.module:
                 res['actions'][slide.module].append(slide.detail)
 
+        if hasattr(self, 'handle') and callable(self.handle):
+            self.handle(res)
+
         return res
 
 
