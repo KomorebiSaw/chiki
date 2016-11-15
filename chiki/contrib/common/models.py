@@ -194,7 +194,7 @@ class Share(db.EmbeddedDocument):
     title = db.StringField(verbose_name='标题')
     content = db.StringField(verbose_name='描述')
     url = db.StringField(verbose_name='链接')
-    image = db.StringField(verbose_name='图片链接')
+    image = db.XImageField(verbose_name='图片链接')
 
     def __unicode__(self):
         url = self.url
@@ -208,7 +208,7 @@ class Share(db.EmbeddedDocument):
             title=self.title,
             content=self.content,
             url=url,
-            image=self.image,
+            image=self.image.link,
         ))
 
     @staticmethod
@@ -217,7 +217,7 @@ class Share(db.EmbeddedDocument):
             title = share.title or title
             content = share.content or content
             url = share.url or url
-            image = share.image or image
+            image = share.image.link or image
 
         if current_user.is_authenticated() and url.strip():
             if url and '?' in url:
