@@ -100,7 +100,8 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
         data_url = self.get_url('.%s_data' % key)
         if modal:
             data_url = self.get_url('.%s_data' % key, id=request.args.get('id'))
-        return self.render(tpl,
+        return self.render(
+            tpl,
             start=start, end=end, month_start=month_start, month_end=today,
             week_start=week_start, week_end=today, yesterday=yesterday,
             today=today, data_url=data_url, model=kwargs.get('model', 'day'))
@@ -168,7 +169,7 @@ def statistics(tpl=None, modal=False, **kwargs):
         if datas:
             for key, subs in datas.iteritems():
                 init_stat(cls, key, subs, tpl if tpl is not None else default, modal)
-        return type(cls.__name__, (cls,), {"__doc__":cls.__doc__})
+        return type(cls.__name__, (cls,), {"__doc__": cls.__doc__})
     return wrapper
 
 

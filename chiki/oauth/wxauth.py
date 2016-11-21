@@ -77,13 +77,15 @@ class WXAuth(object):
             if not hasattr(app, 'wxclient'):
                 app.wxclient = self.client
 
-        @app.route(self.config.get('wxauth_url', '/oauth/wechat/callback'),
-                endpoint=self.endpoint)
+        @app.route(
+            self.config.get('wxauth_url', '/oauth/wechat/callback'),
+            endpoint=self.endpoint)
         def wxauth_callback():
             return self.callback()
 
-        @app.route(self.config.get('wxauth_js_url', '/weixin-login.js'),
-                endpoint=self.config.get('wxauth_js_endpoint'))
+        @app.route(
+            self.config.get('wxauth_js_url', '/weixin-login.js'),
+            endpoint=self.config.get('wxauth_js_endpoint'))
         def weixin_login():
             qrcode = self.config.get(self.ACTION_QRCODE)
             js = ''
