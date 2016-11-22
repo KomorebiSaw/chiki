@@ -47,7 +47,7 @@ def get_link(text, link, max_len=20, blank=True, html=False, **kwargs):
 def popover(content, short=None, title=None, placement='right'):
     short = title if short is None else short
     return '<a href="javascript:;" data-container="body" data-toggle="popover" ' \
-            'data-trigger="focus" data-placement=%s title=%s data-content=%s data-html="true">%s</a>' % (
+        'data-trigger="focus" data-placement=%s title=%s data-content=%s data-html="true">%s</a>' % (
             quote(placement, title or '', content) + escape(short))
 
 
