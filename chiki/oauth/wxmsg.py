@@ -62,8 +62,6 @@ class WXMsg(object):
         return callback
 
 
-
-
 def init_wxmsg(app):
-    if app.config.get('WEROBOT_TOKEN'):
+    if app.config.get('WEROBOT_TOKEN') and not app.config.get('WXMSG', True):
         return WXMsg(app)
