@@ -228,7 +228,7 @@ class WXPay(object):
     def get_app_conf(self, prepay, tojson=False):
         conf = dict(
             appid=self.config.get('appid'),
-            partnerid=self.config.get('mch_id'),
+            partnerid=self.config.get('mchid'),
             prepayid=prepay,
             package='Sign=WXPay',
             noncestr=randstr(32),
