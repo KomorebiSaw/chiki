@@ -118,9 +118,6 @@ class WXPay(object):
         kwargs.setdefault('nonce_str', randstr(32))
         kwargs.setdefault('sign', self.sign(**kwargs))
 
-        if 'openid' not in kwargs:
-            raise ValueError('openid is required.')
-
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:
             xml = requests.post(self.PREPAY_URL, data=data).content
@@ -226,6 +223,18 @@ class WXPay(object):
             signType='MD5',
         )
         conf['paySign'] = self.sign(**conf)
+        return json.dumps(conf) if tojson else conf
+
+    def get_app_conf(self, prepay, tojson=False):
+        conf = dict(
+            appid=self.config.get('appid'),
+            partnerid=self.config.get('mch_id'),
+            prepayid=prepay,
+            package='Sign=WXPay',
+            noncestr=randstr(32),
+            timestamp=str(int(time.time())),
+        )
+        conf['sign'] = self.sign(**conf)
         return json.dumps(conf) if tojson else conf
 
 
