@@ -25,8 +25,12 @@ class Alipay(object):
         self.callback_url = self.config.get('callback_url', '/alipay/callback/')
         self.endpoint = self.config.get('endpoint', 'alipay_callback')
         self.app_id = self.config.get('app_id')
-        self.app_private_key = rsa.PrivateKey.load_pkcs1(self.config.get('app_private_key'))
-        self.alipay_public_key = rsa.PublicKey.load_pkcs1(self.config.get('alipay_public_key'))
+        try:
+            self.app_private_key = rsa.PrivateKey.load_pkcs1(self.config.get('app_private_key'))
+            self.alipay_public_key = rsa.PublicKey.load_pkcs1(self.config.get('alipay_public_key'))
+        except ValueError:
+            self.app_private_key = None
+            self.alipay_public_key = None
         if not hasattr(app, 'alipay'):
             app.alipay = self
 
