@@ -5,6 +5,7 @@ from chiki.contrib.common.models import StatLog
 from datetime import datetime, timedelta
 from flask import request
 from flask.ext.admin import expose
+from flask.ext.admin.base import _wrap_view
 from .utils import json_success
 
 
@@ -169,7 +170,16 @@ def statistics(tpl=None, modal=False, **kwargs):
         if datas:
             for key, subs in datas.iteritems():
                 init_stat(cls, key, subs, tpl if tpl is not None else default, modal)
-        return type(cls.__name__, (cls,), {"__doc__": cls.__doc__})
+
+        for p in dir(cls):
+            attr = getattr(cls, p)
+            if hasattr(attr, '_urls'):
+                for url, methods in attr._urls:
+                    cls._urls.append((url, p, methods))
+                    if url == '/':
+                        cls._default_view = p
+                setattr(cls, p, _wrap_view(attr))
+        return cls
     return wrapper
 
 
