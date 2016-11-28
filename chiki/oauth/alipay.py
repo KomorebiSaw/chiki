@@ -45,7 +45,7 @@ class Alipay(object):
 
     def alipay_callback(self):
         sign = request.form.get('sign')
-        args = dict([(x, y[0]) for x, y in dict(request.form).iteritems() if x != 'sign'])
+        args = dict([(x, y[0]) for x, y in dict(request.form).iteritems() if x not in ['sign', 'sign_type']])
         if self.verify(sign, **args):
             if self.callback:
                 self.callback()
@@ -84,7 +84,7 @@ class Alipay(object):
 
     def verify(self, sign, **kwargs):
         keys = sorted(filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
-        text = ('&'.join(['%s=%s' % x for x in keys])).encode('utf-8')
+        text = '&'.join(['%s=%s' % x for x in keys])
         try:
             rsa.verify(text, base64.b64decode(sign), self.alipay_public_key)
             return True
