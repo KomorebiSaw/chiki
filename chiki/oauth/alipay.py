@@ -44,7 +44,6 @@ class Alipay(object):
             return "success"
 
     def alipay_callback(self):
-        current_app.logger.error('form: ' + json.dumps(request.form) + '\nargs: ' + json.dumps(request.args) + '\nurl: ' + request.url)
         sign = request.form.get('sign')
         args = dict([(x, y) for x, y in dict(request.form).iteritems() if x != 'sign'])
         if self.verify(sign, **args):
@@ -90,6 +89,7 @@ class Alipay(object):
             rsa.verify(text, base64.b64decode(sign), self.alipay_public_key)
             return True
         except rsa.VerificationError:
+            current_app.logger.error('alipay callback verify: %s' % text)
             return False
 
     def encode(self, data):
