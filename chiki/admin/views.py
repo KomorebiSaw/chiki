@@ -142,7 +142,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
             self._on_model_change(form, model, True)
             model.save()
         except Exception as ex:
-            current_app.logger.error(ex)
+            current_app.logger.error(traceback.format_exc())
             if not self.handle_view_exception(ex):
                 flash('Failed to create record. %(error)s' % dict(error=format_error(ex)), 'error')
             return False
@@ -158,7 +158,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
             self._on_model_change(form, model, False)
             model.save()
         except Exception as ex:
-            current_app.logger.error(ex)
+            current_app.logger.error(traceback.format_exc())
             if not self.handle_view_exception(ex):
                 flash('Failed to update record. %(error)s' % dict(error=format_error(ex)), 'error')
             return False
