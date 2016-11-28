@@ -2,6 +2,7 @@
 import rsa
 import json
 import base64
+import traceback
 from datetime import datetime
 from flask import url_for, request, current_app
 from urllib import quote
@@ -29,6 +30,7 @@ class Alipay(object):
             self.app_private_key = rsa.PrivateKey.load_pkcs1(self.config.get('app_private_key'))
             self.alipay_public_key = rsa.PublicKey.load_pkcs1(self.config.get('alipay_public_key'))
         except ValueError:
+            app.logger.error(traceback.format_exc())
             self.app_private_key = None
             self.alipay_public_key = None
         if not hasattr(app, 'alipay'):
