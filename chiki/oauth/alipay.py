@@ -27,9 +27,11 @@ class Alipay(object):
         self.endpoint = self.config.get('endpoint', 'alipay_callback')
         self.app_id = self.config.get('app_id')
         try:
-            self.app_private_key = rsa.PrivateKey.load_pkcs1(self.config.get('app_private_key'))
-            self.alipay_public_key = rsa.PublicKey.load_pkcs1_openssl_pem(self.config.get('alipay_public_key'))
-        except ValueError:
+            with open(self.config.get('app_private_key')) as fd:
+                self.app_private_key = rsa.PrivateKey.load_pkcs1(fd.read())
+            with open(self.config.get('alipay_public_key')) as fd:
+                self.alipay_public_key = rsa.PublicKey.load_pkcs1_openssl_pem(fd.read())
+        except Exception:
             app.logger.error(traceback.format_exc())
             self.app_private_key = None
             self.alipay_public_key = None
