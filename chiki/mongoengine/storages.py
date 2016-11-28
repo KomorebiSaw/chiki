@@ -91,9 +91,9 @@ class OSSFile(BaseFile):
 
         attrs = []
         if width != 0:
-            attrs.append('w_' % width)
+            attrs.append('w_' + width)
         if height != 0:
-            attrs.append('h_' % height)
+            attrs.append('h_' + height)
         if attrs:
             attrs.append('m_fill')
             attrs.append('limit_0')
