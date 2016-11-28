@@ -44,6 +44,7 @@ class Alipay(object):
             return "success"
 
     def alipay_callback(self):
+        current_app.logger.error('form: ' + json.dumps(request.form) + '\nargs: ' + json.dumps(request.args) + '\nurl: ' + request.url)
         sign = request.form.get('sign')
         args = dict([(x, y) for x, y in request.form.iteritems() if x != 'sign'])
         if self.verify(sign, **args):
@@ -51,7 +52,7 @@ class Alipay(object):
                 self.callback()
         else:
             current_app.logger.error(
-                'alipay callback not verify: %s' % json.dumps(request.args))
+                'alipay callback not verify: %s' % json.dumps(request.form))
 
     def handler(self, callback):
         self.callback = callback
