@@ -81,11 +81,10 @@ def share_log():
     image = request.form.get('image')
     link = request.form.get('link')
     status = request.form.get('status')
+    user = current_user.id if current_user.is_authenticated() else None
     if media and status:
-        log = ShareLog(media=media, title=title, desc=desc,
+        log = ShareLog(user=user, media=media, title=title, desc=desc,
                        image=image, link=link, status=status)
-        if current_user.is_authenticated():
-            log.user = current_user.id
         log.save()
     return json_success()
 
