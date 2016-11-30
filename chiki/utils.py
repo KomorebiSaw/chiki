@@ -285,4 +285,5 @@ def url_with_user(url):
 
 
 def get_url_arg(url, key):
-    return urlparse.parse_qs(urlparse.urlparse(url).query).get(key)
+    res = urlparse.parse_qs(urlparse.urlparse(url).query).get(key)
+    return res[0] if res else None
