@@ -44,9 +44,14 @@ def on_invite(user, uid):
             user.save()
 
         if not inviter and uid < 100000:
-            channel = Channel.objects(id=uid).first()
-            if channel:
-                user.channel = channel.id
+            if not user.channel:
+                channel = Channel.objects(id=uid).first()
+                if channel:
+                    user.channel = channel.id
+                    user.inviter = um.models.User(id=100000)
+                    user.save()
+            else:
+                user.channel = 1000
                 user.inviter = um.models.User(id=100000)
                 user.save()
 
