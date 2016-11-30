@@ -242,7 +242,7 @@ class ShareLog(db.Document):
     user = db.ReferenceField('User', verbose_name='用户')
     media = db.StringField(verbose_name='平台', choices=MEDIA.CHOICES)
     title = db.StringField(verbose_name='标题')
-    content = db.StringField(verbose_name='描述')
+    desc = db.StringField(verbose_name='描述')
     link = db.StringField(verbose_name='链接')
     image = db.StringField(verbose_name='图片链接')
     status = db.StringField(verbose_name='状态', choices=STATUS.CHOICES)
