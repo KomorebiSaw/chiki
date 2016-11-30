@@ -64,7 +64,7 @@ def on_wechat_login(action, next):
             current_user.is_user() and \
             not current_user.inviter:
         try:
-            uid = int(get_url_arg('uid'))
+            uid = int(get_url_arg(next, 'uid'))
             um.funcs.on_invite(current_user, uid)
         except:
             pass
