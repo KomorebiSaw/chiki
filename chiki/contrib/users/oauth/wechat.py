@@ -1,4 +1,5 @@
 # coding: utf-8
+import traceback
 from chiki.api import abort
 from chiki.api.const import *
 from chiki.contrib.common import Item, Channel
@@ -67,7 +68,7 @@ def on_wechat_login(action, next):
             uid = int(get_url_arg(next, 'uid'))
             um.funcs.on_invite(current_user, uid)
         except:
-            pass
+            current_app.logger.error(traceback.format_exc())
 
 
 def init_wxauth(app):
