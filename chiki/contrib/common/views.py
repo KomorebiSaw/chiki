@@ -1,13 +1,16 @@
 # coding: utf-8
 import os
+import json
 import zipfile
 from flask import Blueprint, request, current_app
 from flask import abort, redirect, Response
+from flask.ext.login import current_user
 from cStringIO import StringIO
 from shutil import copyfileobj
-from .models import AndroidVersion, Enable
+from chiki.utils import json_success
+from .models import AndroidVersion, Enable, ShareLog, TraceLog
 
-bp = Blueprint('common', __name__)
+bp = Blueprint('chiki.common', __name__)
 ANDROID_URL = '/static/android/%(version)s/%(name)s_%(version)s_%(channel)d.apk'
 ANDROID_PATH = 'android/%(version)s/%(name)s_%(version)s.apk'
 apkinfo = {
@@ -68,3 +71,32 @@ def android_latest():
         'Content-Type': "application/octet-stream",
         'Content-Disposition': 'attachment;filename=%s' % filename,
     })
+
+
+@bp.route('/share/log', methods=['POST'])
+def share_log():
+    media = request.form.get('media')
+    title = request.form.get('title')
+    desc = request.form.get('desc')
+    image = request.form.get('image')
+    link = request.form.get('link')
+    status = request.form.get('status')
+    if media and status:
+        log = ShareLog(media=media, title=title, desc=desc,
+                       image=image, link=link, status=status)
+        if current_user.is_authenticated():
+            log.user = current_user.id
+        log.save()
+    return json_success()
+
+
+@bp.route('/trace', methods=['POST'])
+def trace():
+    key = request.form.get('key')
+    tid = request.form.get('tid')
+    user = current_user.id if current_user.is_authenticated() else None
+    label = request.form.get('label')
+    value = request.form.get('value', json.dumps(request.form))
+    if key and value:
+        TraceLog(key=key, tid=tid, user=user, label=label, value=value).save()
+    return json_success()

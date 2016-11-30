@@ -1,9 +1,10 @@
 # coding: utf-8
-from chiki import AttrDict, init_verify
 from chiki.base import db
 from chiki.contrib.common import Channel
 from chiki.contrib.users import admin, apis, forms, funcs, models, oauth, views
 from chiki.contrib.users.base import user_manager
+from chiki.utils import AttrDict
+from chiki.verify import init_verify
 from flask.ext.login import LoginManager, current_user
 
 __all__ = [

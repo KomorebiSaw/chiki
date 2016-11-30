@@ -1,11 +1,11 @@
 # coding: utf-8
 import hashlib
 import random
-from chiki import get_ip, get_spm, get_channel, url2image
 from chiki.base import db
 from chiki.utils import get_spm, get_ip
 from chiki.contrib.common import Item
 from chiki.contrib.users.base import user_manager as um
+from chiki.utils import get_ip, get_spm, get_channel, url2image
 from datetime import datetime, timedelta
 from flask import current_app, request
 from flask.ext.login import current_user
@@ -143,6 +143,12 @@ class UserMixin(object):
         """ 获取用户ID """
         return self.id
 
+    def is_allow_invite(self, user):
+        return True
+
+    def is_allow_channel(self, user):
+        return True
+
 
 class User(db.Document, UserMixin):
     """ 用户模型 """
@@ -174,6 +180,7 @@ class User(db.Document, UserMixin):
     resume = db.StringField(max_length=100, verbose_name='简介')
     debug = db.BooleanField(default=False, verbose_name='允许调试')
     active = db.BooleanField(default=True, verbose_name='激活')
+    inviter = db.ReferenceField('User', verbose_name='邀请者')
     channel = db.IntField(verbose_name='注册渠道ID')
     spm = db.StringField(max_length=100, verbose_name='登录SPM')
     ip = db.StringField(max_length=20, verbose_name='登录IP')

@@ -2,24 +2,26 @@
 import os
 import redis
 import traceback
+from StringIO import StringIO
 from flask import Blueprint, current_app, Response, render_template
-from flask import abort, request, redirect
+from flask import request, redirect
 from flask.ext.babelex import Babel
 from flask.ext.login import login_required
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask.ext.session import Session
-from .base import db
-from .cool import cm
-from .contrib.common import Item, Page, Choices, Menu
-from .jinja import init_jinja
-from .logger import init_logger
-from .media import MediaManager
-from .oauth import init_oauth
-from .settings import TEMPLATE_ROOT
-from .upimg import init_upimg
-from .web import error as error_msg
-from ._flask import Flask
+from chiki.base import db
+from chiki.cool import cm
+from chiki.contrib.common import Item, Page, Choices, Menu, bp as common_bp
+from chiki.contrib.users import um
+from chiki.jinja import init_jinja
+from chiki.logger import init_logger
+from chiki.media import MediaManager
+from chiki.oauth import init_oauth
+from chiki.settings import TEMPLATE_ROOT
+from chiki.upimg import init_upimg
+from chiki.web import error as error_msg
+from chiki._flask import Flask
 
 __all__ = [
     "init_app", 'init_web', 'init_api', "init_admin", "start_error",
@@ -116,20 +118,22 @@ def before_request():
     auth = request.authorization
     username = current_app.config.get('ADMIN_USERNAME')
     password = current_app.config.get('ADMIN_PASSWORD')
-    if username and not (auth 
-            and auth.username == username 
-            and auth.password == password):
+    if username and not (
+            auth and auth.username == username and
+            auth.password == password):
         return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
 
 
 def init_app(init=None, config=None, pyfile=None,
-        template_folder='templates', index=False, error=True,
-        is_web=False, is_api=False):
+             template_folder='templates', index=False, error=True,
+             is_web=False, is_api=False):
     """ 创建应用 """
 
     app = Flask(__name__, template_folder=template_folder)
-    if config: app.config.from_object(config)
-    if pyfile: app.config.from_pyfile(pyfile)
+    if config:
+        app.config.from_object(config)
+    if pyfile:
+        app.config.from_pyfile(pyfile)
 
     ENVVAR = app.config.get('ENVVAR')
     if ENVVAR and os.environ.get(ENVVAR):
@@ -203,23 +207,36 @@ def init_app(init=None, config=None, pyfile=None,
         def chiki_back():
             return 'true'
 
+    with app.app_context():
+        user = um.models.User.objects(id=100000).first()
+        if not user:
+            user = um.models.User(
+                id=100000, phone='13888888888', password='123456',
+                nickname=app.config.get('SITE_NAME'))
+            user.save()
+        if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
+            with open(app.get_data_path('imgs/logo.jpg')) as fd:
+                user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
+            user.save()
+
     return app
 
 
 def init_web(init=None, config=None, pyfile=None,
-        template_folder='templates', index=False, error=True):
+             template_folder='templates', index=False, error=True):
     app = init_app(init, config, pyfile, template_folder, index, error, is_web=True)
+    app.register_blueprint(common_bp)
     return app
 
 
-def init_api(init=None, config=None, pyfile=None, 
-        template_folder='templates', index=False, error=False):
+def init_api(init=None, config=None, pyfile=None,
+             template_folder='templates', index=False, error=False):
     app = init_app(init, config, pyfile, template_folder, index, error, is_api=True)
     return app
 
 
-def init_admin(init=None, config=None, pyfile=None, 
-        template_folder='templates', index=True, error=True):
+def init_admin(init=None, config=None, pyfile=None,
+               template_folder='templates', index=True, error=True):
     """ 创建后台管理应用 """
 
     app = init_app(init, config, pyfile, template_folder, index, error)

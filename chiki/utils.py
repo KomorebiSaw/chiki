@@ -2,14 +2,15 @@
 import re
 import os
 import sys
-import time
 import random
 import string
 import traceback
 import requests
+import urlparse
 from datetime import datetime, date
 from StringIO import StringIO
 from flask import jsonify, current_app, request
+from flask.ext.login import current_user
 
 __all__ = [
     'strip', 'json_success', 'json_error',
@@ -17,7 +18,7 @@ __all__ = [
     'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os', 'get_platform',
     'get_channel', 'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
     'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data', 'get_module',
-    'rmb3', 'check_encode',
+    'rmb3', 'check_encode', 'url_with_user', 'get_url_arg',
 ]
 
 
@@ -267,3 +268,21 @@ def check_encode(text, code='gb18030'):
     except:
         pass
     return False
+
+
+def url_with_user(url):
+    if current_user.is_authenticated() and current_user.is_user():
+        res = urlparse.urlparse(url)
+        if 'uid=' not in res.query:
+            if res.query:
+                query = '%s&uid=%d' % (res.query, current_user.id)
+            else:
+                query = 'uid=%d' % current_user.id
+            url = '%s://%s%s?%s' % (res.scheme, res.netloc, res.path, query)
+            if res.fragment:
+                url += '#' + res.fragment
+    return url
+
+
+def get_url_arg(url, key):
+    return urlparse.parse_qs(urlparse.urlparse(url).query).get(key)

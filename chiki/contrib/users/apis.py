@@ -1,10 +1,11 @@
 # coding: utf-8
 import re
-from chiki import get_ip, get_spm, get_channel, condom, is_empty
 from chiki.api import success, Resource
 from chiki.api.const import *
 from chiki.base import db
 from chiki.contrib.users.base import user_manager as um
+from chiki.condoms import condom
+from chiki.utils import get_ip, get_spm, get_channel, is_empty
 from chiki.verify import get_verify_code, validate_code
 from datetime import datetime
 from flask import current_app, request

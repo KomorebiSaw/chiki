@@ -233,6 +233,30 @@ class Share(db.EmbeddedDocument):
         ))
 
 
+class ShareLog(db.Document):
+    """ 分享日志 """
+
+    STATUS = db.choices(success='成功', cancel='取消', error='错误')
+    MEDIA = db.choices(timeline='朋友圈', message='消息', qq='QQ', qzone='qzone')
+
+    user = db.ReferenceField('User', verbose_name='用户')
+    media = db.StringField(verbose_name='平台', choices=MEDIA.CHOICES)
+    title = db.StringField(verbose_name='标题')
+    content = db.StringField(verbose_name='描述')
+    url = db.StringField(verbose_name='链接')
+    image = db.StringField(verbose_name='图片链接')
+    status = db.StringField(verbose_name='状态', choices=STATUS.CHOICES)
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            'user',
+            'url',
+            '-created',
+        ]
+    }
+
+
 class StatLog(db.Document):
     """ 统计日志 """
 
@@ -302,9 +326,9 @@ class TraceLog(db.Document):
 
     MENU_ICON = 'bug'
 
+    user = db.ReferenceField('User', verbose_name='用户')
     key = db.StringField(verbose_name='KEY')
     tid = db.StringField(verbose_name='TID')
-    user = db.IntField(verbose_name='用户')
     label = db.StringField(verbose_name='标识')
     value = db.StringField(verbose_name='结果')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
@@ -313,6 +337,7 @@ class TraceLog(db.Document):
         'indexes': [
             'key',
             'tid',
+            'user',
             'label',
             '-created',
         ]
