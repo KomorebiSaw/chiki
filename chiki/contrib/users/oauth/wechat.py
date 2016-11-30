@@ -106,7 +106,11 @@ def init_wxauth(app):
             else:
                 user = real_user
 
+        current_app.logger.error('user: %s\n%s' % (user.is_user(), current_user))
+
         login_user(user, remember=True)
+
+        current_app.logger.error('user: %s\n%s' % (user.is_user(), current_user))
 
         if user.is_user() and not user.active:
             return error(msg=Item.data('active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
