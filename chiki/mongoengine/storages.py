@@ -90,14 +90,15 @@ class OSSFile(BaseFile):
             format = 'jpg'
 
         attrs = []
-        if ystart != 0 and yend != 0: attrs.append('@0-%d-0-%da' % (ystart, yend))
-        if width != 0: attrs.append('%dw' % width)
-        if height != 0: attrs.append('%dh' % height)
-        if attrs: attrs.append('1e_1c')
-        if attrs or format != 'gif': attrs.append('95Q')
+        if width != 0:
+            attrs.append('w_%d' % width)
+        if height != 0:
+            attrs.append('h_%d' % height)
         if attrs:
-            if format == 'gif': format = 'jpg'
-            return link + '@' + '_'.join(attrs) + '.' + format
+            attrs.append('m_fill')
+            attrs.append('limit_0')
+        if attrs:
+            return link + '?x-oss-process=image/resize,' + ','.join(attrs) + '/format,' + format
         return link
 
     def get(self, name):
