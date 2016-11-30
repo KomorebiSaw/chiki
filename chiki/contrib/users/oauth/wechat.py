@@ -61,6 +61,7 @@ def on_invite(user, uid):
 
 def on_wechat_login(action, next):
     um = current_app.user_manager
+    current_app.logger.error('is_authenticated: %s\n%s' % (current_user.is_authenticated(), current_user.is_user()))
     if current_user.is_authenticated() and \
             current_user.is_user() and \
             not current_user.inviter:
