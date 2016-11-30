@@ -4,6 +4,7 @@ from chiki.api.const import *
 from chiki.contrib.common import Item, Channel
 from chiki.web import error
 from chiki.utils import get_url_arg, is_json
+from flask import current_app
 from flask.ext.login import login_user, current_user
 
 __all__ = [
@@ -35,6 +36,7 @@ def wechat_login(wxuser):
 
 
 def on_invite(user, uid):
+    um = current_app.user_manager
     if not user.inviter and uid and uid != user.id:
         inviter = um.models.User.objects(id=uid).first()
         if inviter and inviter.active and inviter.is_allow_invite(user):
@@ -57,6 +59,7 @@ def on_invite(user, uid):
 
 
 def on_wechat_login(action, next):
+    um = current_app.user_manager
     if current_user.is_authenticated() and \
             current_user.is_user() and \
             not current_user.inviter:
