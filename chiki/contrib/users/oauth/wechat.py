@@ -33,6 +33,7 @@ def wechat_login(wxuser):
     model = um.config.oauth_model
     if model == 'auto' and not wxuser.user:
         um.models.User.from_wechat(wxuser)
+        current_user.logger.error('wxuser: %d' % wxuser.user)
     wxuser.update()
 
 
