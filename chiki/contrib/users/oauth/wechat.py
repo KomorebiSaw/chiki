@@ -31,9 +31,8 @@ def create_wechat_user(userinfo, action):
 def wechat_login(wxuser):
     um = current_app.user_manager
     model = um.config.oauth_model
-    if model == 'auto' and not wxuser.user:
+    if model == 'auto' and not wxuser.current:
         um.models.User.from_wechat(wxuser)
-        current_user.logger.error('wxuser: %d' % wxuser.user)
     wxuser.update()
 
 
@@ -62,13 +61,11 @@ def on_invite(user, uid):
 
 def on_wechat_login(action, next):
     um = current_app.user_manager
-    current_app.logger.error('is_authenticated: %s\n%s' % (current_user.is_authenticated(), current_user.is_user()))
     if current_user.is_authenticated() and \
             current_user.is_user() and \
             not current_user.inviter:
         try:
             uid = int(get_url_arg(next, 'uid'))
-            current_app.logger.error('uid: %d\n%s' % (uid, next))
             um.funcs.on_invite(current_user, uid)
         except:
             current_app.logger.error(traceback.format_exc())
@@ -107,11 +104,7 @@ def init_wxauth(app):
             else:
                 user = real_user
 
-        current_app.logger.error('user: %s\n%s' % (user.is_user(), current_user))
-
         login_user(user, remember=True)
-
-        current_app.logger.error('user: %s\n%s' % (user.is_user(), current_user))
 
         if user.is_user() and not user.active:
             return error(msg=Item.data('active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
