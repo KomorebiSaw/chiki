@@ -10,7 +10,7 @@ from flask.ext.login import login_user, current_user
 
 __all__ = [
     'init_wxauth', 'get_wechat_user', 'create_wechat_user',
-    'wechat_login', 'on_wechat_login',
+    'wechat_login', 'on_wechat_login', 'on_invite',
 ]
 
 
