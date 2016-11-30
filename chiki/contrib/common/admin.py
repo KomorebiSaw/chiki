@@ -22,7 +22,7 @@ FA = '<i class="fa fa-%s"></i>'
 class ItemView(ModelView):
     column_default_sort = ('key', False)
     column_list = ('name', 'key', 'type', 'value', 'modified', 'created')
-    column_center_list = ('type', 'modified', 'created')
+    column_center_list = ('type', 'modified', 'created', 'value', 'name', 'key')
     column_filters = ('key', 'modified', 'created')
     column_formatters = dict(value=formatter_len(32))
 
@@ -85,7 +85,7 @@ def create_qrcode(url):
 class ChannelView(ModelView):
     column_labels = dict(stat='统计')
     column_list = ['id', 'name', 'password', 'url', 'image', 'modified', 'created', 'stat']
-    column_center_list = ['id', 'image', 'modified', 'created', 'stat']
+    column_center_list = ['id', 'image', 'modified', 'created', 'stat', 'name', 'password', 'url']
     form_excluded_columns = ('id',)
 
     column_formatters = dict(
@@ -165,7 +165,7 @@ class APIView(ModelView):
     column_default_sort = ('created', True)
     column_searchable_list = ('key', 'name')
     column_filters = ('key', 'modified', 'created')
-    column_center_list = ('modified', 'created')
+    column_center_list = ('modified', 'created', 'expire', 'cache')
 
     def on_model_change(self, form, model, created=False):
         model.modified = datetime.now()
@@ -189,10 +189,13 @@ class ActionView(ModelView):
         'sort', 'enable', 'modified', 'created'
     )
     column_list = (
-        'key', 'name', 'icon', 'active_icon', 'module', 'login',
+        'active_icon', 'icon', 'key', 'name', 'data', 'target', 'module', 'login',
         'sort', 'enable', 'modified', 'created'
     )
-    column_center_list = ('icon', 'active_icon', 'module', 'sort', 'enable', 'modified', 'created')
+    column_center_list = (
+        'icon', 'active_icon', 'module', 'sort', 'enable', 'login',
+        'modified', 'created', 'key', 'name'
+    )
     column_formatters = dict(
         icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
         name=formatter_text(lambda m: (m.name, m.name), max_len=7),
@@ -204,8 +207,15 @@ class SlideView(ModelView):
     column_default_sort = ('module', 'sort')
     column_searchable_list = ('name', )
     column_filters = ('module', 'modified', 'created')
+    column_list = (
+        'icon', 'key', 'name', 'module', 'target', 'share', 'sort',
+        'android_start', 'android_end', 'ios_start', 'ios_end', 'login',
+        'login_show', 'debug', 'enable', 'modified', 'created'
+    )
     column_center_list = (
-        'module', 'share', 'sort', 'enable', 'modified', 'created',
+        'icon', 'key', 'name', 'module', 'sort', 'android_start',
+        'android_end', 'ios_start', 'ios_end', 'login',
+        'login_show', 'debug', 'enable', 'modified', 'created'
     )
     column_formatters = dict(
         image=formatter_icon(lambda m: (m.image.get_link(height=40), m.image.link)),
@@ -220,7 +230,7 @@ class ImageView(ModelView):
 
 
 class TPLView(ModelView):
-    pass
+    column_center_list = ('name', 'key', 'enable', 'modified', 'created')
 
 
 class OptionView(ModelView):
