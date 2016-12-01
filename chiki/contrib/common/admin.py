@@ -21,8 +21,8 @@ FA = '<i class="fa fa-%s"></i>'
 
 class ItemView(ModelView):
     column_default_sort = ('key', False)
-    column_list = ('name', 'key', 'type', 'value', 'modified', 'created')
-    column_center_list = ('type', 'modified', 'created', 'value', 'name', 'key')
+    column_list = ('key', 'name',  'value', 'type', 'modified', 'created')
+    column_center_list = ('type', 'modified', 'created')
     column_filters = ('key', 'modified', 'created')
     column_formatters = dict(value=formatter_len(32))
 
