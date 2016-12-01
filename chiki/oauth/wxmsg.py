@@ -1,4 +1,6 @@
 # coding: utf-8
+from chiki.contrib.users import um
+from werobot.reply import TransferCustomerServiceReply
 from .robot import WeRoBot
 from .admin import *
 from .models import *
@@ -39,17 +41,26 @@ class WXMsg(object):
         @robot.subscribe
         @robot.scan
         def on_subscribe(message):
+            user = um.models.User.get_wechat(mp_openid=message.source)
+            if not user:
+                user = um.models.User.from_wechat_mp(message.source)
+
+            um.models.on_invite(user, int(message.key or 0))
             if self.subscribe_callback:
-                res = self.subscribe_callback(message)
+                res = self.subscribe_callback(user, message)
                 if res:
                     return res
+
+            if not user.wechat_user.subscribe:
+                user.wechat_user.dosubscribe()
+
             follow_msg = Message.objects(follow=True).first()
             if follow_msg:
                 return follow_msg.reply(message)
             default_msg = Message.objects(default=True).first()
             if default_msg:
                 return default_msg.reply(message)
-            return ''
+            return TransferCustomerServiceReply(message=message)
 
         @robot.unsubscribe
         def on_unsubscribe(message):

@@ -1,16 +1,16 @@
 # coding: utf-8
-import hashlib
-from chiki import is_json
+import traceback
 from chiki.api import abort
 from chiki.api.const import *
-from chiki.contrib.common import Item
+from chiki.contrib.common import Item, Channel
 from chiki.web import error
-from flask import flash, render_template, redirect, url_for, current_app
+from chiki.utils import get_url_arg, is_json
+from flask import current_app
 from flask.ext.login import login_user, current_user
 
 __all__ = [
     'init_wxauth', 'get_wechat_user', 'create_wechat_user',
-    'wechat_login', 'on_wechat_login',
+    'wechat_login', 'on_wechat_login', 'on_invite',
 ]
 
 
@@ -31,14 +31,44 @@ def create_wechat_user(userinfo, action):
 def wechat_login(wxuser):
     um = current_app.user_manager
     model = um.config.oauth_model
-    if model == 'auto' and not wxuser.user:
+    if model == 'auto' and not wxuser.current:
         um.models.User.from_wechat(wxuser)
-
     wxuser.update()
 
 
+def on_invite(user, uid):
+    um = current_app.user_manager
+    if not user.inviter and uid and uid != user.id:
+        inviter = um.models.User.objects(id=uid).first()
+        if inviter and inviter.active and inviter.is_allow_invite(user):
+            if inviter.is_allow_channel(user):
+                user.channel = inviter.channel
+            user.inviter = inviter
+            user.save()
+
+        if not inviter and uid < 100000:
+            if not user.channel:
+                channel = Channel.objects(id=uid).first()
+                if channel:
+                    user.channel = channel.id
+                    user.inviter = um.models.User(id=100000)
+                    user.save()
+            else:
+                user.channel = 1000
+                user.inviter = um.models.User(id=100000)
+                user.save()
+
+
 def on_wechat_login(action, next):
-    pass
+    um = current_app.user_manager
+    if current_user.is_authenticated() and \
+            current_user.is_user() and \
+            not current_user.inviter:
+        try:
+            uid = int(get_url_arg(next, 'uid') or 0)
+            um.funcs.on_invite(current_user, uid)
+        except:
+            current_app.logger.error(traceback.format_exc())
 
 
 def init_wxauth(app):
