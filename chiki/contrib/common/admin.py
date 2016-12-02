@@ -4,8 +4,8 @@ import urllib
 import qrcode as _qrcode
 from PIL import Image
 from StringIO import StringIO
-from chiki.admin import ModelView, formatter_len, formatter_icon
-from chiki.admin import formatter_text, formatter_link
+from chiki.admin import ModelView, formatter_len, formatter_icon, formatter, formatter_model
+from chiki.admin import formatter_text, formatter_link, popover, quote, escape
 from chiki.forms.fields import WangEditorField, DragSelectField
 from chiki.stat import statistics
 from chiki.utils import json_success
@@ -59,7 +59,8 @@ class TraceLogView(ModelView):
 
 def create_qrcode(url):
     A, B, C = 480, 124, 108
-    qr = _qrcode.QRCode(version=2, box_size=10, border=1,
+    qr = _qrcode.QRCode(
+        version=2, box_size=10, border=1,
         error_correction=_qrcode.constants.ERROR_CORRECT_M)
     qr.add_data(url)
     qr.make(fit=True)
@@ -181,6 +182,17 @@ class UserImageView(ModelView):
         model.modified = datetime.now()
 
 
+@formatter
+def formatter_share(share):
+    if share.title and share.url:
+        return popover(
+            '<img src=%s style="width:100px; height: auto;"></br><a href=%s>%s</a>' % (
+                quote(share.image.get_link(), share.url) + escape(share.url)),
+            '查看',
+            share.title,
+        )
+
+
 class ActionView(ModelView):
     column_default_sort = ('module', 'sort')
     column_labels = dict(modified='修改', created='创建')
@@ -189,7 +201,7 @@ class ActionView(ModelView):
         'sort', 'enable', 'modified', 'created'
     )
     column_list = (
-        'active_icon', 'icon', 'key', 'name', 'data', 'target', 'module', 'login',
+        'icon', 'active_icon', 'key', 'name', 'data', 'target', 'module', 'login',
         'sort', 'enable', 'modified', 'created'
     )
     column_center_list = (
@@ -203,22 +215,30 @@ class ActionView(ModelView):
 
 
 class SlideView(ModelView):
-    column_labels = dict(modified='修改', created='创建')
+    show_popover = True
+    column_labels = dict(modified='修改', created='创建', android='安卓版本', ios='IOS版本')
     column_default_sort = ('module', 'sort')
     column_searchable_list = ('name', )
     column_filters = ('module', 'modified', 'created')
     column_list = (
         'icon', 'key', 'name', 'module', 'target', 'share', 'sort',
-        'android_start', 'android_end', 'ios_start', 'ios_end', 'login',
-        'login_show', 'debug', 'enable', 'modified', 'created'
+        'android', 'ios', 'login', 'login_show', 'debug', 'enable',
+        'modified', 'created'
     )
     column_center_list = (
-        'icon', 'key', 'name', 'module', 'sort', 'android_start',
-        'android_end', 'ios_start', 'ios_end', 'login',
-        'login_show', 'debug', 'enable', 'modified', 'created'
+        'icon', 'key', 'name', 'module', 'sort', 'share',
+        'android', 'ios', 'login', 'login_show', 'debug',
+        'enable', 'modified', 'created'
     )
     column_formatters = dict(
         image=formatter_icon(lambda m: (m.image.get_link(height=40), m.image.link)),
+        share=formatter_share,
+        android=formatter_model(lambda m: '%s ~ %s' % (
+            m.android_start.version if m.android_start else '',
+            m.android_end.version if m.android_end else '',)),
+        ios=formatter_model(lambda m: '%s ~ %s' % (
+            m.ios_start.version if m.ios_start else '',
+            m.ios_end.version if m.ios_end else '',))
     )
 
     def on_model_change(self, form, model, created=False):

@@ -61,6 +61,16 @@ def formatter(func):
     return wrapper
 
 
+@formatter
+def formatter_share(share):
+    if share.title and share.url:
+        return popover(
+            '<img src=%s style="width:100px; height: auto;"><a href=%s>%s</a>' % (quote(share.image.get_link(), share.url) + escape(share.url)),
+            '查看',
+            share.title,
+        )
+
+
 def formatter_model(func):
     def wrapper(view, context, model, name):
         return markup(func(model) or '')
