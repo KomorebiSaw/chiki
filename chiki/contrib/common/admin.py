@@ -4,7 +4,8 @@ import urllib
 import qrcode as _qrcode
 from PIL import Image
 from StringIO import StringIO
-from chiki.admin import ModelView, formatter_len, formatter_icon
+from chiki.jinja import text2html
+from chiki.admin import ModelView, formatter_len, formatter_icon, formatter_popover
 from chiki.admin import formatter_text, formatter_link
 from chiki.forms.fields import WangEditorField, DragSelectField
 from chiki.stat import statistics
@@ -182,6 +183,7 @@ class UserImageView(ModelView):
 
 
 class ActionView(ModelView):
+    show_popover = True
     column_default_sort = ('module', 'sort')
     column_labels = dict(modified='修改', created='创建')
     column_filters = (
@@ -197,7 +199,8 @@ class ActionView(ModelView):
         'modified', 'created', 'key', 'name'
     )
     column_formatters = dict(
-        icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
+        # icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
+        icon=formatter_popover(lambda m: ("<img src='%s'> " % m.icon.link, "激活的: <img src='%s'> " % text2html(m.icon.link))),
         name=formatter_text(lambda m: (m.name, m.name), max_len=7),
     )
 
