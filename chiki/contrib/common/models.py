@@ -489,8 +489,8 @@ class Icon(db.Document):
 
     MENU_ICON = 'picture-o'
 
-    key = db.StringField(verbose_name='ID')
     icon = db.Base64ImageField(verbose_name='图标')
+    key = db.StringField(verbose_name='ID')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
