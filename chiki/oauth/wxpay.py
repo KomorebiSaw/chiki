@@ -165,7 +165,7 @@ class WXPay(object):
     def transfers(self, **kwargs):
         kwargs.setdefault('mch_appid', self.config.get('appid'))
         kwargs.setdefault('mchid', self.config.get('mchid'))
-        kwargs.setfefault('check_name', 'NO_CHECK')
+        kwargs.setdefault('check_name', 'NO_CHECK')
         kwargs.setdefault('amount', 1)
         kwargs.setdefault('desc', '企业打款')
         kwargs.setdefault('spbill_create_ip', get_ip())
