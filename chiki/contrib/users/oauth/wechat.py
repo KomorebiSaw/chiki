@@ -41,10 +41,17 @@ def on_invite(user, uid):
     if not user.inviter and uid and uid != user.id:
         inviter = um.models.User.objects(id=uid).first()
         if inviter and inviter.active and inviter.is_allow_invite(user):
-            if inviter.is_allow_channel(user):
-                user.channel = inviter.channel
-            user.inviter = inviter
-            user.save()
+            ids = []
+            ids.append(inviter.inviter.id if inviter.inviter else 0)
+            ids.append(inviter.inviter2.id if inviter.inviter2 else 0)
+            ids.append(inviter.inviter3.id if inviter.inviter3 else 0)
+            if user.id not in ids:
+                if inviter.is_allow_channel(user):
+                    user.channel = inviter.channel
+                user.inviter = inviter
+                user.inviter2 = inviter.inviter
+                user.inviter3 = inviter.inviter2
+                user.save()
 
         if not inviter and uid < 100000:
             if not user.channel:

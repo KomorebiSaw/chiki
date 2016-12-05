@@ -149,6 +149,18 @@ class UserMixin(object):
     def is_allow_channel(self, user):
         return True
 
+    @cached_property
+    def invites(self):
+        return um.models.User.objects(inviter=self).count()
+
+    @cached_property
+    def invites2(self):
+        return um.models.User.objects(inviter2=self).count()
+
+    @cached_property
+    def invites3(self):
+        return um.models.User.objects(inviter3=self).count()
+
 
 class User(db.Document, UserMixin):
     """ 用户模型 """
@@ -181,6 +193,8 @@ class User(db.Document, UserMixin):
     debug = db.BooleanField(default=False, verbose_name='允许调试')
     active = db.BooleanField(default=True, verbose_name='激活')
     inviter = db.ReferenceField('User', verbose_name='邀请者')
+    inviter2 = db.ReferenceField('User', verbose_name='邀请者2')
+    inviter3 = db.ReferenceField('User', verbose_name='邀请者3')
     channel = db.IntField(verbose_name='注册渠道ID')
     spm = db.StringField(max_length=100, verbose_name='登录SPM')
     ip = db.StringField(max_length=20, verbose_name='登录IP')

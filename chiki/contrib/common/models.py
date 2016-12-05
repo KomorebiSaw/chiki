@@ -1,9 +1,12 @@
 # coding: utf-8
 import json
 import time
+import qrcode
+from PIL import Image, ImageFont, ImageDraw
+from StringIO import StringIO
 from chiki.base import db
-from chiki.utils import today
-from datetime import datetime
+from chiki.utils import today, retry
+from datetime import datetime, timedelta
 from flask import current_app
 from flask.ext.login import current_user
 
@@ -390,6 +393,171 @@ class Channel(db.Document):
             self.id = Item.inc('channel_index', 1000)
             self.save()
         return self.id
+
+
+class QRCode(db.Document):
+    """ 二维码 """
+
+    MENU_ICON = 'qrcode'
+
+    user = db.ReferenceField('User', verbose_name='用户')
+    url = db.StringField(verbose_name='链接')
+    image = db.XImageField(verbose_name='二维码')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = dict(indexes=['user', '-created'])
+
+    @staticmethod
+    def get(user, url=None):
+        qr = QRCode.objects(user=user.id).first()
+        if not qr:
+            qr = QRCode(user=user.id, url=url)
+            qr.save()
+
+        if not qr.url and url:
+            qr.url = url
+
+        config = current_app.config.get('QRCODE', {})
+        if config.get('wxclient', True) and (
+                not qr.url or datetime.now() > qr.modified + timedelta(days=25)):
+            data = dict(
+                expire_seconds=2592000,
+                action_name='QR_SCENE',
+                action_info=dict(scene=dict(scene_id=user.id)),
+            )
+            qr.url = current_app.wxclient.create_qrcode(**data).get('url')
+            qr.modified = datetime.now()
+
+        if qr.url and not qr.image:
+            @retry(3)
+            def simple():
+                qr.create_image(user)
+
+        qr.save()
+        return qr
+
+    def create_qrcode(self, config):
+        logo = config.get('logo', current_app.get_data_path('imgs/logo.jpg'))
+        A, B, C = 250, 66, 58
+        qr = qrcode.QRCode(version=2, box_size=10, border=1,
+                           error_correction=qrcode.constants.ERROR_CORRECT_M)
+        qr.add_data(self.url)
+        qr.make(fit=True)
+        im = qr.make_image()
+        im = im.convert("RGBA")
+        im = im.resize((A, A), Image.BILINEAR)
+
+        if config.get('qr_logo', True):
+            em = Image.new("RGBA", (B, B), "white")
+            im.paste(em, ((A - B) / 2, (A - B) / 2), em)
+
+            with open(logo) as fd:
+                icon = Image.open(StringIO(fd.read()))
+            icon = icon.resize((C, C), Image.ANTIALIAS)
+            icon = icon.convert("RGBA")
+            im.paste(icon, ((A - C) / 2, (A - C) / 2), icon)
+
+        qr_width = config.get('qr_width', im.size[0])
+        im = im.resize((qr_width, qr_width), Image.BILINEAR)
+        return im
+
+    def create_bg(self, config, user, qr):
+        logo = config.get('logo', current_app.get_data_path('imgs/logo.jpg'))
+        bgpath = config.get('bg')
+        if bgpath:
+            with open(bgpath) as fd:
+                bg = Image.open(StringIO(fd.read()))
+            qr_x = config.get('qr_x', (bg.size[0] - qr.size[0]) / 2)
+            qr_y = config.get('qr_y', bg.size[1] / 2)
+
+            bg.convert("RGBA")
+            bg.paste(qr, (qr_x, qr_y), qr)
+
+            if user.avatar:
+                ic = Image.open(StringIO(user.avatar.content))
+            else:
+                with open(logo) as fd:
+                    ic = Image.open(StringIO(fd.read()))
+
+            avatar_width = config.get('avatar_width', ic.size[0])
+            avatar_x = config.get('avatar_x', (bg.size[0] - avatar_width) / 2)
+            avatar_y = config.get('avatar_y', bg.size[1] / 2)
+            ic = ic.resize((avatar_width, avatar_width), Image.ANTIALIAS)
+            ic = ic.convert("RGBA")
+
+            if config.get('avatar_circle', False):
+                bigsize = (ic.size[0] * 3, ic.size[1] * 3)
+                mask = Image.new('L', bigsize, 0)
+                draw = ImageDraw.Draw(mask)
+                draw.ellipse((0, 0) + bigsize, fill=255)
+                del draw
+                mask = mask.resize(ic.size, Image.ANTIALIAS)
+                ic.putalpha(mask)
+            bg.paste(ic, (avatar_x, avatar_y), ic)
+            return bg
+        return qr
+
+    def textsize(self, user, draw, font, width, texts):
+        w, has_nick = 0, False
+        for text in texts:
+            if type(text) in [list, tuple]:
+                text = text[0]
+
+            if '<nickname>' in text:
+                has_nick = True
+
+            text = text.replace('<id>', str(user.id))
+            text = text.replace('<nickname>', user.nickname or '佚名')
+            text = text.replace('<expire>', (
+                self.modified + timedelta(days=30)).strftime('%Y-%m-%d'))
+            w += draw.textsize(text, font=font)[0]
+
+        limit = len(user.nickname)
+        if has_nick:
+            nick_width = draw.textsize(user.nickname or '佚名', font=font)[0]
+            while limit > 4 and width - w + draw.textsize(
+                    user.nickname[:limit], font=font)[0] < nick_width:
+                limit -= 1
+            w += draw.textsize(user.nickname[:limit], font=font)[0] - nick_width
+        return (width - w) / 2, limit
+
+    def draw_texts(self, config, user, bg):
+        draw = ImageDraw.Draw(bg)
+        default = config.get('font', current_app.get_data_path('fonts/yh.ttf'))
+        for line in config.get('lines', []):
+            size = line.get('size', 18)
+            font = ImageFont.truetype(line.get('font', default), size)
+            x = line.get('x', 0)
+            y = line.get('y', 0)
+
+            texts = line.get('texts', [])
+            if x == 'center':
+                x, limit = self.textsize(user, draw, font, bg.size[0], texts)
+
+            for text in texts:
+                color = line.get('color', '#333333')
+                if type(text) in [list, tuple]:
+                    text, color = text[0], text[1]
+                text = text.replace('<id>', str(user.id))
+                text = text.replace('<nickname>', user.nickname[:limit] or '佚名')
+                text = text.replace('<expire>', (
+                    self.modified + timedelta(days=30)).strftime('%Y-%m-%d'))
+                width, _ = draw.textsize(text, font=font)
+                draw.text((x, y), text, font=font, fill=color)
+                x += width
+        del draw
+        return bg
+
+    def create_image(self, user):
+        config = current_app.config.get('QRCODE', {})
+        qr = self.create_qrcode(config)
+        bg = self.create_bg(config, user, qr)
+        bg = self.draw_texts(config, user, bg)
+        stream = StringIO()
+        bg.save(stream, format='png')
+        self.image = dict(stream=stream, format='png')
+        self.save()
 
 
 class AndroidVersion(db.Document):

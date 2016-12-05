@@ -118,15 +118,25 @@ class ChannelView(ModelView):
         model.create()
         model.modified = datetime.now()
 
-        if not model.url:
-            data = dict(
-                action_name='QR_LIMIT_SCENE',
-                action_info=dict(scene=dict(scene_id=model.id)),
-            )
-            model.url = current_app.wxclient.create_qrcode(**data).get('url')
-            model.image = create_qrcode(model.url)
-        elif not model.image:
-            model.image = create_qrcode(model.url)
+        if hasattr(current_app, 'wxclient'):
+            if not model.url:
+                data = dict(
+                    action_name='QR_LIMIT_SCENE',
+                    action_info=dict(scene=dict(scene_id=model.id)),
+                )
+                model.url = current_app.wxclient.create_qrcode(**data).get('url')
+                model.image = create_qrcode(model.url)
+            elif not model.image:
+                model.image = create_qrcode(model.url)
+
+
+class QRCodeView(ModelView):
+    column_list = ['user', 'image', 'url', 'modified', 'created']
+    column_center_list = ['user', 'image', 'modified', 'created']
+
+    def on_model_change(self, form, model, created=False):
+        if model.user:
+            model.get(model.user)
 
 
 class AndroidVersionView(ModelView):

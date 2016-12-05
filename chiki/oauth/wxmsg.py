@@ -1,5 +1,6 @@
 # coding: utf-8
 from chiki.contrib.users import um
+from flask import current_app
 from werobot.reply import TransferCustomerServiceReply
 from .robot import WeRoBot
 from .admin import *
@@ -46,10 +47,14 @@ class WXMsg(object):
                 user = um.models.User.from_wechat_mp(message.source)
 
             um.models.on_invite(user, int(message.key or 0))
+
             if self.subscribe_callback:
                 res = self.subscribe_callback(user, message)
                 if res:
                     return res
+
+            if current_app.config.get('NEED_QRCODE') and not user.inviter:
+                return '%s，欢迎关注！请取消关注，再通过扫描海报二维码进行关注！' % user.nickname
 
             if not user.wechat_user.subscribe:
                 user.wechat_user.dosubscribe()
