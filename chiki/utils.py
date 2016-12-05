@@ -123,7 +123,8 @@ def parse_spm(spm):
         spm = spm.replace('unknown', '0')
     if spm and re.match(r'^(\d+\.)+\d+$', spm):
         res = map(lambda x: int(x), spm.split('.'))
-        while len(res) < 5: res.append(0)
+        while len(res) < 5:
+            res.append(0)
         return res[:5]
     return 0, 0, 0, 0, 0
 
@@ -225,7 +226,7 @@ def retry(times=3):
                 res = func()
                 break
             except:
-                current_app.looger.error(traceback.format_exc())
+                current_app.logger.error(traceback.format_exc())
         return res
     return wrapper
 
