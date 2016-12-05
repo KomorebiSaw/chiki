@@ -19,6 +19,8 @@ __all__ = [
 
 class UserMixin(object):
 
+    ajax_ref = ['nickname', 'id', 'phone']
+
     @staticmethod
     def heart(key=''):
         if current_user.is_authenticated() and current_user.is_user():
