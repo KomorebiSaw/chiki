@@ -208,16 +208,17 @@ def init_app(init=None, config=None, pyfile=None,
             return 'true'
 
     with app.app_context():
-        user = um.models.User.objects(id=100000).first()
-        if not user:
-            user = um.models.User(
-                id=100000, phone='13888888888', password='123456',
-                nickname=app.config.get('SITE_NAME'))
-            user.save()
-        if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
-            with open(app.get_data_path('imgs/logo.jpg')) as fd:
-                user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
-            user.save()
+        if hasattr(app, 'user_manager'):
+            user = um.models.User.objects(id=100000).first()
+            if not user:
+                user = um.models.User(
+                    id=100000, phone='13888888888', password='123456',
+                    nickname=app.config.get('SITE_NAME'))
+                user.save()
+            if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
+                with open(app.get_data_path('imgs/logo.jpg')) as fd:
+                    user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
+                user.save()
 
     return app
 

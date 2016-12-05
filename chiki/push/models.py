@@ -12,7 +12,7 @@ class PushLog(db.Document):
 
     TYPE = db.choices(
         sync='刷新缓存', sync_userinfo='同步用户数据', sync_update='软件更新',
-        sync_money='同步收益', action='点击事件', other='其他'
+        sync_money='同步收益', action='点击事件', other='其他',
     )
 
     user = db.IntField(verbose_name='用户')
@@ -37,7 +37,7 @@ class PushAction(db.Document):
     TYPE = db.choices(
         default='原生', empty='无动作', tablist='Tab', webstatic='静态网页',
         webview='网页', listview='列表', gridview='表格', article_listview='文章列表',
-        browser='浏览器', redirect='内部跳转', divider='分割线'
+        browser='浏览器', redirect='内部跳转', divider='分割线',
     )
 
     key = db.StringField(verbose_name='键名')
@@ -53,7 +53,7 @@ class PushAllLog(db.Document):
 
     TYPE = db.choices(
         sync='刷新缓存', sync_userinfo='同步用户数据', sync_update='软件更新',
-        sync_money='同步收益', action='点击事件', other='其他'
+        sync_money='同步收益', action='点击事件', other='其他',
     )
 
     type = db.StringField(default=TYPE.SYNC, choices=TYPE.CHOICES, verbose_name='类型')
