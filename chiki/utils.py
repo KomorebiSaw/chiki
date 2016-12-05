@@ -219,13 +219,14 @@ def randstr(x=32):
 
 def retry(times=3):
     def wrapper(func):
+        res = None
         for i in range(times):
             try:
-                func()
+                res = func()
                 break
             except:
-                pass
-        return func
+                current_app.looger.error(traceback.format_exc())
+        return res
     return wrapper
 
 
