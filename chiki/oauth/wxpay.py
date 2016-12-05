@@ -4,6 +4,7 @@ import time
 import hashlib
 import requests
 import inspect
+import traceback
 from chiki.utils import get_ip, randstr
 from flask import request, url_for, current_app
 from werobot.utils import to_text
@@ -36,6 +37,7 @@ class WXPay(object):
     REFUND_URL = 'https://api.mch.weixin.qq.com/secapi/pay/refund'
     REFUND_QUERY = 'https://api.mch.weixin.qq.com/pay/refundquery'
     SEND_RED_PACK = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack'
+    TRANSFERS = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers'
 
     def __init__(self, app=None, config_key='WXPAY'):
         self.config_key = config_key
@@ -157,6 +159,24 @@ class WXPay(object):
             xml = requests.post(self.SEND_RED_PACK, data=data, cert=self.config.get('cert')).content
             return self.xml2dict(xml)
         except Exception, e:
+            current_app.logger.error(traceback.format_exc())
+            return dict(return_code='ERROR', return_msg=str(e))
+
+    def transfers(self, **kwargs):
+        kwargs.setdefault('mch_appid', self.config.get('appid'))
+        kwargs.setdefault('mchid', self.config.get('mchid'))
+        kwargs.setfefault('check_name', 'NO_CHECK')
+        kwargs.setdefault('amount', 1)
+        kwargs.setdefault('desc', '企业打款')
+        kwargs.setdefault('spbill_create_ip', get_ip())
+        kwargs.setdefault('nonce_str', randstr(32))
+        kwargs.setdefault('sign', self.sign(**kwargs))
+        data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
+        try:
+            xml = requests.post(self.TRANSFERS, data=data, cert=self.config.get('cert')).content
+            return self.xml2dict(xml)
+        except Exception, e:
+            current_app.logger.error(traceback.format_exc())
             return dict(return_code='ERROR', return_msg=str(e))
 
     def refund(self, **kwargs):
