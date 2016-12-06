@@ -20,7 +20,7 @@ FA = '<i class="fa fa-%s"></i>'
 
 
 class ItemView(ModelView):
-    column_default_sort = ('key', False)
+    column_default_sort = ('key', True)
     column_list = ('key', 'name',  'value', 'type', 'modified', 'created')
     column_center_list = ('type', 'modified', 'created')
     column_filters = ('key', 'modified', 'created')
@@ -224,16 +224,16 @@ class ActionView(ModelView):
         'sort', 'enable', 'modified', 'created'
     )
     column_list = (
-        'icon', 'key', 'name', 'target', 'module', 'login',
+        'icon', 'key', 'name', 'target', 'module', 'login', 'login_show', 'debug',
         'sort', 'enable', 'modified', 'created'
     )
     column_center_list = (
         'icon', 'module', 'sort', 'enable', 'login',
-        'modified', 'created', 'key', 'name'
+        'modified', 'created'
     )
     column_formatters = dict(
         # icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
-        name=formatter_text(lambda m: (m.name, m.data), max_len=7),
+        name=formatter_text(lambda m: (m.name, m.data, 'text-success' if m.data else ''), max_len=7),
         icon=formatter_A,
     )
     html = """
