@@ -241,7 +241,7 @@ class ActionView(ModelView):
    <style type="text/css">
         .col-icon{
             background-color: #B2DFEE;
-        }
+            }
         .column-header{background-color: #FFFFFF;}
         .C {position: relative; width: 40px; height: 40px;}
         .B {
