@@ -4,9 +4,8 @@ import urllib
 import qrcode as _qrcode
 from PIL import Image
 from StringIO import StringIO
-from chiki.jinja import text2html
 from chiki.admin import ModelView, formatter_len, formatter_icon, formatter, formatter_model
-from chiki.admin import formatter_text, formatter_link, popover, quote, escape, formatter_popover
+from chiki.admin import formatter_text, formatter_link, popover, quote, escape
 from chiki.forms.fields import WangEditorField, DragSelectField
 from chiki.stat import statistics
 from chiki.utils import json_success
