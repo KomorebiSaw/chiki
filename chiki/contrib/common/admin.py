@@ -204,6 +204,18 @@ def formatter_share(share):
         )
 
 
+@formatter_model
+def formatter_A(model):
+    icon = "<div class='A'><img src=%s></div>" % model.icon.link if model.icon else ''
+    active = "<div class='B'><img src=%s></div>" % model.active_icon.link if model.active_icon else ''
+    html = """
+    <div class='C'>
+    %s
+    %s
+    </div>""" % (icon, active)
+    return html
+
+
 class ActionView(ModelView):
     show_popover = True
     column_default_sort = ('module', 'sort')
@@ -213,18 +225,43 @@ class ActionView(ModelView):
         'sort', 'enable', 'modified', 'created'
     )
     column_list = (
-        'icon', 'active_icon', 'key', 'name', 'data', 'target', 'module', 'login',
+        'icon', 'key', 'name', 'target', 'module', 'login',
         'sort', 'enable', 'modified', 'created'
     )
     column_center_list = (
-        'icon', 'active_icon', 'module', 'sort', 'enable', 'login',
+        'icon', 'module', 'sort', 'enable', 'login',
         'modified', 'created', 'key', 'name'
     )
     column_formatters = dict(
         # icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
-        icon=formatter_popover(lambda m: ("<img src='%s'> " % m.icon.link, "激活的: <img src='%s'> " % text2html(m.icon.link))),
-        name=formatter_text(lambda m: (m.name, m.name), max_len=7),
+        name=formatter_text(lambda m: (m.name, m.data), max_len=7),
+        icon=formatter_A,
     )
+    html = """
+   <style type="text/css">
+        .col-icon{
+        background-color: #B2DFEE;
+        }
+        .column-header{background-color: #FFFFFF;}
+        .C {position: relative; width: 40px; height: 40px;}
+        .B {
+            display: none;
+            position: absolute;
+            left: 70px;
+            top: -9px;
+            padding: 9px;
+            background-color: #FFFFFF;
+            border: 1px solid #CCCCCC;
+           }
+        .A {
+            display: block;
+            position: absolute;
+            left: 10px;
+            }
+        img {height: 40px; width: 40px}
+        .A:hover + .B {display: block}
+    </style>
+    """
 
 
 class SlideView(ModelView):
