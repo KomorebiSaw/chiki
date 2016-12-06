@@ -229,7 +229,7 @@ class ActionView(ModelView):
     )
     column_center_list = (
         'icon', 'module', 'sort', 'enable', 'login',
-        'modified', 'created'
+        'modified', 'created', 'login_show', 'debug'
     )
     column_formatters = dict(
         # icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
