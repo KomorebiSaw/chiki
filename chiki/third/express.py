@@ -18,7 +18,8 @@ class Express(object):
 
     def query(self, number, type='auto'):
         headers = {'Authorization': 'APPCODE ' + self.code}
-        return requests.get(self.QUERY_URL, headers=headers).json()
+        params = dict(number=number, type=type)
+        return requests.get(self.QUERY_URL, params=params, headers=headers).json()
 
 
 def init_express(app):
