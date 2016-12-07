@@ -246,7 +246,7 @@ class ActionView(ModelView):
         .B {
             display: none;
             position: absolute;
-            left: 70px;
+            left: 60px;
             top: -9px;
             padding: 9px;
             background-color: #FFFFFF;
@@ -255,7 +255,7 @@ class ActionView(ModelView):
         .A {
             display: block;
             position: absolute;
-            left: 10px;
+            left: 5px;
             }
         img {height: 40px; width: 40px}
         .A:hover + .B {display: block}
