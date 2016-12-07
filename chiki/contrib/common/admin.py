@@ -4,9 +4,8 @@ import urllib
 import qrcode as _qrcode
 from PIL import Image
 from StringIO import StringIO
-from chiki.jinja import text2html
 from chiki.admin import ModelView, formatter_len, formatter_icon, formatter, formatter_model
-from chiki.admin import formatter_text, formatter_link, popover, quote, escape, formatter_popover
+from chiki.admin import formatter_text, formatter_link, popover, quote, escape
 from chiki.forms.fields import WangEditorField, DragSelectField
 from chiki.stat import statistics
 from chiki.utils import json_success
@@ -21,7 +20,7 @@ FA = '<i class="fa fa-%s"></i>'
 
 
 class ItemView(ModelView):
-    column_default_sort = ('key', False)
+    column_default_sort = ('key', True)
     column_list = ('key', 'name',  'value', 'type', 'modified', 'created')
     column_center_list = ('type', 'modified', 'created')
     column_filters = ('key', 'modified', 'created')
@@ -204,6 +203,14 @@ def formatter_share(share):
         )
 
 
+@formatter_model
+def formatter_A(model):
+    icon = '<div class="A"><img src=%s style="height: 40px; width: auto;"></div>' % model.icon.link if model.icon else ''
+    active = '<div class="B"><img src=%s style="height: 40px; width: auto;"></div>' % model.active_icon.link if model.active_icon else ''
+    html = '<div class="C">%s%s</div>' % (icon, active)
+    return html
+
+
 class ActionView(ModelView):
     show_popover = True
     column_default_sort = ('module', 'sort')
@@ -213,18 +220,39 @@ class ActionView(ModelView):
         'sort', 'enable', 'modified', 'created'
     )
     column_list = (
-        'icon', 'active_icon', 'key', 'name', 'data', 'target', 'module', 'login',
+        'icon', 'key', 'name', 'target', 'module', 'login', 'login_show', 'debug',
         'sort', 'enable', 'modified', 'created'
     )
     column_center_list = (
-        'icon', 'active_icon', 'module', 'sort', 'enable', 'login',
-        'modified', 'created', 'key', 'name'
+        'icon', 'module', 'sort', 'enable', 'login',
+        'modified', 'created', 'login_show', 'debug'
     )
     column_formatters = dict(
         # icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
-        icon=formatter_popover(lambda m: ("<img src='%s'> " % m.icon.link, "激活的: <img src='%s'> " % text2html(m.icon.link))),
-        name=formatter_text(lambda m: (m.name, m.name), max_len=7),
+        name=formatter_text(lambda m: (m.name, m.data, 'text-success' if m.data else ''), max_len=7),
+        icon=formatter_A,
     )
+    html = """
+   <style type="text/css">
+        .col-icon{
+            background-color: #B2DFEE;
+        }
+        .column-header{background-color: #FFFFFF;}
+        .C {position: relative; }
+        .B {
+            display: none;
+            position: absolute;
+            top: -9px;
+            right: -68px;
+            padding: 9px;
+            background-color: #FFFFFF;
+            border: 1px solid #CCCCCC;
+        }
+        .A:hover + .B {
+            display: block;
+        }
+    </style>
+    """
 
 
 class SlideView(ModelView):
