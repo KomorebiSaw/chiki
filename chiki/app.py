@@ -19,6 +19,7 @@ from chiki.logger import init_logger
 from chiki.media import MediaManager
 from chiki.oauth import init_oauth
 from chiki.settings import TEMPLATE_ROOT
+from chiki.third import init_third
 from chiki.upimg import init_upimg
 from chiki.web import error as error_msg
 from chiki._flask import Flask
@@ -175,6 +176,7 @@ def init_app(init=None, config=None, pyfile=None,
     init_jinja(app)
     init_logger(app)
     init_oauth(app)
+    init_third(app)
     init_page(app)
     db.init_app(app)
     media.init_app(app)
