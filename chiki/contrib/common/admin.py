@@ -205,13 +205,9 @@ def formatter_share(share):
 
 @formatter_model
 def formatter_A(model):
-    icon = "<div class='A'><img src=%s></div>" % model.icon.link if model.icon else ''
-    active = "<div class='B'><img src=%s></div>" % model.active_icon.link if model.active_icon else ''
-    html = """
-    <div class='C'>
-    %s
-    %s
-    </div>""" % (icon, active)
+    icon = '<div class="A"><img src=%s style="height: 40px; width: auto;"></div>' % model.icon.link if model.icon else ''
+    active = '<div class="B"><img src=%s style="height: 40px; width: auto;"></div>' % model.active_icon.link if model.active_icon else ''
+    html = '<div class="C">%s%s</div>' % (icon, active)
     return html
 
 
@@ -240,25 +236,21 @@ class ActionView(ModelView):
    <style type="text/css">
         .col-icon{
             background-color: #B2DFEE;
-            }
+        }
         .column-header{background-color: #FFFFFF;}
-        .C {position: relative; width: 40px; height: 40px;}
+        .C {position: relative; }
         .B {
             display: none;
             position: absolute;
-            left: 60px;
             top: -9px;
+            right: -68px;
             padding: 9px;
             background-color: #FFFFFF;
             border: 1px solid #CCCCCC;
-           }
-        .A {
+        }
+        .A:hover + .B {
             display: block;
-            position: absolute;
-            left: 5px;
-            }
-        img {height: 40px; width: 40px}
-        .A:hover + .B {display: block}
+        }
     </style>
     """
 
