@@ -15,7 +15,7 @@ class UserView(ModelView):
         'generate', 'error', 'logined', 'registered'
     )
     column_searchable_list = ('phone',)
-    column_filters = ('id', 'phone',)
+    column_filters = ('id', 'phone')
     form_excluded_columns = ('id', 'generate')
 
     def on_model_change(self, form, model, created=False):
@@ -34,10 +34,11 @@ class WeChatUserView(ModelView):
         'expires_in', 'refresh_token', 'updated', 'modified', 'created'
     )
     column_center_list = (
-        'user', 'nickname', 'province', 'city', 'privilege', 'subscribe',
+        'user', 'scene', 'nickname', 'province', 'city', 'privilege', 'subscribe',
         'subscribe_time', 'remark', 'groupid', 'access_token',
         'expires_in', 'refresh_token', 'updated', 'modified', 'created'
     )
+    column_hidden_list = ('updated', 'scene', 'remark')
     column_searchable_list = ('unionid', 'mp_openid', )
     column_filters = ('user',)
 
@@ -74,10 +75,12 @@ class WeiBoUserView(ModelView):
 
 class UserLogView(ModelView):
     column_center_list = ('user', 'type', 'key', 'device', 'spm', 'ip', 'created')
+    column_searchable_list = ('key', 'device', 'spm', 'ip')
 
 
 class PhoneCodeView(ModelView):
     column_center_list = ('phone', 'action', 'code', 'error', 'created')
+    column_searchable_list = ('phone',)
 
 
 class EmailCodeView(ModelView):
