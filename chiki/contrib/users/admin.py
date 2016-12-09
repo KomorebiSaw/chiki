@@ -53,8 +53,7 @@ class WeChatUserView(ModelView):
         'subscribe_time', 'updated', 'expires_in', 'modified', 'created'
     )
     column_formatters = dict(address=formatter_address,)
-
-    form_excluded_columns = ('address')
+    form_excluded_columns = ('address',)
 
 
 class QQUserView(ModelView):
