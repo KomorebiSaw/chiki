@@ -215,6 +215,31 @@ def formatter_A(model):
     return html
 
 
+@formatter_model
+def format_android(model):
+    if model.android_start and model.android_end:
+        return '%s ~ %s' % (model.android_start.version, model.android_end.version)
+
+    if model.android_start:
+        return '%s' % model.android_start.version
+
+    if model.android_end:
+        return '%s' % model.android_end.version
+    return ''
+
+
+@formatter_model
+def format_ios(model):
+    if model.ios_start and model.ios_end:
+        return '%s ~ %s' % (model.ios_start.version, model.android_end.version)
+
+    if model.ios_start:
+        return '%s' % model.ios_start.version
+
+    if model.ios_end:
+        return '%s' % model.ios_end.version
+
+
 class ActionView(ModelView):
     page_size = 200
     show_popover = True
@@ -239,13 +264,8 @@ class ActionView(ModelView):
         name=formatter_text(lambda m: (m.name, m.data, 'text-success' if m.data else ''), max_len=7),
         icon=formatter_A,
         share=formatter_share,
-        android=formatter_model(lambda m: '%s ~ %s' % (
-            m.android_start.version if m.android_start else '',
-            m.android_end.version if m.android_end else '',)),
-        ios=formatter_model(lambda m: '%s ~ %s' % (
-            m.ios_start.version if m.ios_start else '',
-            m.ios_end.version if m.ios_end else '',))
-    )
+        android=format_android,
+        ios=format_ios,)
     html = """
    <style type="text/css">
         .col-icon{
@@ -277,9 +297,8 @@ class SlideView(ModelView):
     column_searchable_list = ('name', 'key')
     column_filters = ('module', 'modified', 'created')
     column_list = (
-        'icon', 'key', 'name', 'module', 'target', 'share', 'sort',
-        'android', 'ios', 'login', 'login_show', 'debug', 'enable',
-        'modified', 'created'
+        'icon', 'key', 'name', 'target', 'share', 'module', 'android', 'ios', 'login',
+        'login_show', 'debug', 'sort', 'enable', 'modified', 'created'
     )
     column_center_list = (
         'icon', 'key', 'name', 'module', 'sort', 'share',
@@ -291,11 +310,11 @@ class SlideView(ModelView):
         image=formatter_icon(lambda m: (m.image.get_link(height=40), m.image.link)),
         share=formatter_share,
         android=formatter_model(lambda m: '%s ~ %s' % (
-            m.android_start.version if m.android_start else '',
-            m.android_end.version if m.android_end else '',)),
+            m.android_start.version, m.android_end.version)
+            if m.android_start and m.android_end else ''),
         ios=formatter_model(lambda m: '%s ~ %s' % (
-            m.ios_start.version if m.ios_start else '',
-            m.ios_end.version if m.ios_end else '',))
+            m.ios_start.version, m.ios_end.version)
+            if m.ios_start and m.ios_end else ''),
     )
 
     def on_model_change(self, form, model, created=False):
