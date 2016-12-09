@@ -1,6 +1,7 @@
 # coding: utf-8
 from chiki.admin import ModelView
 from datetime import datetime
+from chiki.admin import formatter_model
 
 
 class UserView(ModelView):
@@ -25,22 +26,35 @@ class UserView(ModelView):
         model.modified = datetime.now()
 
 
+@formatter_model
+def formatter_address(model):
+    address = '%s%s' % (model.province, model.city)
+    return address
+
+
 class WeChatUserView(ModelView):
     show_popover = True
+    column_labels = dict(address='地址')
     column_default_sort = ('created', True)
     column_list = (
-        'user', 'scene', 'nickname', 'province', 'city', 'privilege',
-        'subscribe', 'subscribe_time', 'remark', 'groupid', 'access_token',
-        'expires_in', 'refresh_token', 'updated', 'modified', 'created'
+        'user', 'nickname', 'address', 'scene', 'privilege', 'remark', 'groupid',
+        'access_token', 'expires_in', 'refresh_token', 'updated', 'subscribe',
+        'subscribe_time', 'modified', 'created'
     )
     column_center_list = (
-        'user', 'scene', 'nickname', 'province', 'city', 'privilege', 'subscribe',
-        'subscribe_time', 'remark', 'groupid', 'access_token',
-        'expires_in', 'refresh_token', 'updated', 'modified', 'created'
+        'user', 'scene', 'nickname', 'address', 'privilege', 'remark', 'groupid',
+        'access_token', 'expires_in', 'refresh_token', 'updated', 'subscribe',
+        'subscribe_time', 'modified', 'created'
     )
-    column_hidden_list = ('updated', 'scene', 'remark')
-    column_searchable_list = ('unionid', 'mp_openid', )
-    column_filters = ('user',)
+    column_hidden_list = ('scene', 'remark')
+    column_searchable_list = ('unionid', 'mp_openid', 'nickname')
+    column_filters = (
+        'user', 'nickname', 'sex', 'address', 'scene', 'unionid', 'mp_openid',
+        'subscribe_time', 'updated', 'expires_in', 'modified', 'created'
+    )
+    column_formatters = dict(address=formatter_address,)
+
+    form_excluded_columns = ('address')
 
 
 class QQUserView(ModelView):
