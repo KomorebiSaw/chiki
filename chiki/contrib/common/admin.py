@@ -238,6 +238,7 @@ def format_ios(model):
 
     if model.ios_end:
         return '%s' % model.ios_end.version
+    return ''
 
 
 class ActionView(ModelView):
@@ -265,7 +266,8 @@ class ActionView(ModelView):
         icon=formatter_A,
         share=formatter_share,
         android=format_android,
-        ios=format_ios,)
+        ios=format_ios,
+        )
     html = """
    <style type="text/css">
         .col-icon{
@@ -309,12 +311,8 @@ class SlideView(ModelView):
     column_formatters = dict(
         image=formatter_icon(lambda m: (m.image.get_link(height=40), m.image.link)),
         share=formatter_share,
-        android=formatter_model(lambda m: '%s ~ %s' % (
-            m.android_start.version, m.android_end.version)
-            if m.android_start and m.android_end else ''),
-        ios=formatter_model(lambda m: '%s ~ %s' % (
-            m.ios_start.version, m.ios_end.version)
-            if m.ios_start and m.ios_end else ''),
+        android=format_android,
+        ios=format_ios,
     )
 
     def on_model_change(self, form, model, created=False):
