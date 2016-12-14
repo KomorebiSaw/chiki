@@ -25,7 +25,7 @@ class ItemView(ModelView):
     column_center_list = ('type', 'modified', 'created')
     column_filters = ('key', 'modified', 'created')
     column_formatters = dict(value=formatter_len(32))
-
+    column_searchable_list = ('key', 'name')
     form_overrides = dict(value=TextAreaField)
 
     def pre_model_change(self, form, model, create=False):
@@ -43,7 +43,7 @@ class ItemView(ModelView):
 class StatLogView(ModelView):
     column_default_sort = ('created', True)
     column_list = ('key', 'tid', 'day', 'hour', 'value', 'modified', 'created')
-    column_center_list = ('day', 'hour', 'modified', 'created')
+    column_center_list = ('day', 'hour', 'modified', 'created', 'value')
     column_filters = ('key', 'tid', 'day', 'hour', 'value', 'modified', 'created')
     column_searchable_list = ('key', 'tid', 'day')
 
@@ -52,6 +52,7 @@ class TraceLogView(ModelView):
     column_default_sort = ('created', True)
     column_filters = ('key', 'tid', 'user', 'label', 'created')
     column_searchable_list = ('key', 'tid', 'label')
+    column_center_list = ('user', 'created')
     column_formatters = dict(
         value=formatter_len(40),
     )
@@ -86,8 +87,9 @@ def create_qrcode(url):
 class ChannelView(ModelView):
     column_labels = dict(stat='统计')
     column_list = ['id', 'name', 'password', 'url', 'image', 'modified', 'created', 'stat']
-    column_center_list = ['id', 'image', 'modified', 'created', 'stat', 'name', 'password', 'url']
+    column_center_list = ['id', 'image', 'modified', 'created', 'stat']
     form_excluded_columns = ('id',)
+    column_searchable_list = ('name', 'url')
 
     column_formatters = dict(
         stat=formatter_link(lambda m: (
@@ -149,6 +151,7 @@ class AndroidVersionView(ModelView):
     column_searchable_list = ('version',)
     column_filters = ('id', 'version', 'enable', 'created')
     column_center_list = ('enable', 'id', 'version', 'modified', 'created')
+    column_searchable_list = ('version',)
     form_excluded_columns = ('id',)
 
     def on_model_change(self, form, model, created=False):
@@ -173,9 +176,10 @@ class IOSVersionView(ModelView):
 
 
 class APIView(ModelView):
+    page_size = 200
     column_default_sort = ('created', True)
     column_searchable_list = ('key', 'name')
-    column_filters = ('key', 'modified', 'created')
+    column_filters = ('key', 'url', 'modified', 'created')
     column_center_list = ('modified', 'created', 'expire', 'cache')
 
     def on_model_change(self, form, model, created=False):
@@ -211,27 +215,59 @@ def formatter_A(model):
     return html
 
 
+@formatter_model
+def format_android(model):
+    if model.android_start and model.android_end:
+        return '%s ~ %s' % (model.android_start.version, model.android_end.version)
+
+    if model.android_start:
+        return '%s' % model.android_start.version
+
+    if model.android_end:
+        return '%s' % model.android_end.version
+    return ''
+
+
+@formatter_model
+def format_ios(model):
+    if model.ios_start and model.ios_end:
+        return '%s ~ %s' % (model.ios_start.version, model.android_end.version)
+
+    if model.ios_start:
+        return '%s' % model.ios_start.version
+
+    if model.ios_end:
+        return '%s' % model.ios_end.version
+    return ''
+
+
 class ActionView(ModelView):
+    page_size = 200
     show_popover = True
     column_default_sort = ('module', 'sort')
-    column_labels = dict(modified='修改', created='创建')
+    column_labels = dict(modified='修改', created='创建', android='安卓版本', ios='IOS版本')
+    column_searchable_list = ('key', 'name')
     column_filters = (
         'id', 'name', 'module', 'login',
         'sort', 'enable', 'modified', 'created'
     )
     column_list = (
-        'icon', 'key', 'name', 'target', 'module', 'login', 'login_show', 'debug',
-        'sort', 'enable', 'modified', 'created'
+        'icon', 'key', 'name', 'target', 'share', 'module', 'android', 'ios', 'login',
+        'login_show', 'debug', 'sort', 'enable', 'modified', 'created'
     )
     column_center_list = (
-        'icon', 'module', 'sort', 'enable', 'login',
-        'modified', 'created', 'login_show', 'debug'
+        'icon', 'module', 'sort', 'enable', 'login', 'share', 'modified',
+        'created', 'login_show', 'debug', 'android', 'ios'
     )
+    column_hidden_list = ('debug', 'android', 'ios', 'login_show', 'target')
     column_formatters = dict(
         # icon=formatter_icon(lambda m: (m.icon.get_link(height=40), m.icon.link)),
         name=formatter_text(lambda m: (m.name, m.data, 'text-success' if m.data else ''), max_len=7),
         icon=formatter_A,
-    )
+        share=formatter_share,
+        android=format_android,
+        ios=format_ios,
+        )
     html = """
    <style type="text/css">
         .col-icon{
@@ -256,30 +292,27 @@ class ActionView(ModelView):
 
 
 class SlideView(ModelView):
+    page_size = 200
     show_popover = True
     column_labels = dict(modified='修改', created='创建', android='安卓版本', ios='IOS版本')
     column_default_sort = ('module', 'sort')
-    column_searchable_list = ('name', )
+    column_searchable_list = ('name', 'key')
     column_filters = ('module', 'modified', 'created')
     column_list = (
-        'icon', 'key', 'name', 'module', 'target', 'share', 'sort',
-        'android', 'ios', 'login', 'login_show', 'debug', 'enable',
-        'modified', 'created'
+        'icon', 'key', 'name', 'target', 'share', 'module', 'android', 'ios', 'login',
+        'login_show', 'debug', 'sort', 'enable', 'modified', 'created'
     )
     column_center_list = (
         'icon', 'key', 'name', 'module', 'sort', 'share',
         'android', 'ios', 'login', 'login_show', 'debug',
         'enable', 'modified', 'created'
     )
+    column_hidden_list = ('debug', 'android', 'ios', 'login_show', 'target')
     column_formatters = dict(
         image=formatter_icon(lambda m: (m.image.get_link(height=40), m.image.link)),
         share=formatter_share,
-        android=formatter_model(lambda m: '%s ~ %s' % (
-            m.android_start.version if m.android_start else '',
-            m.android_end.version if m.android_end else '',)),
-        ios=formatter_model(lambda m: '%s ~ %s' % (
-            m.ios_start.version if m.ios_start else '',
-            m.ios_end.version if m.ios_end else '',))
+        android=format_android,
+        ios=format_ios,
     )
 
     def on_model_change(self, form, model, created=False):
@@ -291,11 +324,16 @@ class ImageView(ModelView):
 
 
 class TPLView(ModelView):
+    page_size = 200
     column_center_list = ('name', 'key', 'enable', 'modified', 'created')
+    column_searchable_list = ('name', 'key')
+    column_filters = ('key', 'name')
 
 
 class OptionView(ModelView):
-    pass
+    page_size = 200
+    column_searchable_list = ('name', 'key')
+    column_filters = ('key', 'name')
 
 
 def get_link(key):
@@ -308,7 +346,9 @@ def get_link(key):
 class PageView(ModelView):
     column_default_sort = ('-created', )
     column_list = ('id', 'key', 'name', 'content', 'modified', 'created')
-    column_center_list = ('id', 'key', 'modified', 'created')
+    column_center_list = ('id', 'modified', 'created')
+    column_searchable_list = ('name', 'key')
+    column_filters = ('key', 'name')
     column_formatters = dict(
         id=formatter_link(lambda m: (m.id, get_link(str(m.id)))),
         key=formatter_link(lambda m: (m.key, get_link(str(m.key)))),
@@ -322,7 +362,10 @@ class PageView(ModelView):
 
 
 class ChoicesView(ModelView):
-    pass
+    column_searchable_list = ('name', 'key')
+    column_filters = ('key', 'name')
+    column_center_list = ('modified', 'created', 'enable', 'default')
+    column_hidden_list = ('default',)
 
 
 class MenuView(ModelView):
@@ -392,6 +435,7 @@ class ViewView(ModelView):
     column_center_list = ["type", "page_size", "can_delete", "can_edit", "can_create", "icon", "code", "modified", "created"]
     column_hidden_list = ["modified"]
     column_filters = ["id", "model", "type", "can_create", "can_edit", "can_delete", "modified", "created"]
+    column_hidden_list = ["code",  "can_create", "can_edit", "can_delete"]
     column_searchable_list = ["name", "label"]
     form_excluded_columns = ["model"]
     column_formatters = dict(
