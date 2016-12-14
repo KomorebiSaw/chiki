@@ -36,7 +36,9 @@ class WXMsg(object):
 
             default_msg = Message.objects(default=True).first()
             if default_msg:
-                return default_msg.reply(message)
+                reply = default_msg.reply(message)
+                if reply:
+                    return reply
             return TransferCustomerServiceReply(message=message)
 
         @robot.subscribe
