@@ -415,8 +415,9 @@ class QRCode(db.Document):
             qr = QRCode(user=user.id, url=url)
             qr.save()
 
-        if not qr.url and url:
+        if url and qr.url != url:
             qr.url = url
+            qr.image = None
 
         config = current_app.config.get('QRCODE', {})
         if config.get('wxclient', True) and (
@@ -473,6 +474,10 @@ class QRCode(db.Document):
 
             bg.convert("RGBA")
             bg.paste(qr, (qr_x, qr_y), qr)
+
+            avatar_show = config.get('avatar_show', True)
+            if not avatar_show:
+                return bg
 
             if user.avatar:
                 ic = Image.open(StringIO(user.avatar.content))
