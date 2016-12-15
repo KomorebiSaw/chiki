@@ -152,7 +152,7 @@ class UserMixin(object):
         return True
 
     @cached_property
-    def invite_level(self):
+    def fan_level(self):
         if current_user == self.inviter:
             return 1
         elif current_user == self.inviter2:
