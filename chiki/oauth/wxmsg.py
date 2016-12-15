@@ -55,7 +55,7 @@ class WXMsg(object):
                 if not user:
                     user = um.models.User.from_wechat_mp(message.source)
 
-                um.models.on_invite(user, int(message.key or 0))
+                um.funcs.on_invite(user, int(message.key or 0))
 
                 if self.subscribe_callback:
                     res = self.subscribe_callback(user, message)
