@@ -152,6 +152,15 @@ class UserMixin(object):
         return True
 
     @cached_property
+    def invite_level(self):
+        if current_user == self.inviter:
+            return 1
+        elif current_user == self.inviter2:
+            return 2
+        else:
+            return 3
+
+    @cached_property
     def invites(self):
         return um.models.User.objects(inviter=self).count()
 
