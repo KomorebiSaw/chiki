@@ -44,7 +44,7 @@ class WXMsg(object):
 
                 return TransferCustomerServiceReply(message=message)
             except:
-                current_app.logger.error(traceback.format_ext())
+                current_app.logger.error(traceback.format_exc())
                 return '系统繁忙，请稍后重试！'
 
         @robot.subscribe
@@ -80,7 +80,7 @@ class WXMsg(object):
                         return reply
                 return TransferCustomerServiceReply(message=message)
             except:
-                current_app.logger.error(traceback.format_ext())
+                current_app.logger.error(traceback.format_exc())
                 return '系统繁忙，请稍后重试！'
 
         @robot.unsubscribe
