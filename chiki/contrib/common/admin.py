@@ -58,6 +58,23 @@ class TraceLogView(ModelView):
     )
 
 
+class ShareLogView(ModelView):
+    column_default_sort = ('created', True)
+    column_list = ('user', 'image', 'title', 'link', 'status', 'media', 'created')
+    column_center_list = ('created', 'user', 'status', 'media', 'image')
+    column_searchable_list = ('title', 'desc', 'link', 'image')
+    column_filters = ('user', 'title', 'desc', 'link', 'image', 'created')
+    column_formatters = dict(
+        image=formatter_icon(lambda m: m.image),
+        title=formatter_text(lambda m: (m.title, m.desc, 'text-success' if m.desc else '')),
+        )
+
+
+class ImageItemView(ModelView):
+    column_center_list = ('image', 'created')
+    column_filters = ('created',)
+
+
 def create_qrcode(url):
     A, B, C = 480, 124, 108
     qr = _qrcode.QRCode(
@@ -136,6 +153,8 @@ class ChannelView(ModelView):
 class QRCodeView(ModelView):
     column_list = ['user', 'image', 'url', 'modified', 'created']
     column_center_list = ['user', 'image', 'modified', 'created']
+    column_filters = ['user', 'url', 'modified', 'created']
+    column_searchable_list = ('url',)
 
     def on_model_change(self, form, model, created=False):
         if model.user:
@@ -248,8 +267,7 @@ class ActionView(ModelView):
     column_labels = dict(modified='修改', created='创建', android='安卓版本', ios='IOS版本')
     column_searchable_list = ('key', 'name')
     column_filters = (
-        'id', 'name', 'module', 'login',
-        'sort', 'enable', 'modified', 'created'
+        'id', 'name', 'module', 'login', 'sort', 'enable', 'modified', 'created'
     )
     column_list = (
         'icon', 'key', 'name', 'target', 'share', 'module', 'android', 'ios', 'login',

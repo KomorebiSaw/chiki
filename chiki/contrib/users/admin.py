@@ -32,19 +32,26 @@ def formatter_address(model):
     return address
 
 
+@formatter_model
+def formatter_headimgurl(model):
+    html = """
+    <a href=%s target="_blank" style="text-decoration:none">
+        <img src=%s style="height: 40px; width:40px; margin: -6px 0">
+    </a>""" % (model.headimgurl, model.headimgurl)
+    return html
+
+
 class WeChatUserView(ModelView):
     show_popover = True
     column_labels = dict(address='地址')
     column_default_sort = ('created', True)
     column_list = (
-        'user', 'nickname', 'address', 'scene', 'privilege', 'remark', 'groupid',
-        'access_token', 'expires_in', 'refresh_token', 'updated', 'subscribe',
-        'subscribe_time', 'modified', 'created'
+        'headimgurl', 'user', 'nickname', 'address', 'scene', 'remark', 'groupid',
+        'subscribe', 'subscribe_time', 'modified', 'created'
     )
     column_center_list = (
-        'user', 'scene', 'nickname', 'address', 'privilege', 'remark', 'groupid',
-        'access_token', 'expires_in', 'refresh_token', 'updated', 'subscribe',
-        'subscribe_time', 'modified', 'created'
+        'user', 'scene', 'nickname', 'address', 'remark', 'groupid',
+        'subscribe', 'subscribe_time', 'modified', 'created', 'headimgurl'
     )
     column_hidden_list = ('scene', 'remark')
     column_searchable_list = ('unionid', 'mp_openid', 'nickname')
@@ -52,7 +59,10 @@ class WeChatUserView(ModelView):
         'user', 'nickname', 'sex', 'address', 'scene', 'unionid', 'mp_openid',
         'subscribe_time', 'updated', 'expires_in', 'modified', 'created'
     )
-    column_formatters = dict(address=formatter_address,)
+    column_formatters = dict(
+        address=formatter_address,
+        headimgurl=formatter_headimgurl,
+        )
     form_excluded_columns = ('address',)
 
 
@@ -89,6 +99,7 @@ class WeiBoUserView(ModelView):
 class UserLogView(ModelView):
     column_center_list = ('user', 'type', 'key', 'device', 'spm', 'ip', 'created')
     column_searchable_list = ('key', 'device', 'spm', 'ip')
+    column_filters = ('key', 'user', 'device', 'created')
 
 
 class PhoneCodeView(ModelView):

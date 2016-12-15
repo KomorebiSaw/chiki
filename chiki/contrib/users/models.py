@@ -265,7 +265,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
     province = db.StringField(verbose_name='省份')
     city = db.StringField(verbose_name='城市')
     address = db.StringField(verbose_name='地址')
-    headimgurl = db.StringField(verbose_name='头像链接')
+    headimgurl = db.StringField(verbose_name='头像')
     privilege = db.ListField(db.StringField(), verbose_name='特权信息')
     subscribe = db.BooleanField(default=False, verbose_name='是否关注公众号')
     subscribe_time = db.DateTimeField(verbose_name='关注时间')
