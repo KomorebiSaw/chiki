@@ -34,11 +34,15 @@ class WXMsg(object):
                 if reply:
                     return reply
 
+            current_app.logger.error('test5')
+
             default_msg = Message.objects(default=True).first()
             if default_msg:
                 reply = default_msg.reply(message)
                 if reply:
                     return reply
+
+            current_app.logger.error('test6')
             return TransferCustomerServiceReply(message=message)
 
         @robot.subscribe
@@ -48,7 +52,7 @@ class WXMsg(object):
             if not user:
                 user = um.models.User.from_wechat_mp(message.source)
 
-            current_user.logger.error('test1')
+            current_app.logger.error('test1')
 
             um.models.on_invite(user, int(message.key or 0))
 
@@ -57,7 +61,7 @@ class WXMsg(object):
                 if res:
                     return res
 
-            current_user.logger.error('test2')
+            current_app.logger.error('test2')
 
             if current_app.config.get('NEED_QRCODE') and not user.inviter:
                 return '%s，欢迎关注！请取消关注，再通过扫描海报二维码进行关注！' % user.nickname
@@ -65,7 +69,7 @@ class WXMsg(object):
             if not user.wechat_user.subscribe:
                 user.wechat_user.dosubscribe()
 
-            current_user.logger.error('test3')
+            current_app.logger.error('test3')
 
             follow_msg = Message.objects(follow=True).first()
             if follow_msg:
@@ -78,7 +82,7 @@ class WXMsg(object):
                 if reply:
                     return reply
 
-            current_user.logger.error('test4')
+            current_app.logger.error('test4')
             return TransferCustomerServiceReply(message=message)
 
         @robot.unsubscribe
