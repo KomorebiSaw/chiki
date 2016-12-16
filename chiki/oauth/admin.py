@@ -11,7 +11,7 @@ from chiki.base import db
 class WXMenuView(ModelView):
     robot_filters = True
     column_list = ('name', 'second', 'url', 'make', 'sort', 'created')
-    column_center_list = ('name', 'url', 'created', 'sort', 'make')
+    column_center_list = ('name', 'created', 'sort', 'make')
     column_searchable_list = ('name', 'url')
     column_formatters = dict(
         second=formatter_len(100),
