@@ -60,13 +60,14 @@ class Alipay(object):
     def notify_url(self, **kwargs):
         return url_for(self.endpoint, _external=True, **kwargs)
 
-    def app_pay(self, **kwargs):
+    def pay(self, method='alipay.trade.app.pay', **kwargs):
         kwargs.setdefault('timeout_express', '90m')
         kwargs.setdefault('product_code', 'QUICK_MSECURITY_PAY')
+        return_url = kwargs.pop('return_url', None)
         res = dict(
             app_id=self.app_id,
-            method='alipay.trade.app.pay',
             format='JSON',
+            method=method,
             charset='utf-8',
             sign_type='RSA',
             timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -74,8 +75,17 @@ class Alipay(object):
             notify_url=current_app.alipay.notify_url(),
             biz_content=json.dumps(kwargs),
         )
+        if return_url:
+            res['return_url'] = return_url
         res['sign'] = self.sign(**res)
         return self.encode(res)
+
+    def wap_pay(self, **kwargs):
+        kwargs.setdefault('return_url', 'http://%s/' % request.host)
+        return self.pay(method='alipay.trade.wap.pay', **kwargs)
+
+    def app_pay(self, **kwargs):
+        return self.pay(method='alipay.trade.app.pay', **kwargs)
 
     def sign(self, **kwargs):
         keys = sorted(filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
