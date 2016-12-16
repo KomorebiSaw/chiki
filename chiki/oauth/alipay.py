@@ -14,6 +14,8 @@ __all__ = [
 
 class Alipay(object):
 
+    GATEWAY = 'https://openapi.alipay.com/gateway.do?'
+
     def __init__(self, app=None, config_key='ALIPAY'):
         self.config_key = config_key
         self.callback = None
@@ -82,7 +84,7 @@ class Alipay(object):
 
     def wap_pay(self, **kwargs):
         kwargs.setdefault('return_url', 'http://%s/' % request.host)
-        return self.pay(method='alipay.trade.wap.pay', **kwargs)
+        return self.GATEWAY + self.pay(method='alipay.trade.wap.pay', **kwargs)
 
     def app_pay(self, **kwargs):
         return self.pay(method='alipay.trade.app.pay', **kwargs)
