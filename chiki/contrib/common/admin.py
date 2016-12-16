@@ -60,7 +60,7 @@ class TraceLogView(ModelView):
 
 class ShareLogView(ModelView):
     column_default_sort = ('created', True)
-    column_list = ('user', 'image', 'title', 'link', 'status', 'media', 'created')
+    column_list = ('image', 'user', 'title', 'link', 'status', 'media', 'created')
     column_center_list = ('created', 'user', 'status', 'media', 'image')
     column_searchable_list = ('title', 'desc', 'link', 'image')
     column_filters = ('user', 'title', 'desc', 'link', 'image', 'created')
