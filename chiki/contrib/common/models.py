@@ -247,7 +247,7 @@ class ShareLog(db.Document):
     title = db.StringField(verbose_name='标题')
     desc = db.StringField(verbose_name='描述')
     link = db.StringField(verbose_name='链接')
-    image = db.StringField(verbose_name='图片链接')
+    image = db.StringField(verbose_name='图片')
     status = db.StringField(verbose_name='状态', choices=STATUS.CHOICES)
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 

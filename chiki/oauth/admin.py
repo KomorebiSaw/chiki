@@ -9,8 +9,10 @@ from chiki.base import db
 
 
 class WXMenuView(ModelView):
+    robot_filters = True
     column_list = ('name', 'second', 'url', 'make', 'sort', 'created')
-    column_center_list = ('name', 'second', 'url', 'created')
+    column_center_list = ('name', 'created', 'sort', 'make')
+    column_searchable_list = ('name', 'url')
     column_formatters = dict(
         second=formatter_len(100),
     )
@@ -62,7 +64,9 @@ $(function(){
 
 
 class MessageView(ModelView):
-    column_center_list = ('default', 'fl')
+    robot_filters = True
+    column_center_list = ('default', 'follow', 'keyword', 'type', 'enable', 'created')
+    column_searchable_list = ('content',)
 
     script = """
 $(function(){
