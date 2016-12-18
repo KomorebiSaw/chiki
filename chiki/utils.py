@@ -153,7 +153,7 @@ def get_spm():
     else:
         spm.append(index + 1)
 
-    spm.append(1000)
+    spm.append(0)
     spm.append(0)
 
     return '.'.join([str(x) for x in spm])
