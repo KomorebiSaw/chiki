@@ -89,6 +89,27 @@ class Alipay(object):
     def app_pay(self, **kwargs):
         return self.pay(method='alipay.trade.app.pay', **kwargs)
 
+    def get(self, method, **kwargs):
+        res = dict(
+            app_id=self.app_id,
+            format='JSON',
+            method=method,
+            charset='utf-8',
+            sign_type='RSA',
+            timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            version='1.0',
+            biz_content=json.dumps(kwargs),
+        )
+        res['sign'] = self.sign(**res)
+        url = self.GATEWAY + self.encode(res)
+        return requests.get(url).json()
+
+    def refund(self, **kwargs):
+        return self.get('alipay.trade.refund', **kwargs)
+
+    def refund_query(self, **kwargs):
+        return self.get('alipay.trade.fastpay.refund.query', **kwargs)
+
     def sign(self, **kwargs):
         keys = sorted(filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
