@@ -106,10 +106,10 @@ class Alipay(object):
         return requests.get(url).json()
 
     def refund(self, **kwargs):
-        return self.get('alipay.trade.refund', **kwargs)
+        return self.get('alipay.trade.refund', **kwargs)['alipay_trade_refund_response']
 
     def refund_query(self, **kwargs):
-        return self.get('alipay.trade.fastpay.refund.query', **kwargs)
+        return self.get('alipay.trade.fastpay.refund.query', **kwargs)['alipay_trade_fastpay_refund_query_response']
 
     def sign(self, **kwargs):
         keys = sorted(filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
