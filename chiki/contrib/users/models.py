@@ -33,7 +33,9 @@ class UserMixin(object):
     def get_wechat(**kwargs):
         user = um.models.WeChatUser.objects(**kwargs).first()
         if user:
-            return user.current or user
+            if user.current:
+                return user.current
+            return um.models.User.from_wechat(user)
 
     @staticmethod
     def create_empty():
