@@ -518,13 +518,14 @@ class QRCode(db.Document):
                 self.modified + timedelta(days=30)).strftime('%Y-%m-%d'))
             w += draw.textsize(text, font=font)[0]
 
-        limit = len(user.nickname)
+        nickname = user.nickname or '佚名'
+        limit = len(nickname)
         if has_nick:
-            nick_width = draw.textsize(user.nickname or '佚名', font=font)[0]
+            nick_width = draw.textsize(nickname, font=font)[0]
             while limit > 4 and width - w + draw.textsize(
-                    user.nickname[:limit], font=font)[0] < nick_width:
+                    nickname[:limit], font=font)[0] < nick_width:
                 limit -= 1
-            w += draw.textsize(user.nickname[:limit], font=font)[0] - nick_width
+            w += draw.textsize(nickname[:limit], font=font)[0] - nick_width
         return (width - w) / 2, limit
 
     def draw_texts(self, config, user, bg):

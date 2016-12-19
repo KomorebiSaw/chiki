@@ -125,6 +125,7 @@ class WXPay(object):
             xml = requests.post(self.PREPAY_URL, data=data).content
             return self.xml2dict(xml)
         except Exception, e:
+            current_app.logger.error(traceback.format_exc())
             return dict(return_code='ERROR', return_msg=str(e))
 
     def send_red_pack(self, **kwargs):
@@ -207,6 +208,7 @@ class WXPay(object):
             xml = requests.post(self.REFUND_URL, data=data, cert=self.config.get('cert')).content
             return self.xml2dict(xml)
         except Exception, e:
+            current_app.logger.error(traceback.format_exc())
             return dict(return_code='ERROR', return_msg=str(e))
 
     def refund_query(self, **kwargs):
@@ -226,6 +228,7 @@ class WXPay(object):
             xml = requests.post(self.REFUND_QUERY, data=data).content
             return self.xml2dict(xml)
         except Exception, e:
+            current_app.logger.error(traceback.format_exc())
             return dict(return_code='ERROR', return_msg=str(e))
 
     def sign(self, **kwargs):
