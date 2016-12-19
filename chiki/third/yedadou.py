@@ -1,6 +1,7 @@
 # coding: utf-8
 import hashlib
 import requests
+import traceback
 from chiki.utils import randstr
 from flask import request, current_app, url_for
 
@@ -34,8 +35,9 @@ class YeDaDou(object):
                     return 'sign error'
                 if self.callback:
                     res = self.callback(data)
-            except Exception, e:
-                current_app.logger.error('yedadou callbck except: %s' % str(e))
+            except:
+                current_app.logger.error(
+                    'yedadou callbck except: \n%s' % traceback.format_exc())
             return res or 'success'
 
     def handler(self, callback):
