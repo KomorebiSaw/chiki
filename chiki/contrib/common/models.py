@@ -538,11 +538,11 @@ class QRCode(db.Document):
             y = line.get('y', 0)
 
             texts = line.get('texts', [])
-            limit = len(user.nickname)
+            nickname = user.nickname or '佚名'
+            limit = len(nickname)
             if x == 'center':
                 x, limit = self.textsize(user, draw, font, bg.size[0], texts)
 
-            nickname = user.nickname or '佚名'
             for text in texts:
                 color = line.get('color', '#333333')
                 if type(text) in [list, tuple]:
