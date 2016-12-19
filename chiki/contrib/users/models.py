@@ -39,7 +39,8 @@ class UserMixin(object):
 
     @staticmethod
     def create_empty():
-        return um.models.User(channel=get_channel(), spm=get_spm(), ip=get_ip())
+        return um.models.User(
+            channel=get_channel(), spm=get_spm(), ip=get_ip())
 
     @staticmethod
     def from_oauth(user):
@@ -62,7 +63,8 @@ class UserMixin(object):
 
     @staticmethod
     def from_wechat_mp(openid):
-        return um.models.User.from_wechat(um.models.WeChatUser.create_mp(openid))
+        return um.models.User.from_wechat(
+            um.models.WeChatUser.create_mp(openid))
 
     @staticmethod
     def from_qq(ouser):
@@ -199,7 +201,8 @@ class User(db.Document, UserMixin):
     nickname = db.StringField(max_length=40, verbose_name='昵称')
     avatar = db.XImageField(verbose_name='头像')
     birthday = db.DateTimeField(verbose_name='生日')
-    sex = db.StringField(default=SEX_UNKNOWN, choices=SEX_CHOICES, verbose_name='性别')
+    sex = db.StringField(default=SEX_UNKNOWN,
+                         choices=SEX_CHOICES, verbose_name='性别')
     location = db.AreaField(verbose_name='所在地')
     address = db.StringField(max_length=100, verbose_name='通讯地址')
     resume = db.StringField(max_length=100, verbose_name='简介')
@@ -213,9 +216,10 @@ class User(db.Document, UserMixin):
     ip = db.StringField(max_length=20, verbose_name='登录IP')
     generate = db.BooleanField(default=False, verbose_name='生成')
     error = db.IntField(default=0, verbose_name='登录错误次数')
-    locked = db.DateTimeField(default=lambda: datetime(1970, 1, 1), verbose_name='锁定时间')
-    logined = db.DateTimeField(default=lambda: datetime.now(), verbose_name='登录时间')
-    registered = db.DateTimeField(default=lambda: datetime.now(), verbose_name='注册时间')
+    locked = db.DateTimeField(default=lambda: datetime(1970, 1, 1),
+                              verbose_name='锁定时间')
+    logined = db.DateTimeField(default=datetime.now, verbose_name='登录时间')
+    registered = db.DateTimeField(default=datetime.now, verbose_name='注册时间')
 
     meta = {
         'indexes': [

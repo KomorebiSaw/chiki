@@ -537,6 +537,7 @@ class QRCode(db.Document):
             y = line.get('y', 0)
 
             texts = line.get('texts', [])
+            limit = len(user.nickname)
             if x == 'center':
                 x, limit = self.textsize(user, draw, font, bg.size[0], texts)
 

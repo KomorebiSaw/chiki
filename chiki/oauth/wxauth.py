@@ -1,6 +1,5 @@
 # coding: utf-8
 import json
-import time
 import requests
 import werobot.client
 from chiki.api import abort, success
@@ -73,7 +72,8 @@ class WXAuth(object):
 
         mp = self.config.get(self.ACTION_MP)
         if mp:
-            self.client = werobot.client.Client(mp.get('appid'), mp.get('secret'))
+            self.client = werobot.client.Client(
+                mp.get('appid'), mp.get('secret'))
             if not hasattr(app, 'wxclient'):
                 app.wxclient = self.client
 
@@ -113,7 +113,8 @@ class WXAuth(object):
             app.jssdk = JSSDK(app)
 
     def quote(self, **kwargs):
-        return dict((x, quote(y.encode('utf-8') if type(y) is unicode else y)) for x, y in kwargs.iteritems())
+        return dict((x, quote(y.encode('utf-8') if type(
+            y) is unicode else y)) for x, y in kwargs.iteritems())
 
     def get_access_url(self, action, code):
         config = self.config.get(action)
@@ -176,15 +177,27 @@ class WXAuth(object):
             scope = self.SNSAPI_LOGIN
 
         config = self.config.get(action)
+
+        host = self.config.get('callback_host')
+        if not host:
+            callback = url_for(self.endpoint, scope=scope, next=next,
+                               action=action, _external=True)
+        else:
+            callback = url_for(self.endpoint, scope=scope, next=next,
+                               action=action)
+            callback = 'http://%s%s' % (host, callback)
         query = self.quote(
             appid=config.get('appid'),
-            callback=url_for(self.endpoint, scope=scope, next=next, action=action, _external=True),
+            callback=callback,
             scope=scope,
             state=state,
         )
-        url = self.AUTH_CONNECT_URL if action == 'mp' else self.AUTH_QRCONNECT_URL
-        return '{url}?appid={appid}&redirect_uri={callback}&response_type=code' \
-            '&scope={scope}&state={state}#wechat_redirect'.format(url=url, **query)
+        url = self.AUTH_CONNECT_URL
+        if action != 'mp':
+            url = self.AUTH_QRCONNECT_URL
+        return '{url}?appid={appid}&redirect_uri={callback}' \
+            '&response_type=code&scope={scope}&state={state}' \
+            '#wechat_redirect'.format(url=url, **query)
 
     def get_action(self, action):
         if not action:
@@ -225,7 +238,8 @@ class WXAuth(object):
 
         access = self.access_token(action, code)
         if not access or 'openid' not in access:
-            log = '%s\naccess error\naccess: %s\nurl: %s\nnext: %s\ncode: %s\naccess: %s'
+            log = '%s\naccess error\naccess: %s\nurl: %s' \
+                  '\nnext: %s\ncode: %s\naccess: %s'
             current_app.logger.error(log % (
                 str(datetime.now()) + '-' * 80,
                 self.get_access_url(action, code),
