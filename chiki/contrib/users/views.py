@@ -56,6 +56,9 @@ def login():
     if current_user.is_authenticated():
         return redirect(next)
 
+    if next and not next.startswith('http://'):
+        next = 'http://%s%s' % (request.host, next)
+
     if hasattr(current_app, 'wxauth'):
         wxauth = current_app.wxauth
         action = request.args.get('action', '')
