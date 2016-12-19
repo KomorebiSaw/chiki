@@ -25,7 +25,7 @@ class YeDaDou(object):
         def yedadou_callback():
             res = ''
             try:
-                data = dict((x, y[0]) for x, y in request.form.iteritems())
+                data = dict((x, y[0] if type(y) == list else y) for x, y in request.form.iteritems())
                 sign = data.pop('sign', None)
                 if sign != self.sign(**data):
                     tpl = 'yedadou sign callbck: \n' \
