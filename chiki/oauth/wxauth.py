@@ -225,6 +225,11 @@ class WXAuth(object):
         return redirect(self.get_auth_url(action, next, scope, state))
 
     def callback(self):
+        if request.host not in next and next.startswith('http://'):
+            url = request.url.replace(
+                request.host, urlparse.urlparse(next).netloc)
+            return redirect(url)
+
         action = request.args.get('action', 'mp')
         code = request.args.get('code', '')
         next = request.args.get('next', '')
