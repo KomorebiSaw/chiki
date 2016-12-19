@@ -17,7 +17,7 @@ __all__ = [
 def get_wechat_user(access):
     um = current_app.user_manager
     config = current_app.config.get('WXAUTH')
-    if len(config) > 1 or 'unionid' in access and access['unionid']:
+    if 'unionid' in access and access['unionid']:
         return um.models.WeChatUser.objects(unionid=access['unionid']).first()
     query = {'%s_openid' % config.items()[0][0]: access['openid']}
     return um.models.WeChatUser.objects(**query).first()
