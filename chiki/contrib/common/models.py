@@ -542,12 +542,13 @@ class QRCode(db.Document):
             if x == 'center':
                 x, limit = self.textsize(user, draw, font, bg.size[0], texts)
 
+            nickname = user.nickname or '佚名'
             for text in texts:
                 color = line.get('color', '#333333')
                 if type(text) in [list, tuple]:
                     text, color = text[0], text[1]
                 text = text.replace('<id>', str(user.id))
-                text = text.replace('<nickname>', user.nickname[:limit] or '佚名')
+                text = text.replace('<nickname>', nickname[:limit])
                 text = text.replace('<expire>', (
                     self.modified + timedelta(days=30)).strftime('%Y-%m-%d'))
                 width, _ = draw.textsize(text, font=font)
