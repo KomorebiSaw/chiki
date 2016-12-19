@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import requests
+import urlparse
 import werobot.client
 from chiki.api import abort, success
 from chiki.api.const import *
