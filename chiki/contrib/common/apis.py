@@ -49,12 +49,12 @@ class Global(Resource):
             query = query & (db.Q(ios_start__lte=version) | db.Q(ios_start=None)) & \
                 (db.Q(ios_end__gte=version) | db.Q(ios_end=None))
 
-        actions = Action.objects(enable__in=Enable.get()).order_by('sort')
+        actions = Action.objects(query).order_by('sort')
         for action in actions:
             if action.module:
                 res['actions'][action.module].append(action.detail)
 
-        slides = Slide.objects(enable__in=Enable.get()).order_by('sort')
+        slides = Slide.objects(query).order_by('sort')
         for slide in slides:
             if slide.module:
                 res['actions'][slide.module].append(slide.detail)
