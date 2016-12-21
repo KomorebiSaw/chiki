@@ -57,7 +57,7 @@ class YeDaDou(object):
         try:
             return requests.post(self.PREPAY_URL, data=kwargs).json()
         except Exception, e:
-            return dict(result_code=-1, return_msg=str(e))
+            return dict(result_code=-1, err_msg=str(e))
 
     def sign(self, **kwargs):
         keys = sorted(

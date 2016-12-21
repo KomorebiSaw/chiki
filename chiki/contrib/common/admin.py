@@ -1,6 +1,7 @@
 # coding: utf-8
 import json
 import urllib
+import os.path
 import qrcode as _qrcode
 from PIL import Image
 from StringIO import StringIO
@@ -89,11 +90,13 @@ def create_qrcode(url):
     em = Image.new("RGBA", (B, B), "white")
     im.paste(em, ((A - B) / 2, (A - B) / 2), em)
 
-    with open(current_app.get_data_path('logo.jpg')) as fd:
-        icon = Image.open(StringIO(fd.read()))
-    icon = icon.resize((C, C), Image.ANTIALIAS)
-    icon = icon.convert("RGBA")
-    im.paste(icon, ((A - C) / 2, (A - C) / 2), icon)
+    path = current_app.get_data_path('logo.jpg')
+    if os.path.exists(path):
+        with open(path) as fd:
+            icon = Image.open(StringIO(fd.read()))
+        icon = icon.resize((C, C), Image.ANTIALIAS)
+        icon = icon.convert("RGBA")
+        im.paste(icon, ((A - C) / 2, (A - C) / 2), icon)
 
     stream = StringIO()
     im.save(stream, format='png')
