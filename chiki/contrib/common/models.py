@@ -283,7 +283,7 @@ class StatLog(db.Document):
     }
 
     @staticmethod
-    def inc(key, tid, day=lambda: today(), hour=0, value=1):
+    def inc(key, tid='', day=lambda: today(), hour=0, value=1):
         if callable(day):
             day = day()
         day = str(day)[:10]
@@ -295,10 +295,10 @@ class StatLog(db.Document):
             StatLog(key=key, tid=tid, day=day, hour=0, value=value).save()
             return value
         else:
-            return item.value + 1
+            return item.value + value
 
     @staticmethod
-    def get(key, tid, day=today(), hour=0, default=0, save=True):
+    def get(key, tid='', day=today(), hour=0, default=0, save=True):
         if callable(day):
             day = day()
         day = str(day)[:10]
