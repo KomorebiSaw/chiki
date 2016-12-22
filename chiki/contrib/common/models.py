@@ -283,31 +283,31 @@ class StatLog(db.Document):
     }
 
     @staticmethod
-    def inc(key, tid='', day=lambda: today(), hour=0, value=1):
+    def inc(key, tid='', day=lambda: today(), hour=-1, value=1):
         if callable(day):
             day = day()
         day = str(day)[:10]
-        item = StatLog.objects(key=key, tid=tid, day=day).modify(
+        item = StatLog.objects(key=key, tid=tid, day=day, hour=hour).modify(
             inc__value=value,
             set__modified=datetime.now(),
         )
         if not item:
-            StatLog(key=key, tid=tid, day=day, hour=0, value=value).save()
+            StatLog(key=key, tid=tid, day=day, hour=hour, value=value).save()
             return value
         else:
             return item.value + value
 
     @staticmethod
-    def get(key, tid='', day=today(), hour=0, default=0, save=True):
+    def get(key, tid='', day=today(), hour=-1, default=0, save=True):
         if callable(day):
             day = day()
         day = str(day)[:10]
-        item = StatLog.objects(key=key, tid=tid, day=day).first()
+        item = StatLog.objects(key=key, tid=tid, day=day, hour=hour).first()
         if item:
             return item.value
 
         if save:
-            StatLog(key=key, tid=tid, day=day, hour=0, value=default).save()
+            StatLog(key=key, tid=tid, day=day, hour=hour, value=default).save()
         return default
 
     @staticmethod
