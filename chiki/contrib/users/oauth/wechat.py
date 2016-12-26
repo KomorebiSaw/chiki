@@ -56,6 +56,7 @@ def on_invite(user, uid):
                     user.channel = inviter.channel
                 else:
                     user.channel = 1000
+                inviter.on_invite(user)
                 user.inviter = inviter
                 user.inviter2 = inviter.inviter
                 user.inviter3 = inviter.inviter2
