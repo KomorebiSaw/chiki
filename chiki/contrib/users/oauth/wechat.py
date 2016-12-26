@@ -61,7 +61,7 @@ def on_invite(user, uid):
                     x.inviter3 = user.inviter2
                     x.save()
 
-                subs2 = list(User.objects(inviter__in=usbs).all())
+                subs2 = list(User.objects(inviter__in=subs).all())
                 for x in subs2:
                     x.inviter2 = user
                     x.inviter3 = user.inviter
