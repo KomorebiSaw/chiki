@@ -48,10 +48,24 @@ def on_invite(user, uid):
             if user.id not in ids:
                 if inviter.is_allow_channel(user):
                     user.channel = inviter.channel
+                else:
+                    user.channel = 1000
                 user.inviter = inviter
                 user.inviter2 = inviter.inviter
                 user.inviter3 = inviter.inviter2
                 user.save()
+
+                subs = list(User.objects(inviter=user).all())
+                for x in subs:
+                    x.inviter2 = user.inviter
+                    x.inviter3 = user.inviter2
+                    x.save()
+
+                subs2 = list(User.objects(inviter__in=usbs).all())
+                for x in subs2:
+                    x.inviter2 = user
+                    x.inviter3 = user.inviter
+                    x.save()
 
         if not inviter and uid < 100000:
             if not user.channel:
