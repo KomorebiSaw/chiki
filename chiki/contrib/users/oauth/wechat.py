@@ -62,7 +62,7 @@ def on_invite(user, uid):
                 user.inviter3 = inviter.inviter2
                 user.save()
 
-                subs = list(um.models.User.objects(inviter=user).all())
+                subs = list(um.models.User.objects(inviter=user.id).all())
                 for x in subs:
                     x.inviter2 = user.inviter
                     x.inviter3 = user.inviter2
