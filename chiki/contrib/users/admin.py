@@ -28,7 +28,7 @@ class UserView(ModelView):
 
 @formatter_model
 def formatter_address(model):
-    address = '%s%s' % (model.province, model.city)
+    address = '%s%s' % (model.province if model.province else '', model.city if model.city else '')
     return address
 
 

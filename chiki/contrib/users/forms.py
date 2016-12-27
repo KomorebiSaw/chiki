@@ -75,7 +75,7 @@ class PhoneForm(Form):
         Strip(),
         DataRequired(),
         Regexp(
-            r"""^1\d{10}$""", 
+            r"""^1\d{10}$""",
             message='手机号码不正确'
         ),
     ])
