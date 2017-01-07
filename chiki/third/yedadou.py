@@ -20,7 +20,7 @@ class YeDaDou(object):
     def init_app(self, app):
         app.yedadou = self
         self.config = app.config.get(self.config_key, {})
-        self.host = app.config.get('host', self.HOST)
+        self.host = self.config.get('host', self.HOST)
 
         @app.route('/callback/yedadou/', methods=['POST'])
         def yedadou_callback():
