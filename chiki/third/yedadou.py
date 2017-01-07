@@ -67,6 +67,9 @@ class YeDaDou(object):
         text += '&key=%s' % self.config.get('key')
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
+    def pay_url(self, id):
+        return 'http://%s/pay?token_id=%s' % (self.host, id)
+
 
 def init_yedadou(app):
     if 'YEDADOU' in app.config:
