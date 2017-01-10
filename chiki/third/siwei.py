@@ -106,7 +106,12 @@ class SiWei(object):
         return base64_url_encode(aes.encrypt(data))
 
     def decode(self, data, key):
-        aes = AES.new(key, AES.MODE_CBC, key)
+        aes = AES.new(key, AES.MODE_CBC, self.config.get('aes_key'))
+        current_app.logger.error('a: ' + aes.decrypt(base64_url_decode(data)))
+        aes = AES.new(key, AES.MODE_CBC, self.config.get('secretkey'))
+        current_app.logger.error('b: ' + aes.decrypt(base64_url_decode(data)))
+        aes = AES.new(key, AES.MODE_CBC, self.token.get('secretkey'))
+        current_app.logger.error('c: ' + aes.decrypt(base64_url_decode(data)))
         return json.loads(aes.decrypt(base64_url_decode(data)))
 
     def get(self, url, session=True, **kwargs):
