@@ -9,7 +9,7 @@ from flask import request, current_app, url_for
 class YeDaDou(object):
 
     HOST = 'pay.yedadou.com'
-    PREPAY_URL = 'http://%s/unifiOrder' % HOST
+    PREPAY_URL = 'http://%s/unifiOrder'
 
     def __init__(self, app=None, config_key='YEDADOU'):
         self.config_key = config_key
@@ -20,6 +20,7 @@ class YeDaDou(object):
     def init_app(self, app):
         app.yedadou = self
         self.config = app.config.get(self.config_key, {})
+        self.host = self.config.get('host', self.HOST)
 
         @app.route('/callback/yedadou/', methods=['POST'])
         def yedadou_callback():
@@ -55,7 +56,7 @@ class YeDaDou(object):
         kwargs.setdefault('nonce_str', randstr(32))
         kwargs['sign'] = self.sign(**kwargs)
         try:
-            return requests.post(self.PREPAY_URL, data=kwargs).json()
+            return requests.post(self.PREPAY_URL % self.host, data=kwargs).json()
         except Exception, e:
             return dict(result_code=-1, err_msg=str(e))
 
@@ -65,6 +66,9 @@ class YeDaDou(object):
         text = '&'.join(['%s=%s' % x for x in keys])
         text += '&key=%s' % self.config.get('key')
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
+
+    def pay_url(self, id):
+        return 'http://%s/pay?token_id=%s' % (self.host, id)
 
 
 def init_yedadou(app):

@@ -298,7 +298,7 @@ class StatLog(db.Document):
             return item.value + value
 
     @staticmethod
-    def get(key, tid='', day=today(), hour=-1, default=0, save=True):
+    def get(key, tid='', day=lambda: today(), hour=-1, default=0, save=True):
         if callable(day):
             day = day()
         day = str(day)[:10]
@@ -322,6 +322,32 @@ class StatLog(db.Document):
         day = time.strftime('%Y-%m-%d') if not day else day
         log = StatLog.objects(key=str(key), tid=tid, label=label, day=day, hour=-1).first()
         return log.value if log else 0
+
+    @staticmethod
+    def xinc(key, tid='', day='', hour=-1, value=1):
+        return StatLog.inc(key, tid, day, hour, value)
+
+    @staticmethod
+    def xget(key, tid='', day='', hour=-1, default=0, save=True):
+        return StatLog.get(key, tid, day, hour, default, save)
+
+    @staticmethod
+    def date_limit(key, tid='', label='',
+                   limit=timedelta(days=1), default=0, save=True):
+        if type(limit) == int:
+            limit = timedelta(days=limit)
+        log = StatLog.objects(key=str(key), tid=tid, label=label,
+                              day='', hour=-1).first()
+        if not log:
+            if save:
+                StatLog(key=str(key), tid=tid, label=label,
+                        day='', hour=-1).save()
+            return True
+        if log.modified + limit < datetime.now():
+            log.modified = datetime.now()
+            log.save()
+            return True
+        return False
 
 
 class TraceLog(db.Document):

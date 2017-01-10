@@ -14,13 +14,19 @@ __all__ = [
 ]
 
 
-def get_wechat_user(access):
+def get_wechat_user(access, action='mp'):
     um = current_app.user_manager
-    config = current_app.config.get('WXAUTH')
+    openid = '%s_openid' % action
     if 'unionid' in access and access['unionid']:
-        return um.models.WeChatUser.objects(unionid=access['unionid']).first()
-    query = {'%s_openid' % config.items()[0][0]: access['openid']}
-    return um.models.WeChatUser.objects(**query).first()
+        wxuser = um.models.WeChatUser.objects(
+            unionid=access['unionid']).first()
+    else:
+        query = {openid: access['openid']}
+        wxuser = um.models.WeChatUser.objects(**query).first()
+    if wxuser and not getattr(wxuser, openid):
+        setattr(wxuser, openid, access['openid'])
+        wxuser.save()
+    return wxuser
 
 
 def create_wechat_user(userinfo, action):
@@ -48,10 +54,25 @@ def on_invite(user, uid):
             if user.id not in ids:
                 if inviter.is_allow_channel(user):
                     user.channel = inviter.channel
+                else:
+                    user.channel = 1000
+                inviter.on_invite(user)
                 user.inviter = inviter
                 user.inviter2 = inviter.inviter
                 user.inviter3 = inviter.inviter2
                 user.save()
+
+                subs = list(um.models.User.objects(inviter=user.id).all())
+                for x in subs:
+                    x.inviter2 = user.inviter
+                    x.inviter3 = user.inviter2
+                    x.save()
+
+                subs2 = list(um.models.User.objects(inviter__in=subs).all())
+                for x in subs2:
+                    x.inviter2 = user
+                    x.inviter3 = user.inviter
+                    x.save()
 
         if not inviter and uid < 100000:
             if not user.channel:
@@ -87,7 +108,7 @@ def init_wxauth(app):
 
     @wxauth.success_handler
     def wxauth_success(action, scope, access, next):
-        user = um.funcs.get_wechat_user(access)
+        user = um.funcs.get_wechat_user(access, action)
         if not user:
             if wxauth.SNSAPI_USERINFO not in access['scope'] \
                     and wxauth.SNSAPI_LOGIN not in access['scope']:

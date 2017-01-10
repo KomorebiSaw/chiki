@@ -176,6 +176,9 @@ class UserMixin(object):
     def invites3(self):
         return um.models.User.objects(inviter3=self).count()
 
+    def on_invite(self, user):
+        pass
+
 
 class User(db.Document, UserMixin):
     """ 用户模型 """

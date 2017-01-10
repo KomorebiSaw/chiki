@@ -1,6 +1,6 @@
 # coding: utf-8
 import json
-from flask.ext.admin import Admin as _Admin
+from flask.ext.admin import Admin as _Admin, AdminIndexView
 from flask.ext.admin.menu import MenuView, MenuCategory, MenuLink
 from .formatters import *
 from .static import *
@@ -30,6 +30,20 @@ class Admin(_Admin):
             template_mode=template_mode,
             category_icon_classes=category_icon_classes,
         )
+
+    def _set_admin_index_view(self, index_view=None,
+                              endpoint=None, url=None):
+        self.index_view = (index_view or self.index_view or 
+                           AdminIndexView(endpoint=endpoint, url=url))
+        self.endpoint = endpoint or self.index_view.endpoint
+        self.url = url or self.index_view.url
+
+        # Add predefined index view
+        # assume index view is always the first element of views.
+        if len(self._views) > 0:
+            self._views[0] = self.index_view
+        else:
+            self.add_view(self.index_view)
 
     def _refresh(self):
         from chiki.contrib.common import Item, View

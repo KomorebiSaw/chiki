@@ -169,7 +169,7 @@ class WXPay(object):
         kwargs.setdefault('check_name', 'NO_CHECK')
         kwargs.setdefault('amount', 1)
         kwargs.setdefault('desc', '企业打款')
-        kwargs.setdefault('spbill_create_ip', get_ip())
+        kwargs.setdefault('spbill_create_ip', self.config.get('client_ip'))
         kwargs.setdefault('nonce_str', randstr(32))
         kwargs.setdefault('sign', self.sign(**kwargs))
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
