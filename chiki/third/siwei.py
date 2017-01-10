@@ -50,6 +50,10 @@ class SiWei(object):
                 secretkey = self.token.get('secretkey')
                 text = data + secretkey
                 curr_sign = hashlib.md5(text).hexdigest().lower()
+                tpl = 'siwei sign callbck: \n' \
+                          'sign: %s\ncurr_sign: %s\ndata:\n%s'
+                current_app.logger.error(
+                    tpl % (sign, curr_sign, request.data))
                 if sign != curr_sign:
                     tpl = 'siwei sign callbck: \n' \
                           'sign: %s\ncurr_sign: %s\ndata:\n%s'
