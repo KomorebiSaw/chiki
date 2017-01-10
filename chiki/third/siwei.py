@@ -51,9 +51,9 @@ class SiWei(object):
                 text = data + secretkey
                 curr_sign = hashlib.md5(text).hexdigest().lower()
                 tpl = 'siwei sign callbck: \n' \
-                          'sign: %s\ncurr_sign: %s\ndata:\n%s'
+                          'sign: %s\ncurr_sign: %s\nform:\n%sargs:\n%s'
                 current_app.logger.error(
-                    tpl % (sign, curr_sign, request.data))
+                    tpl % (sign, curr_sign, json.dumps(request.form), json.dumps(request.args)))
                 if sign != curr_sign:
                     tpl = 'siwei sign callbck: \n' \
                           'sign: %s\ncurr_sign: %s\ndata:\n%s'
