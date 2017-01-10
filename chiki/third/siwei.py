@@ -15,7 +15,7 @@ def base64_url_decode(inp):
     inp = inp.replace('-', '+')
     inp = inp.replace('_', '/')
     inp = inp.replace('.', '=')
-    return base64.b64decode(inp)
+    return base64.b64decode(inp).rstrip('\0')
 
 
 def base64_url_encode(inp):
@@ -106,12 +106,7 @@ class SiWei(object):
         return base64_url_encode(aes.encrypt(data))
 
     def decode(self, data, key):
-        aes = AES.new(key, AES.MODE_CBC, self.config.get('aes_key'))
-        current_app.logger.error('a: ' + aes.decrypt(base64_url_decode(data)))
-        aes = AES.new(key, AES.MODE_CBC, self.config.get('secretkey'))
-        current_app.logger.error('b: ' + aes.decrypt(base64_url_decode(data)))
-        aes = AES.new(key, AES.MODE_CBC, self.token.get('secretkey'))
-        current_app.logger.error('c: ' + aes.decrypt(base64_url_decode(data)))
+        aes = AES.new(key, AES.MODE_CBC, key)
         return json.loads(aes.decrypt(base64_url_decode(data)))
 
     def get(self, url, session=True, **kwargs):
