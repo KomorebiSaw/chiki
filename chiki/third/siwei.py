@@ -107,6 +107,7 @@ class SiWei(object):
 
     def decode(self, data, key):
         aes = AES.new(key, AES.MODE_CBC, key)
+        current_app.logger.error(aes.decrypt(base64_url_decode(data)))
         return json.loads(aes.decrypt(base64_url_decode(data)))
 
     def get(self, url, session=True, **kwargs):
