@@ -47,7 +47,7 @@ class SiWei(object):
             try:
                 data = request.form.get('Data', request.form.get('data', ''))
                 sign = request.form.get('Sign', request.form.get('sign', ''))
-                secretkey = self.token.get('secretkey')
+                secretkey = self.config.get('secretkey')
                 text = data + secretkey
                 curr_sign = hashlib.md5(text).hexdigest().lower()
                 if sign != curr_sign:
