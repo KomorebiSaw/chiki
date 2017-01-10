@@ -45,8 +45,8 @@ class SiWei(object):
         def siwei_callback():
             res = ''
             try:
-                data = request.args.get('data', '')
-                sign = request.args.get('sign', '')
+                data = request.form.get('data', '')
+                sign = request.form.get('sign', '')
                 secretkey = self.token.get('secretkey')
                 text = data + secretkey
                 curr_sign = hashlib.md5(text).hexdigest().lower()
