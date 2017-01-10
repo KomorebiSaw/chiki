@@ -45,20 +45,16 @@ class SiWei(object):
         def siwei_callback():
             res = ''
             try:
-                data = request.form.get('data', '')
-                sign = request.form.get('sign', '')
+                data = request.form.get('Data', request.form.get('data', ''))
+                sign = request.form.get('Sign', request.form.get('sign', ''))
                 secretkey = self.token.get('secretkey')
                 text = data + secretkey
                 curr_sign = hashlib.md5(text).hexdigest().lower()
-                tpl = 'siwei sign callbck: \n' \
-                          'sign: %s\ncurr_sign: %s\nform:\n%sargs:\n%s'
-                current_app.logger.error(
-                    tpl % (sign, curr_sign, json.dumps(request.form), json.dumps(request.args)))
                 if sign != curr_sign:
                     tpl = 'siwei sign callbck: \n' \
                           'sign: %s\ncurr_sign: %s\ndata:\n%s'
                     current_app.logger.error(
-                        tpl % (sign, curr_sign, request.data))
+                        tpl % (sign, curr_sign, request.form))
                     return '{"message":"签名错误","response":"-1"}'
                 if self.callback:
                     res = self.callback(self.decode(data, secretkey))
