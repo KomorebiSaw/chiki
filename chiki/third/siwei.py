@@ -57,7 +57,7 @@ class SiWei(object):
                         tpl % (sign, curr_sign, request.form))
                     return '{"message":"签名错误","response":"-1"}'
                 if self.callback:
-                    res = self.callback(self.decode(data, secretkey))
+                    res = self.callback(self.decode(data, self.token.get('secretkey')))
             except:
                 current_app.logger.error(
                     'siwei callbck except: \n%s' % traceback.format_exc())
