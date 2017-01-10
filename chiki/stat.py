@@ -198,12 +198,23 @@ class Stat(object):
 
         if type(_value) is list:
             for item in _value:
-                StatLog.objects(key=_key.format(**item), day=_day, hour=_hour).update(
-                    set__value=item['value'],
-                    set__modified=datetime.now(),
-                    set_on_insert__created=datetime.now(),
-                    upsert=True,
-                )
+                if type(item['value']) == dict:
+                    for sk, sv in item['value'].iteritems():
+                        query = dict(key=_key.format(_id=item['_id'], key=sk),
+                                     day=_day, hour=_hour)
+                        StatLog.objects(**query).update(
+                            set__value=sv,
+                            set__modified=datetime.now(),
+                            set_on_insert__created=datetime.now(),
+                            upsert=True,
+                        )
+                else:
+                    StatLog.objects(key=_key.format(**item), day=_day, hour=_hour).update(
+                        set__value=item['value'],
+                        set__modified=datetime.now(),
+                        set_on_insert__created=datetime.now(),
+                        upsert=True,
+                    )
         else:
             StatLog.objects(key=_key, day=_day, hour=_hour).update(
                 set__value=_value,
