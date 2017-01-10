@@ -7,7 +7,7 @@ import traceback
 from datetime import datetime, timedelta
 from Crypto.Cipher import AES
 from chiki.contrib.common import Item
-from chiki.utils import randstr
+from chiki.utils import randstr, today
 from flask import request, current_app, url_for
 
 
@@ -15,11 +15,11 @@ def base64_url_decode(inp):
     inp = inp.replace('-', '+')
     inp = inp.replace('_', '/')
     inp = inp.replace('.', '=')
-    return base64.b64decode(str(inp))
+    return base64.b64decode(inp)
 
 
 def base64_url_encode(inp):
-    code = base64.b64encode(str(inp))
+    code = base64.b64encode(inp)
     code = code.replace('+', '-')
     code = code.replace('/', '_')
     return code.replace('=', '.')
@@ -47,7 +47,8 @@ class SiWei(object):
             try:
                 data = request.args.get('data', '')
                 sign = request.args.get('sign', '')
-                text = data + self.config.get('secretkey')
+                secretkey = self.token.get('secretkey')
+                text = data + secretkey
                 curr_sign = hashlib.md5(text).hexdigest().lower()
                 if sign != curr_sign:
                     tpl = 'siwei sign callbck: \n' \
@@ -56,7 +57,7 @@ class SiWei(object):
                         tpl % (sign, curr_sign, request.data))
                     return '{"message":"签名错误","response":"-1"}'
                 if self.callback:
-                    res = self.callback(self.decode(data))
+                    res = self.callback(self.decode(data, secretkey))
             except:
                 current_app.logger.error(
                     'siwei callbck except: \n%s' % traceback.format_exc())
@@ -76,9 +77,10 @@ class SiWei(object):
             token = self.grant_token()
             if token:
                 if not token['persisted']:
-                    token['deadline'] = today() + timestamp(days=1)
+                    token['deadline'] = today() + timedelta(days=1)
                 else:
-                    token['deadline'] = now + timestamp(seconds=token['persisted'])
+                    token['deadline'] = now + timedelta(seconds=token['persisted'])
+                token['deadline'] = token['deadline'].strftime('%Y-%m-%d %H:%M:%S')
                 Item.set_data(key, json.dumps(token))
         return token
 
@@ -98,16 +100,12 @@ class SiWei(object):
     def padding(self, text, bs=16):
         return text + (bs - len(text) % bs) * chr(0)
 
-    def encode(self, data):
-        key = self.config['aes_key']
+    def encode(self, data, key):
         aes = AES.new(key, AES.MODE_CBC, key)
         data = self.padding(json.dumps(data))
-        res = base64_url_encode(aes.encrypt(data))
-        print res
-        return res
+        return base64_url_encode(aes.encrypt(data))
 
-    def decode(self, data):
-        key = self.config['aes_key']
+    def decode(self, data, key):
         aes = AES.new(key, AES.MODE_CBC, key)
         return json.loads(aes.decrypt(base64_url_decode(data)))
 
@@ -115,19 +113,21 @@ class SiWei(object):
         data = dict(
             appid=self.config.get('appid'),
             format='json',
-            data=self.encode(kwargs),
             v='2.0',
             timestamp=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         )
-        secretkey = self.config.get('secretkey')
         if session:
             token = self.token
+            secretkey = token.get('secretkey')
+            data['data'] = self.encode(kwargs, secretkey)
             data['session'] = token.get('session', '')
             text = (secretkey + data['appid'] + data['data'] +
                     data['format'] + data['session'] + data['timestamp'] +
                     data['v'] + secretkey)
             data['sign'] = hashlib.md5(text).hexdigest().lower()
         else:
+            secretkey = self.config.get('secretkey')
+            data['data'] = self.encode(kwargs, secretkey)
             text = (secretkey + data['appid'] + data['data'] +
                     data['format'] + data['timestamp'] +
                     data['v'] + secretkey)
