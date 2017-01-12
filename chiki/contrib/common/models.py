@@ -2,6 +2,7 @@
 import json
 import time
 import qrcode
+import random
 from PIL import Image, ImageFont, ImageDraw
 from StringIO import StringIO
 from chiki.base import db
@@ -452,6 +453,8 @@ class QRCode(db.Document):
             qr.image = None
 
         config = current_app.config.get('QRCODE', {})
+        if type(config) is list:
+            config = random.choice(config)
         if config.get('wxclient', True) and (
                 not qr.url or datetime.now() > qr.modified + timedelta(days=25)):
             data = dict(
@@ -591,6 +594,8 @@ class QRCode(db.Document):
 
     def create_image(self, user):
         config = current_app.config.get('QRCODE', {})
+        if type(config) is list:
+            config = random.choice(config)
         qr = self.create_qrcode(config)
         bg = self.create_bg(config, user, qr)
         bg = self.draw_texts(config, user, bg)
