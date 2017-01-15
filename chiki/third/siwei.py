@@ -77,7 +77,7 @@ class SiWei(object):
             token = self.grant_token()
             if token:
                 if not token['persisted']:
-                    token['deadline'] = today() + timedelta(days=1)
+                    token['deadline'] = today() + timedelta(seconds=1800)
                 else:
                     token['deadline'] = now + timedelta(seconds=token['persisted'])
                 token['deadline'] = token['deadline'].strftime('%Y-%m-%d %H:%M:%S')
