@@ -115,6 +115,9 @@
                     
                     setTimeout(function () {
                         $('.nicescroll').getNiceScroll().resize();
+                        setTimeout(function () {
+                            $('.nicescroll').getNiceScroll().resize();
+                        }, 500);
                     }, 500);
                 },
                 error = function () {
