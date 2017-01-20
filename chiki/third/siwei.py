@@ -149,7 +149,7 @@ class SiWei(object):
         kwargs.setdefault('fronturl', 'http://%s/' % request.host)
 
         host = self.callback_host if self.callback_host else request.host
-        backurl = 'http://%s/' % (host, url_for('siwei_callback'))
+        backurl = 'http://%s%s' % (host, url_for('siwei_callback'))
         kwargs.setdefault('backurl', backurl)
         return self.get(self.URL % (self.host, 'pay/pay.do'), **kwargs)
 

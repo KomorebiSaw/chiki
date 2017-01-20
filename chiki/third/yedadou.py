@@ -54,7 +54,7 @@ class YeDaDou(object):
         kwargs.setdefault('amount_fee', 1)
         kwargs.setdefault('sign_type', 'MD5')
         host = self.callback_host if self.callback_host else request.host
-        backurl = 'http://%s/' % (host, url_for('yedadou_callback'))
+        backurl = 'http://%s%s' % (host, url_for('yedadou_callback'))
         kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('return_url', 'http://%s/' % request.host)
         kwargs.setdefault('nonce_str', randstr(32))
