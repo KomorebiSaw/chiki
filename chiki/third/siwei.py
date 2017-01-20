@@ -38,13 +38,17 @@ class SiWei(object):
             self.init_app(app)
 
     def init_app(self, app):
-        app.siwei = self
+        if not hasattr(app, 'siwei'):
+            app.siwei = self
         self.config = app.config.get(self.config_key, {})
         self.host = self.config.get('host', self.HOST)
         self.callback_host = self.config.get(
             'callback_host', self.CALLBACK_HOST)
+        self.callback_url = self.config.get(
+            'callback_url', '/callback/siwei/')
+        self.endpoint = self.config.get('endpoint', 'siwei_callback')
 
-        @app.route('/callback/siwei/', methods=['POST'])
+        @app.route(self.callback_url, endpoint=self.endpoint, methods=['POST'])
         def siwei_callback():
             res = ''
             try:
@@ -73,7 +77,7 @@ class SiWei(object):
     @property
     def token(self):
         now = datetime.now()
-        key = 'siwei:token'
+        key = self.config.get('config_key', 'siwei:token')
         token = json.loads(Item.data(key, '{}'))
         if not token or datetime.strptime(
                 token['deadline'], '%Y-%m-%d %H:%M:%S') <= now:
@@ -112,7 +116,7 @@ class SiWei(object):
         aes = AES.new(key, AES.MODE_CBC, key)
         return json.loads(aes.decrypt(base64_url_decode(data)).rstrip('\0'))
 
-    def get(self, url, session=True, **kwargs):
+    def get(self, url, session=True, html=False, **kwargs):
         data = dict(
             appid=self.config.get('appid'),
             format='json',
@@ -136,6 +140,8 @@ class SiWei(object):
                     data['v'] + secretkey)
             data['sign'] = hashlib.md5(text).hexdigest().lower()
         try:
+            if html:
+                return requests.get(url, params=data)
             return requests.get(url, params=data).json()
         except Exception, e:
             return dict(ret=-1, message=str(e))
@@ -149,7 +155,7 @@ class SiWei(object):
         kwargs.setdefault('fronturl', 'http://%s/' % request.host)
 
         host = self.callback_host if self.callback_host else request.host
-        backurl = 'http://%s%s' % (host, url_for('siwei_callback'))
+        backurl = 'http://%s%s' % (host, url_for(self.endpoint))
         kwargs.setdefault('backurl', backurl)
         return self.get(self.URL % (self.host, 'pay/pay.do'), **kwargs)
 
