@@ -9,6 +9,7 @@ from flask import request, current_app, url_for
 class YeDaDou(object):
 
     HOST = 'pay.yedadou.com'
+    CALLBACK_HOST = ''
     PREPAY_URL = 'http://%s/unifiOrder'
 
     def __init__(self, app=None, config_key='YEDADOU'):
@@ -21,6 +22,8 @@ class YeDaDou(object):
         app.yedadou = self
         self.config = app.config.get(self.config_key, {})
         self.host = self.config.get('host', self.HOST)
+        self.callback_host = self.config.get(
+            'callback_host', self.CALLBACK_HOST)
 
         @app.route('/callback/yedadou/', methods=['POST'])
         def yedadou_callback():
@@ -50,8 +53,9 @@ class YeDaDou(object):
         kwargs.setdefault('mch_id', self.config.get('mchid'))
         kwargs.setdefault('amount_fee', 1)
         kwargs.setdefault('sign_type', 'MD5')
-        kwargs.setdefault('notify_url', url_for(
-            'yedadou_callback', _external=True))
+        host = self.callback_host if self.callback_host else request.host
+        backurl = 'http://%s/' % (host, url_for('yedadou_callback'))
+        kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('return_url', 'http://%s/' % request.host)
         kwargs.setdefault('nonce_str', randstr(32))
         kwargs['sign'] = self.sign(**kwargs)

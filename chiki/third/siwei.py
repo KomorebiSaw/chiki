@@ -28,6 +28,7 @@ def base64_url_encode(inp):
 class SiWei(object):
 
     HOST = 'zfapi.cnkwl.cn'
+    CALLBACK_HOST = ''
     URL = 'http://%s/openapi/%s'
 
     def __init__(self, app=None, config_key='SIWEI'):
@@ -40,6 +41,8 @@ class SiWei(object):
         app.siwei = self
         self.config = app.config.get(self.config_key, {})
         self.host = self.config.get('host', self.HOST)
+        self.callback_host = self.config.get(
+            'callback_host', self.CALLBACK_HOST)
 
         @app.route('/callback/siwei/', methods=['POST'])
         def siwei_callback():
@@ -144,8 +147,10 @@ class SiWei(object):
         kwargs.setdefault('businesstype', 1001)
         kwargs.setdefault('paymenttypeid', 10000)
         kwargs.setdefault('fronturl', 'http://%s/' % request.host)
-        kwargs.setdefault('backurl', url_for(
-            'siwei_callback', _external=True))
+
+        host = self.callback_host if self.callback_host else request.host
+        backurl = 'http://%s/' % (host, url_for('siwei_callback'))
+        kwargs.setdefault('backurl', backurl)
         return self.get(self.URL % (self.host, 'pay/pay.do'), **kwargs)
 
 
