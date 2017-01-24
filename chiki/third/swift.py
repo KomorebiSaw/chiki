@@ -70,7 +70,7 @@ class SwiftPass(object):
 
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:
-            xml = requests.post(self.PREPAY_URL, data=data).content
+            xml = requests.post(self.PREPAY_URL % self.host, data=data).content
             return self.xml2dict(xml)
         except Exception, e:
             current_app.logger.error(traceback.format_exc())
