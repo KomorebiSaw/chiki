@@ -70,6 +70,7 @@ class SwiftPass(object):
         kwargs['sign'] = self.sign(**kwargs)
 
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
+        current_app.logger.error('data:' + data)
         try:
             xml = requests.post(self.PREPAY_URL % self.host, data=data).content
             current_app.logger.error('xml:' + xml)
@@ -83,6 +84,7 @@ class SwiftPass(object):
             filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
         text += '&key=%s' % self.config.get('key')
+        current_app.logger.error('sign text:' + xml)
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
     def pay_url(self, id):
