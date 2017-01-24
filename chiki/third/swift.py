@@ -86,7 +86,7 @@ class SwiftPass(object):
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
     def pay_url(self, id):
-        return 'http://%s/pay/jspay?token_id=%s' % (self.host, id)
+        return 'https://%s/pay/jspay?token_id=%s' % (self.host, id)
 
 
 def init_swift(app):
