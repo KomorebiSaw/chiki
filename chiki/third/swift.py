@@ -13,7 +13,7 @@ class SwiftPass(object):
 
     HOST = 'pay.swiftpass.cn'
     CALLBACK_HOST = ''
-    PREPAY_URL = 'http://%s/pay/gateway'
+    PREPAY_URL = 'https://%s/pay/gateway'
 
     def __init__(self, app=None, config_key='SWIFT'):
         self.config_key = config_key
