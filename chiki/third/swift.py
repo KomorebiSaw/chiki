@@ -33,19 +33,19 @@ class SwiftPass(object):
         @app.route(self.callback_url, endpoint=self.endpoint, methods=['POST'])
         def swift_callback():
             res = ''
-        try:
-            data = self.xml2dict(request.data)
-            sign = data.pop('sign', None)
-            if sign != self.sign(**data):
-                tpl = 'swift sign callbck: \nsign: %s\ncurr_sign: %s\ndata:\n%s'
-                current_app.logger.error(
-                    tpl % (sign, self.sign(**data), request.data))
-                return 'sign error'
-            if self.callback:
-                res = self.callback(data)
-        except Exception, e:
-            current_app.logger.error('wxpay callbck except: %s' % str(e))
-        return res or 'success'
+            try:
+                data = self.xml2dict(request.data)
+                sign = data.pop('sign', None)
+                if sign != self.sign(**data):
+                    tpl = 'swift sign callbck: \nsign: %s\ncurr_sign: %s\ndata:\n%s'
+                    current_app.logger.error(
+                        tpl % (sign, self.sign(**data), request.data))
+                    return 'sign error'
+                if self.callback:
+                    res = self.callback(data)
+            except Exception, e:
+                current_app.logger.error('wxpay callbck except: %s' % str(e))
+            return res or 'success'
 
     def handler(self, callback):
         self.callback = callback
