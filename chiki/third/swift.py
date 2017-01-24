@@ -84,7 +84,7 @@ class SwiftPass(object):
             filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
         text += '&key=%s' % self.config.get('key')
-        current_app.logger.error('sign text:' + xml)
+        current_app.logger.error('sign text:' + text)
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
     def pay_url(self, id):
