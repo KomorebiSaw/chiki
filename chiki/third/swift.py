@@ -2,8 +2,9 @@
 import hashlib
 import requests
 import traceback
-from chiki.utils import randstr
-from flask import request, current_app, url_for
+from chiki.utils import get_ip, randstr
+from flask import request, url_for, current_app
+from werobot.utils import to_text
 from xml.etree import ElementTree
 from dicttoxml import dicttoxml
 
