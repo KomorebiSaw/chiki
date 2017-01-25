@@ -54,8 +54,10 @@ class Near(object):
             'spbill_create_ip', '127.0.0.1'))
         kwargs['sign'] = self.sign(**kwargs)
         try:
-            return requests.post(
-                self.PREPAY_URL % self.host, data=kwargs).json()
+            res = requests.post(
+                self.PREPAY_URL % self.host, data=kwargs)
+            current_app.logger.error('debug: ' + res.content)
+            return res.json()
         except Exception, e:
             return dict(errcode=500, msg=str(e))
 
