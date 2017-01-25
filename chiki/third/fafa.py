@@ -71,7 +71,7 @@ class FaFa(object):
         kwargs['Sign'] = self.sign(**kwargs)
         try:
             return requests.post(
-                self.PREPAY_URL % self.host, data=kwargs).json()
+                self.PREPAY_URL % self.host, data=json.dumps(kwargs)).json()
         except Exception, e:
             return dict(Error=-1, Message=str(e))
 
