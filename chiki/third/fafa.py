@@ -78,14 +78,14 @@ class FaFa(object):
     def sign(self, **kwargs):
         keys = ['MchId', 'PayTypeId', 'MchTradeNo', 'TradeContent',
                 'TradeAttach', 'TradeMoney', 'Ip', 'NotifyUrl']
-        text = ''.join([kwargs.get(x, '') for x in keys])
+        text = ''.join([str(kwargs.get(x, '')) for x in keys])
         text += self.config.get('key')
         return hashlib.md5(text.encode('utf-8')).hexdigest().lower()
 
     def sign_callback(self, **kwargs):
         keys = ['Error', 'Message', 'MchId', 'MchTradeNo',
                 'OutTradeNo', 'TradeAttach', 'ActuallyMoney', 'TimeEnd']
-        text = ''.join([kwargs.get(x, '') for x in keys])
+        text = ''.join([str(kwargs.get(x, '')) for x in keys])
         text += self.config.get('key')
         return hashlib.md5(text.encode('utf-8')).hexdigest().lower()
 
