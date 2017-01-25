@@ -56,7 +56,6 @@ class Near(object):
         try:
             res = requests.post(
                 self.PREPAY_URL % self.host, data=json.dumps(kwargs))
-            current_app.logger.error('debug: ' + res.content)
             return res.json()
         except Exception, e:
             return dict(errcode=500, msg=str(e))
