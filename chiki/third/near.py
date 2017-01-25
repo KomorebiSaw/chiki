@@ -7,7 +7,7 @@ import traceback
 from datetime import datetime, timedelta
 from Crypto.Cipher import AES
 from chiki.contrib.common import Item
-from chiki.utils import randstr, today
+from chiki.utils import randstr, today, get_ip
 from flask import request, current_app, url_for
 
 
@@ -51,11 +51,12 @@ class Near(object):
         kwargs.setdefault('op_user_id', self.config.get('op_user_id'))
         kwargs.setdefault('nonce_str', randstr(32))
         kwargs.setdefault('spbill_create_ip', self.config.get(
-            'spbill_create_ip', '127.0.0.1'))
+            'spbill_create_ip', get_ip()))
         kwargs['sign'] = self.sign(**kwargs)
         try:
+            print json.dumps(kwargs)
             res = requests.post(
-                self.PREPAY_URL % self.host, data=kwargs)
+                self.PREPAY_URL % self.host, data=json.dumps(kwargs))
             current_app.logger.error('debug: ' + res.content)
             return res.json()
         except Exception, e:

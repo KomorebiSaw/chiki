@@ -14,7 +14,7 @@ class FaFa(object):
 
     HOST = 'api.88.la'
     CALLBACK_HOST = ''
-    PREPAY_URL = 'https://%s/PayApi/Index'
+    PREPAY_URL = 'http://%s/PayApi/Index'
 
     def __init__(self, app=None, config_key='FAFA'):
         self.config_key = config_key
