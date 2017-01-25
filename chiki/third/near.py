@@ -45,7 +45,7 @@ class Near(object):
 
     def prepay(self, **kwargs):
         kwargs.setdefault('body', '云计费')
-        kwargs.setdefault('total_fee', 1)
+        kwargs.setdefault('total_fee', '1')
         kwargs.setdefault('product_id', '20170101')
         kwargs.setdefault('goods_tag', 'default')
         kwargs.setdefault('op_user_id', self.config.get('op_user_id'))
