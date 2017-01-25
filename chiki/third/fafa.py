@@ -38,7 +38,7 @@ class FaFa(object):
             res = ''
             try:
                 data = json.loads(request.data)
-                sign = data.pop('sign', None)
+                sign = data.pop('Sign', None)
                 if sign != self.sign_callback(**data):
                     tpl = 'res sign callbck: \n' \
                           'sign: %s\ncurr_sign: %s\ndata:\n%s'
