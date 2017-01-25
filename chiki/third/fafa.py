@@ -5,9 +5,8 @@ import hashlib
 import requests
 import traceback
 from datetime import datetime, timedelta
-from chiki import get_ip
 from chiki.contrib.common import Item
-from chiki.utils import randstr, today
+from chiki.utils import randstr, today, get_ip
 from flask import request, current_app, url_for
 
 
