@@ -3,6 +3,7 @@ from .express import *
 from .yedadou import *
 from .siwei import *
 from .swift import *
+from .fafa import *
 
 
 def init_third(app):
@@ -10,3 +11,4 @@ def init_third(app):
     init_yedadou(app)
     init_siwei(app)
     init_swift(app)
+    init_fafa(app)
