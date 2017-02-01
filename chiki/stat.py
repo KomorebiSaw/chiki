@@ -107,12 +107,17 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
             week_start=week_start, week_end=today, yesterday=yesterday,
             today=today, data_url=data_url, model=kwargs.get('model', 'day'))
 
-    def get_series(sub, prefix, axis, value_list):
+    def get_series(sub, day, prefix, axis, value_list):
         res = []
         series = sub.get('series')
         if callable(series):
             series = series()
         for item in series:
+            if 'hour_value_list' in item and prefix == 'hour_':
+                value_list = item.get('hour_value_list')
+                value_list = functools.partial(value_list, day)
+            elif 'value_list' in item and prefix == 'date_':
+                value_list = item.get('value_list')
             key = '%s%s' % (prefix, item.get('key'))
             if modal:
                 key = '%s_%s' % (key, request.args.get('id'))
@@ -125,13 +130,14 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
 
     def common_data(prefix, subtitle, axis, value_list):
         items = []
+        day = subtitle
         subtitle += '<br>'
         for sub in subs:
             item = dict(
                 title=sub.get('title'),
                 suffix=sub.get('suffix'),
                 axis=axis,
-                series=get_series(sub, prefix, axis, value_list),
+                series=get_series(sub, day, prefix, axis, value_list),
             )
             totals = []
             tpl = '<span>%s: %d%s</span>'
