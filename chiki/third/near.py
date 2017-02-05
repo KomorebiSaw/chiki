@@ -39,8 +39,9 @@ class Near(object):
         def near_callback():
             res = ''
             try:
+                res = json.loads(request.data)
                 if self.callback:
-                    res = self.callback()
+                    res = self.callback(res)
             except:
                 current_app.logger.error(
                     'near callbck except: \n%s' % traceback.format_exc())
