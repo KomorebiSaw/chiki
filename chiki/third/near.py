@@ -37,7 +37,19 @@ class Near(object):
 
         @app.route(self.callback_url, endpoint=self.endpoint, methods=['POST'])
         def near_callback():
-            pass
+            res = ''
+            try:
+                if self.callback:
+                    res = self.callback()
+            except:
+                current_app.logger.error(
+                    'near callbck except: \n%s' % traceback.format_exc())
+            return res or json.dumps(dict(
+                errcode=200,
+                msg='成功接收请求',
+                tradeNum=request.form.get('tradeNum', ''),
+                notifyUrl=request.url,
+            ))
 
     def handler(self, callback):
         self.callback = callback
@@ -50,6 +62,8 @@ class Near(object):
         kwargs.setdefault('goods_tag', 'default')
         kwargs.setdefault('op_user_id', self.config.get('op_user_id'))
         kwargs.setdefault('nonce_str', randstr(32))
+        backurl = 'http://%s%s' % (host, url_for(self.endpoint))
+        kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('spbill_create_ip', self.config.get(
             'spbill_create_ip', get_ip()))
         kwargs['sign'] = self.sign(**kwargs)
