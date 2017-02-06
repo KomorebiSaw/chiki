@@ -6,6 +6,9 @@ __email__ = '438985635@qq.com'
 from flask import Flask
 from flask_script import Manager
 
+from .patch import patch_url
+patch_url()
+
 from .app import *
 from .condoms import *
 from .iptools import *

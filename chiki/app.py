@@ -4,7 +4,7 @@ import redis
 import traceback
 from StringIO import StringIO
 from flask import Blueprint, current_app, Response, render_template
-from flask import request, redirect
+from flask import request, redirect, url_for
 from flask.ext.babelex import Babel
 from flask.ext.login import login_required
 from flask.ext.mail import Mail
@@ -190,7 +190,7 @@ def init_app(init=None, config=None, pyfile=None,
 
     @app.context_processor
     def context_processor():
-        return dict(Item=Item, Menu=Menu)
+        return dict(Item=Item, Menu=Menu, url_for=url_for)
 
     if error:
         init_error_handler(app)

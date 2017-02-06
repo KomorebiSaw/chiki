@@ -31,6 +31,7 @@ settings['cls'] = JSONEncoder
 
 class Flask(_Flask):
 
+    patch_url = False
     json_encoder = JSONEncoder
     jinja_options = ImmutableDict(
         trim_blocks=True,
