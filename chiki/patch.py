@@ -2,7 +2,8 @@
 import flask
 import string
 import random
-from flask import Flask, url_for, current_app
+import hashlib
+from flask import Flask, url_for, current_app, request
 from flask.app import setupmethod
 from functools import wraps
 
@@ -14,8 +15,8 @@ funcs = dict()
 
 def url_for(endpoint, **values):
     if current_app.config.get('PATCH_URL'):
-        arg1 = ''.join(random.sample(case, random.randint(2, 4)))
-        arg2 = ''.join(random.sample(case, random.randint(2, 4)))
+        arg1 = hashlib.md5(request.host + endpoint).hexdigest()[:4]
+        arg2 = hashlib.md5(request.host + endpoint).hexdigest()[:4]
         return old_url_for(endpoint, _arg1=arg1, _arg2=arg2, **values)
     return old_url_for(endpoint, **values)
 
