@@ -22,7 +22,11 @@ def url_for(endpoint, **values):
 
 @setupmethod
 def add_url_rule(self, rule, endpoint=None, view_func=None, **options):
-    rule2 = '/<_arg1>-1/' + rule[1:] + '/<_arg2>.html'
+    rule2 = '/<_arg1>-1/' + rule[1:]
+    if rule2.endswith('/'):
+        rule2 += '<_arg2>.html'
+    else:
+        rule2 += '/<_arg2>.html'
 
     func = view_func
     if self.config.get('PATCH_URL') and func:
