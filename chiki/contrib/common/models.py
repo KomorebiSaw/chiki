@@ -538,6 +538,9 @@ class QRCode(db.Document):
             return bg
         return qr
 
+    def replace(self, text, user):
+        pass
+
     def textsize(self, user, draw, font, width, texts):
         w, has_nick = 0, False
         for text in texts:
@@ -551,6 +554,7 @@ class QRCode(db.Document):
             text = text.replace('<nickname>', user.nickname or '佚名')
             text = text.replace('<expire>', (
                 self.modified + timedelta(days=30)).strftime('%Y-%m-%d'))
+            text = self.replace(text, user)
             w += draw.textsize(text, font=font)[0]
 
         nickname = user.nickname or '佚名'
@@ -586,6 +590,7 @@ class QRCode(db.Document):
                 text = text.replace('<nickname>', nickname[:limit])
                 text = text.replace('<expire>', (
                     self.modified + timedelta(days=30)).strftime('%Y-%m-%d'))
+                text = self.replace(text, user)
                 width, _ = draw.textsize(text, font=font)
                 draw.text((x, y), text, font=font, fill=color)
                 x += width
