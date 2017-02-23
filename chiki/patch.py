@@ -18,6 +18,10 @@ def url_for(endpoint, **values):
         arg1 = hashlib.md5(request.host + endpoint).hexdigest()[:4]
         arg2 = hashlib.md5(request.host + endpoint).hexdigest()[:4]
         return old_url_for(endpoint, _arg1=arg1, _arg2=arg2, **values)
+    if '_arg1' in values:
+        values.pop('_arg1')
+    if '_arg2' in values:
+        values.pop('_arg2')
     return old_url_for(endpoint, **values)
 
 
