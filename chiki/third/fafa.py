@@ -13,6 +13,7 @@ from flask import request, current_app, url_for
 class FaFa(object):
 
     HOST = 'api.88.la'
+    HOST = 'api.ios.88.la'
     CALLBACK_HOST = ''
     PREPAY_URL = 'http://%s/PayApi/Index'
 
@@ -71,7 +72,8 @@ class FaFa(object):
         kwargs['Sign'] = self.sign(**kwargs)
         try:
             return requests.post(
-                self.PREPAY_URL % self.host, data=json.dumps(kwargs)).json()
+                self.PREPAY_URL % self.host, data=json.dumps(kwargs),
+                timeout=8).json()
         except Exception, e:
             return dict(Error=-1, Message=str(e))
 
