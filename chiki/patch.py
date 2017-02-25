@@ -42,11 +42,13 @@ def add_url_rule(self, rule, endpoint=None, view_func=None, **options):
                 return view_func(*args, **kwargs)
         funcs[view_func] = func
 
-    old_add_url_rule(self, rule, endpoint=endpoint,
-                     view_func=func, **options)
-    options.setdefault('defaults', {'_arg1': '', '_arg2': ''})
-    return old_add_url_rule(self, rule2, endpoint=endpoint,
-                            view_func=func, **options)
+    res = old_add_url_rule(self, rule, endpoint=endpoint,
+                           view_func=func, **options)
+    if self.config.get('PATCH_URL'):
+        options.setdefault('defaults', {'_arg1': '', '_arg2': ''})
+        return old_add_url_rule(self, rule2, endpoint=endpoint,
+                                view_func=func, **options)
+    return res
 
 
 def patch_url():
