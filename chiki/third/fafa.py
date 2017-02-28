@@ -13,7 +13,7 @@ from flask import request, current_app, url_for
 class FaFa(object):
 
     HOST = 'api.88.la'
-    HOST = 'api.ios.88.la'
+    # HOST = 'api.ios.88.la'
     CALLBACK_HOST = ''
     PREPAY_URL = 'http://%s/PayApi/Index'
 
