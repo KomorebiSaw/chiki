@@ -1,6 +1,7 @@
 # coding: utf-8
 import hashlib
 import random
+import string
 from chiki.base import db
 from chiki.utils import get_spm, get_ip
 from chiki.contrib.common import Item
@@ -15,6 +16,8 @@ __all__ = [
     'User', 'UserMixin', 'WeChatUser', 'QQUser', 'WeiBoUser',
     'UserLog', 'PhoneCode', 'EmailCode',
 ]
+
+case = string.lowercase + string.digits
 
 
 class UserMixin(object):
@@ -101,10 +104,19 @@ class UserMixin(object):
             return self.avatar.get_link(width, height)
         return current_app.config.get('DEFAULT_AVATAR')
 
+    def create_tid(self):
+        res = []
+        num = self.id
+        for i in range(5):
+            res.append(case[num % 36])
+            num /= 36
+        return ''.join(reversed(res))
+
     def create(self):
         """ 创建用户 """
         if not self.id:
             self.id = Item.inc('user_index', 100000)
+            self.tid = self.create_tid()
             self.save()
         return self.id
 
@@ -198,6 +210,7 @@ class User(db.Document, UserMixin):
     SEX_FROM_WECHAT = {0: SEX_UNKNOWN, 1: SEX_MALE, 2: SEX_FEMALE}
 
     id = db.IntField(primary_key=True, verbose_name='ID')
+    tid = db.StringField(verbose_name='TID')
     phone = db.StringField(max_length=20, verbose_name='手机')
     email = db.StringField(max_length=40, verbose_name='邮箱')
     password = db.StringField(max_length=40, verbose_name='密码')
@@ -226,6 +239,7 @@ class User(db.Document, UserMixin):
 
     meta = {
         'indexes': [
+            'tid',
             'phone',
             'nickname',
             'ip',

@@ -551,6 +551,7 @@ class QRCode(db.Document):
                 has_nick = True
 
             text = text.replace('<id>', str(user.id))
+            text = text.replace('<tid>', user.tid)
             text = text.replace('<nickname>', user.nickname or '佚名')
             text = text.replace('<expire>', (
                 self.modified + timedelta(days=30)).strftime('%Y-%m-%d'))
@@ -587,6 +588,7 @@ class QRCode(db.Document):
                 if type(text) in [list, tuple]:
                     text, color = text[0], text[1]
                 text = text.replace('<id>', str(user.id))
+                text = text.replace('<tid>', user.tid)
                 text = text.replace('<nickname>', nickname[:limit])
                 text = text.replace('<expire>', (
                     self.modified + timedelta(days=30)).strftime('%Y-%m-%d'))
