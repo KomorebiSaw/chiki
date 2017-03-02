@@ -7,6 +7,7 @@ import string
 import traceback
 import requests
 import urlparse
+from urllib import urlencode
 from datetime import datetime, date
 from StringIO import StringIO
 from flask import jsonify, current_app, request
@@ -19,6 +20,7 @@ __all__ = [
     'get_channel', 'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
     'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data', 'get_module',
     'rmb3', 'check_encode', 'url_with_user', 'get_url_arg',
+    'create_short_url',
 ]
 
 
@@ -289,3 +291,9 @@ def url_with_user(url):
 def get_url_arg(url, key):
     res = urlparse.parse_qs(urlparse.urlparse(url).query).get(key)
     return res[0] if res else None
+
+
+def create_short_url(key, url):
+    tpl = 'http://api.t.sina.com.cn/short_url/shorten.json?%s'
+    res = requests.get(tpl % urlencode(dict(source=key, url_long=url))).json()
+    return res[0]['url_short'] if res[0]['type'] == 0 else url
