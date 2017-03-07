@@ -3,12 +3,13 @@ from chiki.base import db
 from chiki.contrib.common import Channel
 from chiki.contrib.users import admin, apis, forms, funcs, models, oauth, views
 from chiki.contrib.users.base import user_manager
+from chiki.contrib.users.oauth import wxauth_required
 from chiki.utils import AttrDict
 from chiki.verify import init_verify
 from flask.ext.login import LoginManager, current_user
 
 __all__ = [
-    'user_manager', 'um', 'UserManager',
+    'user_manager', 'um', 'UserManager', 'wxauth_required',
 ]
 
 um = user_manager
@@ -71,6 +72,8 @@ class UserManager(object):
         config = self.app.config.get('CHIKI_USER', {})
         self.allow_email = self.config.allow_email = config.get('allow_email', False)
         self.allow_phone = self.config.allow_phone = config.get('allow_phone', True)
+        self.config.allow_redirect = config.get('allow_redirect', True)
+        self.config.userinfo = config.get('userinfo', True)
         self.config.auto_heart = config.get('auto_heart', True)
         self.config.register_auto_login = config.get('register_auto_login', True)
         self.config.reset_password_auto_login = config.get('reset_password_auto_login', True)

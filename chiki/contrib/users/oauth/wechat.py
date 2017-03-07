@@ -1,26 +1,30 @@
 # coding: utf-8
+import functools
 import traceback
 from chiki.api import abort
 from chiki.api.const import *
+from chiki.base import db
 from chiki.contrib.common import Item, Channel
 from chiki.web import error
 from chiki.utils import get_url_arg, is_json
 from flask import current_app
-from flask.ext.login import login_user, current_user
+from flask.ext.login import login_user, current_user, login_required
 
 __all__ = [
     'init_wxauth', 'get_wechat_user', 'create_wechat_user',
     'wechat_login', 'on_wechat_login', 'on_invite',
+    'wxauth_required',
 ]
 
 
 def get_wechat_user(access, action='mp'):
     um = current_app.user_manager
     openid = '%s_openid' % action
+    wxuser = None
     if 'unionid' in access and access['unionid']:
         wxuser = um.models.WeChatUser.objects(
             unionid=access['unionid']).first()
-    else:
+    if not wxuser:
         query = {openid: access['openid']}
         wxuser = um.models.WeChatUser.objects(**query).first()
     if wxuser and not getattr(wxuser, openid):
@@ -99,6 +103,34 @@ def on_wechat_login(action, next):
             current_app.logger.error(traceback.format_exc())
 
 
+def wxauth_required(key=None):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            wxuser = current_user.wechat_user
+            if wxuser:
+                if not key:
+                    auth = current_app.wxauth.puppet
+                    if auth and auth.holder:
+                        field = 'mp_openid_%s' % auth.key
+                        if not getattr(wxuser, field):
+                            return auth(auth.ACTION_MP, request.url)
+                elif key == 'all':
+                    for k, auth in current_app.wxauth.puppets.iteritems():
+                        field = 'mp_openid_%s' % k
+                        if not getattr(wxuser, field):
+                            return auth(auth.ACTION_MP, request.url)
+                else:
+                    auth = current_app.wxauth.puppets.get(key)
+                    if auth:
+                        field = 'mp_openid_%s' % key
+                        if not getattr(wxuser, field):
+                            return auth(auth.ACTION_MP, request.url)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
 def init_wxauth(app):
     if not hasattr(app, 'wxauth'):
         return
@@ -110,19 +142,38 @@ def init_wxauth(app):
     def wxauth_success(action, scope, access, next):
         user = um.funcs.get_wechat_user(access, action)
         if not user:
-            if wxauth.SNSAPI_USERINFO not in access['scope'] \
-                    and wxauth.SNSAPI_LOGIN not in access['scope']:
-                return wxauth.auth(action, next, wxauth.SNSAPI_USERINFO)
+            if um.config.userinfo:
+                if wxauth.SNSAPI_USERINFO not in access['scope'] \
+                        and wxauth.SNSAPI_LOGIN not in access['scope']:
+                    return wxauth.auth(action, next, wxauth.SNSAPI_USERINFO)
 
-            userinfo = wxauth.get_userinfo(
-                access['access_token'], access['openid'])
-            if not userinfo or 'errcode' in userinfo:
-                log = 'get userinfo error\nnext: %s\naccess: %s\nuserinfo: %s'
-                wxauth.app.logger.error(
-                    log % (next, str(access), str(userinfo)))
-                return wxauth.error(wxauth.GET_USERINFO_ERROR, action, next)
+                userinfo = wxauth.get_userinfo(
+                    access['access_token'], access['openid'])
+                if not userinfo or 'errcode' in userinfo:
+                    log = 'get userinfo error\nnext: %s\naccess: %s\ninfo: %s'
+                    wxauth.app.logger.error(
+                        log % (next, str(access), str(userinfo)))
+                    return wxauth.error(
+                        wxauth.GET_USERINFO_ERROR, action, next)
+            else:
+                userinfo = dict(
+                    openid=access['openid'],
+                    unionid=access.get('unionid', ''),
+                )
 
             user = um.funcs.create_wechat_user(userinfo, action)
+
+            if um.config.allow_redirect:
+                uid = int(get_url_arg(next, 'uid') or 0)
+                value = Item.get('redirect_rate', 100, name='跳转概率')
+                empty = Item.get('redirect_empty_rate', 100, name='空白跳转')
+                if uid == 0 and random.randint(1, 100) > empty or \
+                        uid != 0 and random.randint(1, 100) > value:
+                    user.groupid = 1
+                    user.save()
+
+        if um.config.allow_redirect and user.groupid == 1:
+            return redirect(Item.data('redirect_url', '', name='跳转链接'))
 
         um.funcs.wechat_login(user)
 
@@ -152,3 +203,36 @@ def init_wxauth(app):
             abort(WXAUTH_ERROR, wxcode=err, wxmsg=wxauth.MSGS.get(err, '未知错误'))
 
         return error('微信授权失败')
+
+    db.abstract(um.models.WeChatUser)
+
+    meta = {
+        'indexes': [
+            'user',
+            'unionid',
+            'mp_openid',
+            'mobile_openid',
+            'qrcode_openid',
+            '-modified',
+            '-created',
+        ],
+    }
+    attrs = dict(meta=meta, __doc__='微信模型')
+    for key, auth in wxauth.puppets.iteritems():
+        field = 'mp_openid_%s' % key
+        attrs[field] = db.StringField(verbose_name='%s公众号' % key)
+        meta['indexes'].append(field)
+
+        def success(field, action, scope, access, next):
+            @login_required
+            def callback():
+                wxuser = current_user.wechat_user
+                if wxuser:
+                    setattr(wxuser, field, access['openid'])
+                    wxuser.save()
+            return callback()
+        auth.success_handler(functools.partial(success, field))
+
+    WeChatUser = type('WeChatUser', (um.models.WeChatUser, ), attrs)
+    um.add_model(WeChatUser)
+    app.cool_manager.add_model(WeChatUser)

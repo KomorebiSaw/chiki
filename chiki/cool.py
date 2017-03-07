@@ -30,21 +30,7 @@ class CoolManager(object):
                 self.models[name] = doc
 
         for name, model in self.models.iteritems():
-            data_model = Model.objects(name=name).first()
-            if not data_model:
-                data_model = Model(name=name, desc=(model.__doc__ or name).replace('模型', ''))
-                data_model.save()
-            view = self.get_view(name, model)
-            data_view = View.objects(name=view.__name__).first()
-            if not data_view:
-                data_view = View(name=view.__name__, type=View.TYPE_MODEL,
-                    model=data_model, label=data_model.desc)
-                data_view.save()
-            if not data_view.icon and hasattr(model, 'MENU_ICON'):
-                data_view.icon = model.MENU_ICON
-                data_view.save()
-            model._admin_view_cls = view
-            model._admin_view_data = data_view
+            self.init_model(name, model)
 
         for name, icon in self.cates.iteritems():
             data_view = View.objects(name=name, type=View.TYPE_CATE).first()
@@ -53,6 +39,28 @@ class CoolManager(object):
                 data_view.save()
 
         self.loading = False
+
+    def add_model(self, model, name=None):
+        self.models[name or model.__name__] = model
+        self.init_model(name or model.__name__, model)
+        return model
+
+    def init_model(self, name, model):
+        data_model = Model.objects(name=name).first()
+        if not data_model:
+            data_model = Model(name=name, desc=(model.__doc__ or name).replace('模型', ''))
+            data_model.save()
+        view = self.get_view(name, model)
+        data_view = View.objects(name=view.__name__).first()
+        if not data_view:
+            data_view = View(name=view.__name__, type=View.TYPE_MODEL,
+                model=data_model, label=data_model.desc)
+            data_view.save()
+        if not data_view.icon and hasattr(model, 'MENU_ICON'):
+            data_view.icon = model.MENU_ICON
+            data_view.save()
+        model._admin_view_cls = view
+        model._admin_view_data = data_view
 
     def init_admin(self, admin):
         uses = []

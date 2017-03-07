@@ -4,13 +4,14 @@ import os
 import sys
 import random
 import string
+import functools
 import traceback
 import requests
 import urlparse
 from urllib import urlencode
 from datetime import datetime, date
 from StringIO import StringIO
-from flask import jsonify, current_app, request
+from flask import jsonify, current_app, request, redirect
 from flask.ext.login import current_user
 
 __all__ = [
@@ -20,7 +21,7 @@ __all__ = [
     'get_channel', 'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
     'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data', 'get_module',
     'rmb3', 'check_encode', 'url_with_user', 'get_url_arg',
-    'create_short_url',
+    'create_short_url', 'ip_limit', 'random_index',
 ]
 
 
@@ -297,3 +298,28 @@ def create_short_url(key, url):
     tpl = 'http://api.t.sina.com.cn/short_url/shorten.json?%s'
     res = requests.get(tpl % urlencode(dict(source=key, url_long=url))).json()
     return res[0]['url_short'] if res[0]['type'] == 0 else url
+
+
+def ip_limit(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        ip = get_ip()
+        Item = current_app.cool_manager.models.get('Item')
+        User = current_app.cool_manager.models.get('User')
+        regx = Item.data('ip_regx', '^116\.23\.|^59\.41\.', name='IP正则')
+        limit = Item.get('ip_limit', 100, name='IP限制')
+        url = Item.data('ip_redirect', 'http://www.qq.com/', name='IP跳转')
+        if not re.match(regx, ip) and User.objects(ip=ip).count() >= limit:
+            return redirect(url)
+        return func(*args, **kwargs)
+    return wrapper
+
+
+def random_index(rate):
+    start, index = 0, 0
+    num = random.randint(0, sum(rate))
+    for index, scope in enumerate(rate):
+        start += scope
+        if num < start:
+            break
+    return index

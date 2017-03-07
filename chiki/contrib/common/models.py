@@ -119,6 +119,32 @@ class Item(db.Document):
         item.modified = datetime.now()
         item.save()
 
+    @staticmethod
+    def choice(key, value='', name=None, sep='|', coerce=str):
+        return coerce(random.choice(Item.data(key, value, name).split(sep)))
+
+    @staticmethod
+    def list(key, value='', name=None, sep='|', coerce=int):
+        return [coerce(x) for x in Item.data(key, value, name).split(sep)]
+
+    @staticmethod
+    def group(key, value='', name=None, sep='|', sub='-', coerce=int):
+        texts = Item.data(key, value, name).split(sep)
+        return [[coerce(y) for y in x.split(sub)] for x in texts]
+
+    @staticmethod
+    def hour(key, value='', name=None, sep='|', sub='-', default=None):
+        h = datetime.now().hour
+        for x in Item.group(key, value, name, sep, sub):
+            if x[0] <= h <= x[1]:
+                return x
+        return default
+
+    @staticmethod
+    def bool(key, value=True, name=None):
+        value = Item.data(key, 'true' if value else 'false', name)
+        return True if value == 'true' else False
+
 
 class Choice(db.EmbeddedDocument):
     """ 选项 """
@@ -539,7 +565,7 @@ class QRCode(db.Document):
         return qr
 
     def replace(self, text, user):
-        pass
+        return text
 
     def textsize(self, user, draw, font, width, texts):
         w, has_nick = 0, False

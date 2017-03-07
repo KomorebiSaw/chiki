@@ -5,35 +5,32 @@ import hashlib
 import requests
 import traceback
 from datetime import datetime, timedelta
+from chiki.base import Base
 from chiki.contrib.common import Item
 from chiki.utils import randstr, today, get_ip
 from flask import request, current_app, url_for
 
 
-class FaFa(object):
+class FaFa(Base):
 
-    # HOST = 'api.88.la'
-    # HOST = 'api.ios.88.la'
     HOST = 'api.az.88.la'
     CALLBACK_HOST = ''
     PREPAY_URL = 'http://%s/PayApi/Index'
 
-    def __init__(self, app=None, config_key='FAFA'):
-        self.config_key = config_key
+    def __init__(self, app=None, key=None, config=None, holder=None):
         self.callback = None
-        if app:
-            self.init_app(app)
+        super(FaFa, self).__init__(app, key, config, holder)
 
     def init_app(self, app):
-        if not hasattr(app, 'fafa'):
-            app.fafa = self
-        self.config = app.config.get(self.config_key, {})
-        self.host = self.config.get('host', self.HOST)
-        self.callback_host = self.config.get(
+        super(FaFa, self).init_app(app)
+
+        self.host = self.get_config('host', self.HOST)
+        self.callback_host = self.get_config(
             'callback_host', self.CALLBACK_HOST)
-        self.callback_url = self.config.get(
-            'callback_url', '/callback/fafa/')
-        self.endpoint = self.config.get('endpoint', 'fafa_callback')
+        self.callback_url = self.get_config(
+            'callback_url', '/callback/fafa/[key]/')
+        self.endpoint = self.get_config(
+            'endpoint', 'fafa_[key]_callback')
 
         @app.route(self.callback_url, endpoint=self.endpoint, methods=['POST'])
         def fafa_callback():
@@ -82,17 +79,12 @@ class FaFa(object):
         keys = ['MchId', 'PayTypeId', 'MchTradeNo', 'TradeContent',
                 'TradeAttach', 'TradeMoney', 'Ip', 'NotifyUrl']
         text = ''.join([str(kwargs.get(x, '')) for x in keys])
-        text += self.config.get('key')
+        text += self.get_config('key')
         return hashlib.md5(text.encode('utf-8')).hexdigest().lower()
 
     def sign_callback(self, **kwargs):
         keys = ['Error', 'Message', 'MchId', 'MchTradeNo',
                 'OutTradeNo', 'TradeAttach', 'ActuallyMoney', 'TimeEnd']
         text = ''.join([str(kwargs.get(x, '')) for x in keys])
-        text += self.config.get('key')
+        text += self.get_config('key')
         return hashlib.md5(text.encode('utf-8')).hexdigest().lower()
-
-
-def init_fafa(app):
-    if 'FAFA' in app.config:
-        return FaFa(app)

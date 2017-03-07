@@ -15,8 +15,8 @@ class Near(object):
 
     HOST = 'pay.neargh.com'
     CALLBACK_HOST = ''
-    PREPAY_URL = 'http://%s/paying/weifutong/getCodeUrl'
-    QUERY_URL = 'http://%s/paying/weifutong/getPayStatus'
+    PREPAY_URL = 'http://%s/paying/nongshanghang/getCodeUrl'
+    QUERY_URL = 'http://%s/paying/nongshanghang/getPayStatus'
 
     def __init__(self, app=None, config_key='NEAR'):
         self.config_key = config_key

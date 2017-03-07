@@ -10,6 +10,7 @@ def service(cmd=None, model='simple'):
         if cmd not in cmds:
             cmds[c] = dict()
         cmds[c][model] = func
+        return func
     return add
 
 

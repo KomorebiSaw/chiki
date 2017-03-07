@@ -216,6 +216,7 @@ def init_app(init=None, config=None, pyfile=None,
                 user = um.models.User(
                     id=100000, phone='13888888888', password='123456',
                     nickname=app.config.get('SITE_NAME'))
+                user.tid = user.create_tid()
                 user.save()
             if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
                 with open(app.get_data_path('imgs/logo.jpg')) as fd:

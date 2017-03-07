@@ -9,6 +9,6 @@ from .wxmsg import *
 
 def init_oauth(app):
     init_alipay(app)
-    init_wxauth(app)
-    init_wxpay(app)
     init_wxmsg(app)
+    WXAuth.init(app)
+    WXPay.init(app)

@@ -5,6 +5,7 @@ import urlparse
 import werobot.client
 from chiki.api import abort, success
 from chiki.api.const import *
+from chiki.base import Base
 from chiki.utils import err_logger, is_json, is_api
 from chiki.oauth.jssdk import JSSDK
 from datetime import datetime
@@ -13,11 +14,11 @@ from flask import make_response, render_template_string
 from urllib import quote, urlencode
 
 __all__ = [
-    'WXAuth', 'init_wxauth',
+    'WXAuth',
 ]
 
 
-class WXAuth(object):
+class WXAuth(Base):
     """微信登录有三种方式：公众号授权登录(mp)、扫码登录(qrcode)、手机登录(mobile)，
     只需相应加上配置，就支持相应的方式::
 
@@ -56,39 +57,35 @@ class WXAuth(object):
     USERINFO_URL = 'https://api.weixin.qq.com/sns/userinfo'
     CHECK_URL = 'https://api.weixin.qq.com/sns/auth'
 
-    def __init__(self, app=None, config_key='WXAUTH'):
-        self.config_key = config_key
+    def __init__(self, app=None, key=None, config=None, holder=None):
         self.success_callback = None
         self.error_callback = None
-        if app:
-            self.init_app(app)
+        super(WXAuth, self).__init__(app, key, config, holder)
 
     def init_app(self, app):
-        self.app = app
-        self.config = app.config.get(self.config_key)
-        self.endpoint = self.config.get('wxauth_endpoint', 'wxauth_callback')
-
-        if not hasattr(app, 'wxauth'):
-            app.wxauth = self
-
-        mp = self.config.get(self.ACTION_MP)
+        super(WXAuth, self).init_app(app)
+        self.callback_url = self.get_config(
+            'wxauth_url', '/oauth/wechat/callback/[key]')
+        self.endpoint = self.get_config(
+            'wxauth_endpoint', 'wxauth_[key]_callback')
+        self.js_url = self.get_config(
+            'wxauth_js_url', '/weixin-[key]-login.js')
+        self.js_endpoint = self.get_config(
+            'wxauth_js_endpoint', 'wxauth_[key]_js_login')
+        mp = self.get_config(self.ACTION_MP)
         if mp:
             self.client = werobot.client.Client(
                 mp.get('appid'), mp.get('secret'))
             if not hasattr(app, 'wxclient'):
                 app.wxclient = self.client
 
-        @app.route(
-            self.config.get('wxauth_url', '/oauth/wechat/callback'),
-            endpoint=self.endpoint)
+        @app.route(self.callback_url, endpoint=self.endpoint)
         def wxauth_callback():
             return self.callback()
 
-        @app.route(
-            self.config.get('wxauth_js_url', '/weixin-login.js'),
-            endpoint=self.config.get('wxauth_js_endpoint'))
+        @app.route(self.js_url, endpoint=self.js_endpoint)
         def weixin_login():
-            qrcode = self.config.get(self.ACTION_QRCODE)
+            qrcode = self.get_config(self.ACTION_QRCODE)
             js = ''
             if qrcode:
                 config = dict(
@@ -110,7 +107,7 @@ class WXAuth(object):
             resp.headers['Content-Type'] = 'text/javascript; charset=utf-8'
             return resp
 
-        if self.config.get('allow_jssdk', True):
+        if not self.holder:
             app.jssdk = JSSDK(app)
 
     def quote(self, **kwargs):
@@ -118,7 +115,7 @@ class WXAuth(object):
             y) is unicode else y)) for x, y in kwargs.iteritems())
 
     def get_access_url(self, action, code):
-        config = self.config.get(action)
+        config = self.get_config(action)
         query = dict(
             appid=config.get('appid'),
             secret=config.get('secret'),
@@ -133,7 +130,7 @@ class WXAuth(object):
         return requests.get(url).json()
 
     def get_refresh_url(self, action, token):
-        config = self.config.get(action)
+        config = self.get_config(action)
         query = dict(
             appid=config.get('appid'),
             refresh_token=token,
@@ -177,9 +174,9 @@ class WXAuth(object):
         if action == self.ACTION_QRCODE:
             scope = self.SNSAPI_LOGIN
 
-        config = self.config.get(action)
+        config = self.get_config(action)
 
-        host = self.config.get('callback_host')
+        host = self.get_config('callback_host')
         if not host:
             callback = url_for(self.endpoint, scope=scope, next=next,
                                action=action, _external=True)
@@ -308,8 +305,3 @@ class WXAuth(object):
         """
         self.error_callback = callback
         return callback
-
-
-def init_wxauth(app):
-    if app.config.get('WXAUTH'):
-        return WXAuth(app)
