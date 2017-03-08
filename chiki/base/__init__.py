@@ -55,7 +55,7 @@ class Base(object):
     def get_puppet(self, key):
         if self.holder:
             return self.holder.get_puppet(key)
-        return self if key == 'default' else self.puppets.get(key)
+        return self if key in ['default', ''] else self.puppets.get(key)
 
     @property
     def item(self):

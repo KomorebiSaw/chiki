@@ -45,14 +45,17 @@ class FaFa(Base):
                         tpl % (sign, self.sign_callback(**data), request.data))
                     return 'sign error'
                 if self.callback:
-                    res = self.callback(data)
+                    res = self.callback(self, data)
             except:
                 current_app.logger.error(
                     'fafa callbck except: \n%s' % traceback.format_exc())
             return res or 'success'
 
-    def handler(self, callback):
+    def handler(self, callback, recursion=True):
         self.callback = callback
+        if recursion:
+            for puppet in self.puppets.itervalues():
+                puppet.handler(callback, recursion=recursion)
         return callback
 
     def prepay(self, **kwargs):

@@ -1,5 +1,8 @@
 # coding: utf-8
+import os
+import fcntl
 import inspect
+from functools import wraps
 
 cmds = dict()
 
@@ -24,3 +27,34 @@ def run(cmd, model='simple'):
                 func()
             return True
     return False
+
+
+def single(filename):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            pid = str(os.getpid())
+            pidfile = open(filename, 'a+')
+            try:
+                # 创建一个排他锁,并且所被锁住其他进程不会阻塞
+                fcntl.flock(pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except IOError:
+                return
+
+            pidfile.seek(0)
+            pidfile.truncate()
+            pidfile.write(pid)
+            pidfile.flush()
+            pidfile.seek(0)
+
+            res = func(*args, **kwargs)
+
+            try:
+                pidfile.close()
+            except IOError, err:
+                if err.errno != 9:
+                    return
+            os.remove(pid_filename)
+            return res
+        return wrapper
+    return decorator
