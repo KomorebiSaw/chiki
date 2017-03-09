@@ -54,7 +54,7 @@ def single(filename):
             except IOError, err:
                 if err.errno != 9:
                     return
-            os.remove(pid_filename)
+            os.remove(filename)
             return res
         return wrapper
     return decorator
