@@ -1,4 +1,5 @@
 # coding: utf-8
+import random
 import functools
 import traceback
 from chiki.api import abort
@@ -7,7 +8,7 @@ from chiki.base import db
 from chiki.contrib.common import Item, Channel
 from chiki.web import error
 from chiki.utils import get_url_arg, is_json
-from flask import current_app
+from flask import current_app, request, redirect
 from flask.ext.login import login_user, current_user, login_required
 
 __all__ = [
