@@ -12,8 +12,6 @@ __all__ = [
     'user_manager', 'um', 'UserManager', 'wxauth_required',
 ]
 
-um = user_manager
-
 
 class UserManager(object):
 
@@ -170,3 +168,6 @@ class UserManager(object):
 
     def init_web(self):
         self.app.register_blueprint(views.bp, url_prefix='/users')
+
+
+um = UserManager()
