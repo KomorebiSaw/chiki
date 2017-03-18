@@ -76,6 +76,7 @@ class WXAuth(Base):
         if mp:
             self.client = werobot.client.Client(
                 mp.get('appid'), mp.get('secret'))
+            self.client.key = self.key
             if not hasattr(app, 'wxclient'):
                 app.wxclient = self.client
 
@@ -107,7 +108,7 @@ class WXAuth(Base):
             resp.headers['Content-Type'] = 'text/javascript; charset=utf-8'
             return resp
 
-        self.jssdk = JSSDK(app, self.key, mp.get('appid'))
+        self.jssdk = JSSDK(app, self)
 
     def quote(self, **kwargs):
         return dict((x, quote(y.encode('utf-8') if type(

@@ -25,11 +25,12 @@ class JSSDK(object):
 
     TPL = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi'
 
-    def __init__(self, app=None, key='default', appid=None):
+    def __init__(self, app=None, wxauth=None):
         self._ticket = ''
         self._expires_at = 0
-        self.key = key
-        self.appid = appid
+        self.wxauth = wxauth
+        self.key = wxauth.key
+        self.appid = wxauth.get_config('mp').get('appid')
         if app:
             self.init_app(app)
 
@@ -73,12 +74,12 @@ class JSSDK(object):
         return self._ticket
 
     def refresh(self, retry=True):
-        url = self.TPL % current_app.wxclient.token
+        url = self.TPL % self.wxauth.client.token
         res = requests.get(url).json()
 
         if res['errcode'] != 0:
             if retry and 'access_token' in res['errmsg']:
-                current_app.wxclient.refresh_token()
+                self.wxauth.client.refresh_token()
                 return self.refresh(False)
             current_app.logger.error(str(res))
             return ''

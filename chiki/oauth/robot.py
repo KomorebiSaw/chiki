@@ -20,10 +20,12 @@ def patch_monkey():
 
         SEND_TPL_URL = 'https://api.weixin.qq.com/cgi-bin/message/template/send'
 
+        key = 'default'
+
         @property
         def token(self):
             now = time.time()
-            key = 'wxauth:access_token'
+            key = 'wxauth:access_token_%s' % self.key
             token = json.loads(Item.data(key, '{}'))
             if not token or token['deadline'] <= now:
                 token = self.grant_token()
