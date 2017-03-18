@@ -107,8 +107,7 @@ class WXAuth(Base):
             resp.headers['Content-Type'] = 'text/javascript; charset=utf-8'
             return resp
 
-        if not self.holder and not hasattr(app, 'jssdk'):
-            app.jssdk = JSSDK(app)
+        self.app.jssdk = JSSDK(app, self.key)
 
     def quote(self, **kwargs):
         return dict((x, quote(y.encode('utf-8') if type(

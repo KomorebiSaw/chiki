@@ -25,19 +25,22 @@ class JSSDK(object):
 
     TPL = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi'
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, key='default'):
         self._ticket = ''
         self._expires_at = 0
+        self.key = key
         if app:
             self.init_app(app)
 
     def init_app(self, app):
         self.app = app
-        app.jssdk = self
+        self.url = '/weixin-config-%s.js' % self.key
+        self.endpoint = 'weixin_config_js_%s' % self.key
 
-        @app.route('/weixin-config.js')
+        @app.route(self.url, endpoint=self.endpoint)
         def weixin_config():
-            apis = Item.data('wx_js_api_list', DEFAULT_JS_API_LIST).split('|')
+            apis = Item.data('wx_js_api_list_%s' % self.key,
+                             DEFAULT_JS_API_LIST).split('|')
             apis = [str(x) for x in apis]
             sign = self.sign
             config = dict(
