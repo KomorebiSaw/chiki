@@ -25,10 +25,11 @@ class JSSDK(object):
 
     TPL = 'https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=%s&type=jsapi'
 
-    def __init__(self, app=None, key='default'):
+    def __init__(self, app=None, key='default', appid=None):
         self._ticket = ''
         self._expires_at = 0
         self.key = key
+        self.appid = appid
         if app:
             self.init_app(app)
 
@@ -45,7 +46,7 @@ class JSSDK(object):
             sign = self.sign
             config = dict(
                 debug=True if request.args.get('debug') == 'true' else False,
-                appId=current_app.config.get('WXAUTH', {}).get('mp', {}).get('appid'),
+                appId=self.appid,
                 timestamp=sign['timestamp'],
                 nonceStr=sign['nonceStr'],
                 signature=sign['signature'],
