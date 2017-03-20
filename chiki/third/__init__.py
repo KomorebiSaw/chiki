@@ -5,6 +5,7 @@ from .siwei import *
 from .swift import *
 from .fafa import *
 from .near import *
+from .ngh import *
 
 
 def init_third(app):
@@ -14,3 +15,4 @@ def init_third(app):
     init_swift(app)
     init_near(app)
     FaFa.init(app)
+    NGH.init(app)
