@@ -21,7 +21,7 @@ __all__ = [
     'get_channel', 'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
     'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data', 'get_module',
     'rmb3', 'check_encode', 'url_with_user', 'get_url_arg',
-    'create_short_url', 'ip_limit', 'random_index',
+    'create_short_url', 'ip_limit', 'random_index', 'is_debug',
 ]
 
 
@@ -323,3 +323,7 @@ def random_index(rate):
         if num < start:
             break
     return index
+
+
+def is_debug():
+    return current_app.debug or request.args.get('debug') == 'true'
