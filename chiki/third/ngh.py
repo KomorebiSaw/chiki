@@ -42,7 +42,7 @@ class NGH(Base):
             try:
                 res = json.loads(request.data)
                 if self.callback:
-                    res = self.callback(res)
+                    res = self.callback(self, res)
             except:
                 current_app.logger.error(
                     'near callbck except: \n%s' % traceback.format_exc())
