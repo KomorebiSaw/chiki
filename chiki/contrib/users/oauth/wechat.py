@@ -115,18 +115,18 @@ def wxauth_required(key=None):
                     if auth and auth.holder:
                         field = 'mp_openid_%s' % auth.key
                         if not getattr(wxuser, field):
-                            return auth(auth.ACTION_MP, request.url)
+                            return auth.auth(auth.ACTION_MP, request.url)
                 elif key == 'all':
                     for k, auth in current_app.wxauth.puppets.iteritems():
                         field = 'mp_openid_%s' % k
                         if not getattr(wxuser, field):
-                            return auth(auth.ACTION_MP, request.url)
+                            return auth.auth(auth.ACTION_MP, request.url)
                 else:
                     auth = current_app.wxauth.puppets.get(key)
                     if auth:
                         field = 'mp_openid_%s' % key
                         if not getattr(wxuser, field):
-                            return auth(auth.ACTION_MP, request.url)
+                            return auth.auth(auth.ACTION_MP, request.url)
             return func(*args, **kwargs)
         return wrapper
     return decorator
