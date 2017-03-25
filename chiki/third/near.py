@@ -28,7 +28,7 @@ class Near(Base):
         self.host = self.get_config('host', self.HOST)
         self.prepay_url = self.get_config('prepay_url', self.PREPAY_URL)
         self.query_url = self.get_config('query_url', self.QUERY_URL)
-        self.need_secret = self.get_config('need_secret', False)
+        self.need_secret = self.get_config('need_secret', True)
         self.callback_host = self.get_config(
             'callback_host', self.CALLBACK_HOST)
         self.callback_url = self.get_config(

@@ -13,6 +13,6 @@ def init_third(app):
     init_yedadou(app)
     init_siwei(app)
     init_swift(app)
-    init_near(app)
     FaFa.init(app)
     NGH.init(app)
+    Near.init(app)
