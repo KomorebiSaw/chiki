@@ -12,7 +12,7 @@ def init_third(app):
     init_express(app)
     init_yedadou(app)
     init_siwei(app)
-    init_swift(app)
     FaFa.init(app)
     NGH.init(app)
     Near.init(app)
+    Swift.init(app)

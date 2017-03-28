@@ -2,6 +2,7 @@
 import hashlib
 import requests
 import traceback
+from chiki.base import Base
 from chiki.utils import get_ip, randstr
 from flask import request, url_for, current_app
 from werobot.utils import to_text
@@ -9,27 +10,26 @@ from xml.etree import ElementTree
 from dicttoxml import dicttoxml
 
 
-class SwiftPass(object):
+class Swift(Base):
 
     HOST = 'pay.swiftpass.cn'
     CALLBACK_HOST = ''
     PREPAY_URL = 'https://%s/pay/gateway'
 
-    def __init__(self, app=None, config_key='SWIFT'):
-        self.config_key = config_key
+    def __init__(self, app=None, key=None, config=None, holder=None):
         self.callback = None
-        if app:
-            self.init_app(app)
+        super(Swift, self).__init__(app, key, config, holder)
 
     def init_app(self, app):
-        app.swift = self
-        self.config = app.config.get(self.config_key, {})
-        self.host = self.config.get('host', self.HOST)
-        self.callback_host = self.config.get(
+        super(Swift, self).init_app(app)
+
+        self.host = self.get_config('host', self.HOST)
+        self.callback_host = self.get_config(
             'callback_host', self.CALLBACK_HOST)
-        self.callback_url = self.config.get(
-            'callback_url', '/callback/swift/')
-        self.endpoint = self.config.get('endpoint', 'swift_callback')
+        self.callback_url = self.get_config(
+            'callback_url', '/callback/swift/[key]/')
+        self.endpoint = self.get_config(
+            'endpoint', 'swift_[key]_callback')
 
         @app.route(self.callback_url, endpoint=self.endpoint, methods=['POST'])
         def swift_callback():
@@ -43,7 +43,7 @@ class SwiftPass(object):
                         tpl % (sign, self.sign(**data), request.data))
                     return 'sign error'
                 if self.callback:
-                    res = self.callback(data)
+                    res = self.callback(self, data)
             except Exception, e:
                 current_app.logger.error('wxpay callbck except: %s' % str(e))
             return res or 'success'
@@ -58,10 +58,10 @@ class SwiftPass(object):
 
     def prepay(self, **kwargs):
         kwargs.setdefault('service', 'pay.weixin.jspay')
-        kwargs.setdefault('mch_id', self.config.get('mchid'))
+        kwargs.setdefault('mch_id', self.get_config('mchid'))
         kwargs.setdefault('body', '云计费')
         kwargs.setdefault('total_fee', 1)
-        kwargs.setdefault('mch_create_ip', self.config.get('mch_create_ip', '127.0.0.1'))
+        kwargs.setdefault('mch_create_ip', self.get_config('mch_create_ip', '127.0.0.1'))
         host = self.callback_host if self.callback_host else request.host
         backurl = 'http://%s%s' % (host, url_for(self.endpoint))
         kwargs.setdefault('notify_url', backurl)
@@ -83,14 +83,9 @@ class SwiftPass(object):
         keys = sorted(
             filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
-        text += '&key=%s' % self.config.get('key')
+        text += '&key=%s' % self.get_config('key')
         current_app.logger.error('sign text:' + text)
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
     def pay_url(self, id):
         return 'https://%s/pay/jspay?token_id=%s' % (self.host, id)
-
-
-def init_swift(app):
-    if 'SWIFT' in app.config:
-        return SwiftPass(app)
