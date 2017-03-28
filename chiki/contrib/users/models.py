@@ -376,6 +376,9 @@ class WeChatUser(db.Document, ThirdUserMixin):
                     user.save()
 
     def update_info(self, userinfo, action):
+        if not userinfo:
+            return
+
         setattr(self, action + '_openid', userinfo['openid'])
         self.unionid = userinfo.get('unionid', '')
         self.nickname = userinfo.get('nickname', self.nickname)
