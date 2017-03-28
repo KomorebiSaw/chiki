@@ -46,9 +46,9 @@ class WXPay(Base):
 
     def init_app(self, app):
         super(WXPay, self).init_app(app)
-        self.callback_url = self.config.get(
+        self.callback_url = self.get_config(
             'callback_url', '/wxpay/<type>/callback/[key]')
-        self.endpoint = self.config.get(
+        self.endpoint = self.get_config(
             'endpoint', 'wxpay_[key]_callback')
 
         @app.route(self.callback_url, methods=['POST'], endpoint=self.endpoint)
