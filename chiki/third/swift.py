@@ -48,8 +48,11 @@ class Swift(Base):
                 current_app.logger.error('wxpay callbck except: %s' % str(e))
             return res or 'success'
 
-    def handler(self, callback):
+    def handler(self, callback, recursion=True):
         self.callback = callback
+        if recursion:
+            for puppet in self.puppets.itervalues():
+                puppet.handler(callback, recursion=recursion)
         return callback
 
     def xml2dict(self, xml):
