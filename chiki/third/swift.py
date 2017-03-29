@@ -76,7 +76,6 @@ class Swift(Base):
         current_app.logger.error('data:' + data)
         try:
             xml = requests.post(self.PREPAY_URL % self.host, data=data).content
-            current_app.logger.error('xml:' + xml)
             return self.xml2dict(xml)
         except Exception, e:
             current_app.logger.error(traceback.format_exc())
@@ -87,7 +86,6 @@ class Swift(Base):
             filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
         text += '&key=%s' % self.get_config('key')
-        current_app.logger.error('sign text:' + text)
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
     def pay_url(self, id):
