@@ -73,7 +73,6 @@ class Swift(Base):
         kwargs['sign'] = self.sign(**kwargs)
 
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
-        current_app.logger.error('data:' + data)
         try:
             xml = requests.post(self.PREPAY_URL % self.host, data=data).content
             return self.xml2dict(xml)
