@@ -4,11 +4,31 @@ import base64
 import hashlib
 import requests
 import traceback
+import functools
 from datetime import datetime, timedelta
 from chiki.base import Base
 from chiki.contrib.common import Item
 from chiki.utils import randstr, today, get_ip
-from flask import request, current_app, url_for
+from flask import request, current_app, url_for, redirect
+from flask.ext.login import login_required, current_user
+from urllib import urlencode
+
+
+def near_required(func):
+    @functools.wraps(func)
+    @login_required
+    def wrapper(*args, **kwargs):
+        last = Item.time('near_openid_time', '', name='Near刷新时间')
+        if not current_user.near_openid or current_user.neared < last:
+            ret = url_for('near_openid_callback',
+                          next=request.url, _external=True)
+            query = urlencode(dict(redUrl=ret))
+            url = 'http://qqzz.ps798.cn/wxOpenId/getOpenId?%s' % query
+            if current_app.debug:
+                current_app.logger.info(url)
+            return redirect(url)
+        return func(*args, **kwargs)
+    return wrapper
 
 
 class Near(Base):
@@ -52,6 +72,15 @@ class Near(Base):
                 tradeNum=request.form.get('tradeNum', ''),
                 notifyUrl=request.url,
             ))
+
+        if not self.holder:
+            @app.route('/near_openid_callback')
+            @login_required
+            def near_openid_callback():
+                current_user.near_openid = request.args.get('openId')
+                current_user.neared = datetime.now()
+                current_user.save()
+                return redirect(url_for('common.index'))
 
     def handler(self, callback, recursion=True):
         self.callback = callback

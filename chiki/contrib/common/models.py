@@ -145,6 +145,16 @@ class Item(db.Document):
         value = Item.data(key, 'true' if value else 'false', name)
         return True if value == 'true' else False
 
+    @staticmethod
+    def time(key, value='', name=None):
+        mat = "%Y-%m-%d %H:%M:%S"
+        value = Item.data(key, datetime.now().strftime(mat), name)
+        try:
+            value = datetime.strptime(value, mat)
+        except:
+            pass
+        return value
+
 
 class Choice(db.EmbeddedDocument):
     """ 选项 """
