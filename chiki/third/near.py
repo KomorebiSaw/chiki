@@ -21,7 +21,9 @@ def near_required(func):
         last = Item.time('near_openid_time', '', name='Near刷新时间')
         if 'near' in Item.data('payment', ''):
             host = Item.data('near_host', 'qqzz.ps798.cn', name='Near域名')
-            if not current_user.near_openid or current_user.neared < last:
+            if not current_user.near_openid \
+                    or not current_user.near_appid \
+                    or current_user.neared < last:
                 ret = url_for('near_openid_callback',
                               next=request.url, _external=True)
                 query = urlencode(dict(redUrl=ret))
@@ -80,6 +82,7 @@ class Near(Base):
             @login_required
             def near_openid_callback():
                 current_user.near_openid = request.args.get('openId')
+                current_user.near_appid = request.args.get('appId')
                 current_user.neared = datetime.now()
                 current_user.save()
                 return redirect(url_for('common.index'))
