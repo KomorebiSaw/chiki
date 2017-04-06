@@ -132,6 +132,7 @@ def change_value_list(data, key, days):
     return list(map(lambda x: get_value(x[0], x[1]), zip(key_data, key2_data)))
 
 
+# 获取 key, key2, type
 def hour_change_value_list(data, day, key, *args, **kwargs):
     style = data.get('style', '/')
     key_data = hour_value(data.get('key'), day)
