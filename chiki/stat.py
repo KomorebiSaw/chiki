@@ -117,7 +117,7 @@ def hour_value(key, day):
     if isinstance(key, list):
         value_list = [get_hour_list('hour_%s' % x, day) for x in key]
         return get_sum_value(value_list)
-    return get_hour_list('%s' % key, day)
+    return get_hour_list('hour_%s' % key, day)
 
 
 # 获取 key, key2, type
