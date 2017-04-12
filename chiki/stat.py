@@ -88,12 +88,19 @@ def hour_value_list(day, key, *args, **kwargs):
 
 
 # 获得比值
-def get_value(value, value2):
+def get_value(value, value2, default=True):
     if value == 0:
         return 0
     if value2 == 0 or not value2:
-        return value * 100.0 / abs(value)
-    return value * 100.0 / value2
+        result = value * 100.0 / abs(value)
+    else:
+        result = value * 100.0 / value2
+
+    if result < -20 and default:
+        return -20
+    elif result > 120 and default:
+        return 120
+    return result
 
 
 # 多个值打包成一个
@@ -129,7 +136,7 @@ def change_value_list(data, key, days):
         return list(map(lambda x: x[0] + x[1], zip(key_data, key2_data)))
     if style == '-':
         return list(map(lambda x: x[0] - x[1], zip(key_data, key2_data)))
-    return list(map(lambda x: get_value(x[0], x[1]), zip(key_data, key2_data)))
+    return list(map(lambda x: get_value(x[0], x[1], data.get('default', True)), zip(key_data, key2_data)))
 
 
 # 获取 key, key2, type
@@ -141,7 +148,7 @@ def hour_change_value_list(data, day, key, *args, **kwargs):
         return list(map(lambda x: x[0] + x[1], zip(key_data, key2_data)))
     if style == '-':
         return list(map(lambda x: x[0] - x[1], zip(key_data, key2_data)))
-    return list(map(lambda x: get_value(x[0], x[1]), zip(key_data, key2_data)))
+    return list(map(lambda x: get_value(x[0], x[1], data.get('default', True)), zip(key_data, key2_data)))
 
 
 def init_stat(cls, key, subs, tpl, modal, **kwargs):
