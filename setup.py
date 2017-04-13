@@ -23,7 +23,7 @@ def get_data_files(*dirs):
     results = []
     for src_dir in dirs:
         for root, dirs, files in os.walk(src_dir):
-            results.append((root, map(lambda f:root + "/" + f, files)))
+            results.append((root, map(lambda f: root + "/" + f, files)))
     return results
 
 
@@ -41,7 +41,10 @@ setup(
         ]
     },
     include_package_data=True,
-    #data_files=get_data_files('data'),
+    package_data={
+        '': ['*.rst'],
+    },
+    data_files=get_data_files('docs'),
     zip_safe=False,
     platforms='any',
     install_requires=[

@@ -1,5 +1,6 @@
 # coding: utf-8
 from ..utils import is_ajax, json_success
+from ..api import success
 from flask import request, url_for, render_template
 from flask.ext.mongoengine.pagination import Pagination as _Pagination
 
@@ -49,4 +50,9 @@ class Pagination(_Pagination):
                 html=render_template(tpl, pag=self, **kwargs),
                 next=self.next_link,
             )
-        return render_template(tpl, pag=self, **kwargs),
+        return render_template(tpl, pag=self, **kwargs)
+
+    def json(self, tojson=lambda x: x.json, **kwargs):
+        return success(
+            items=[tojson(x) for x in self.items],
+            next=self.next_link, **kwargs)
