@@ -87,6 +87,70 @@ def hour_value_list(day, key, *args, **kwargs):
     return get_hour_list(key, day, **kwargs)
 
 
+# 获得比值
+def get_value(value, value2, default=True):
+    if value == 0:
+        return 0
+    if value2 == 0 or not value2:
+        result = value * 100.0 / abs(value)
+    else:
+        result = value * 100.0 / value2
+
+    if result < -20 and default:
+        return -20
+    elif result > 120 and default:
+        return 120
+    return result
+
+
+# 多个值打包成一个
+def get_sum_value(data):
+    values = zip
+    for v in data:
+        values = functools.partial(values, v)
+    return list(map(lambda x: sum(x), values()))
+
+
+# 获取一个key的值 或多个key 的和
+def date_value(key, days):
+    if isinstance(key, list):
+        value_list = [get_value_list('date_%s' % x, days) for x in key]
+        return get_sum_value(value_list)
+    return get_value_list('date_%s' % key, days)
+
+
+# 获取一个key的值 或多个key 的和
+def hour_value(key, day):
+    if isinstance(key, list):
+        value_list = [get_hour_list('hour_%s' % x, day) for x in key]
+        return get_sum_value(value_list)
+    return get_hour_list('hour_%s' % key, day)
+
+
+# 获取 key, key2, type
+def change_value_list(data, key, days):
+    style = data.get('style', '/')
+    key_data = date_value(data.get('key'), days)
+    key2_data = date_value(data.get('key2'), days)
+    if style == '+':
+        return list(map(lambda x: x[0] + x[1], zip(key_data, key2_data)))
+    if style == '-':
+        return list(map(lambda x: x[0] - x[1], zip(key_data, key2_data)))
+    return list(map(lambda x: get_value(x[0], x[1], data.get('default', True)), zip(key_data, key2_data)))
+
+
+# 获取 key, key2, type
+def hour_change_value_list(data, day, key, *args, **kwargs):
+    style = data.get('style', '/')
+    key_data = hour_value(data.get('key'), day)
+    key2_data = hour_value(data.get('key2'), day)
+    if style == '+':
+        return list(map(lambda x: x[0] + x[1], zip(key_data, key2_data)))
+    if style == '-':
+        return list(map(lambda x: x[0] - x[1], zip(key_data, key2_data)))
+    return list(map(lambda x: get_value(x[0], x[1], data.get('default', True)), zip(key_data, key2_data)))
+
+
 def init_stat(cls, key, subs, tpl, modal, **kwargs):
     """ 初始化统计 """
 
@@ -118,9 +182,22 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
                 value_list = functools.partial(value_list, day)
             elif 'value_list' in item and prefix == 'date_':
                 value_list = item.get('value_list')
+
+            # change 的格式: dict(key=*, key2=*, type='rate') 或 方法
+            if 'change' in item:
+                change_date = item.get('change')
+                if callable(change_date):
+                    value_list = functools.partial(change_date, prefix)
+
+                if isinstance(change_date, dict):
+                    if prefix == 'hour_':
+                        value_list = functools.partial(hour_change_value_list, change_date, day)
+                    elif prefix == 'date_':
+                        value_list = functools.partial(change_value_list, change_date)
             key = '%s%s' % (prefix, item.get('key'))
             if modal:
                 key = '%s_%s' % (key, request.args.get('id'))
+            # axis： 小时列表或者天列表
             value = value_list(key, axis)
             handle = item.get('handle')
             if callable(handle):
