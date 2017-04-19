@@ -187,7 +187,7 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
             if 'change' in item:
                 change_date = item.get('change')
                 if callable(change_date):
-                    value_list = functools.partial(change_date, prefix)
+                    value_list = functools.partial(change_date, prefix, day)
 
                 if isinstance(change_date, dict):
                     if prefix == 'hour_':
