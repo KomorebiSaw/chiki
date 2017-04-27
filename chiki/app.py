@@ -6,7 +6,7 @@ from StringIO import StringIO
 from flask import Blueprint, current_app, Response, render_template
 from flask import request, redirect, url_for
 from flask.ext.babelex import Babel
-from flask.ext.login import login_required
+from flask.ext.login import login_required, current_user
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask.ext.session import Session
@@ -14,6 +14,8 @@ from chiki.base import db
 from chiki.cool import cm
 from chiki.contrib.common import Item, Page, Choices, Menu, bp as common_bp
 from chiki.contrib.users import um
+from chiki.contrib.admin.models import AdminUser
+from chiki.contrib.admin.views import bp as login_bp
 from chiki.jinja import init_jinja
 from chiki.logger import init_logger
 from chiki.media import MediaManager
@@ -113,16 +115,26 @@ def init_error_handler(app):
         return render_template('500.html'), 500
 
 
+# def before_request():
+#     """ Admin 权限验证 """
+
+#     auth = request.authorization
+#     username = current_app.config.get('ADMIN_USERNAME')
+#     password = current_app.config.get('ADMIN_PASSWORD')
+#     if username and not (
+#             auth and auth.username == username and
+#             auth.password == password):
+#         return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
+
+
 def before_request():
     """ Admin 权限验证 """
+    print request.endpoint
 
-    auth = request.authorization
-    username = current_app.config.get('ADMIN_USERNAME')
-    password = current_app.config.get('ADMIN_PASSWORD')
-    if username and not (
-            auth and auth.username == username and
-            auth.password == password):
-        return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
+    if not current_user.is_authenticated() and \
+            request.endpoint != current_app.login_manager.login_view and \
+            not request.endpoint == 'admin.static':
+        return current_app.login_manager.unauthorized()
 
 
 def init_app(init=None, config=None, pyfile=None,
@@ -150,6 +162,7 @@ def init_app(init=None, config=None, pyfile=None,
     app.config.setdefault('SESSION_REFRESH_EACH_REQUEST', False)
     app.is_web = is_web
     app.is_api = is_api
+    app.is_admin = not is_web and not is_api
     app.is_back = os.environ.get('CHIKI_BACK') == 'true'
     app.static_folder = app.config.get('STATIC_FOLDER')
     app.mail = Mail(app)
@@ -244,8 +257,22 @@ def init_admin(init=None, config=None, pyfile=None,
     """ 创建后台管理应用 """
 
     app = init_app(init, config, pyfile, template_folder, index, error)
-
+    app.register_blueprint(login_bp)
+    app.login_manager.login_view = 'admin_users.admin_login'
     init_upimg(app)
+
+    @app.login_manager.user_loader
+    def load_user(id):
+        return AdminUser.objects(id=id).first()
+
+    with app.app_context():
+        user = AdminUser.objects(root=True).first()
+        if not user:
+            AdminUser(
+                username=current_app.config.get('ADMIN_USERNAME'),
+                password=current_app.config.get('ADMIN_PASSWORD'),
+                root=True,
+            ).save()
 
     @app.before_request
     def _before_request():

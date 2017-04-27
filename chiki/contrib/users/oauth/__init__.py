@@ -19,6 +19,9 @@ def init_oauth(app):
 
     @app.before_request
     def before_request():
+        if current_app.is_admin:
+            return
+
         if current_user.is_authenticated() and 'channel' in str(current_user.get_id()):
             return
 

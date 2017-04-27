@@ -376,3 +376,136 @@ body {
 .modal-open {
     overflow: auto;
 }
+
+.users {
+  background: #f3f3f3;
+}
+.users .header {
+  margin-top: 40px;
+  text-align: center;
+}
+.users .logo {
+  font-size: 60px;
+}
+.users .logo-cool {
+  color: #3c3c3c;
+}
+.users .logo-note {
+  color: #289e5e;
+}
+.users .slogan {
+  font-size: 20px;
+  margin-top: 0;
+}
+.users .box {
+  background: #fff;
+  padding: 20px 30px 30px;
+  border-radius: 4px;
+  box-shadow: 1px 1px 3px #e6e6e6;
+  margin-bottom: 20px;
+}
+.users .box h3 {
+  margin-top: 0;
+  margin-bottom: 14px;
+  font-size: 18px;
+  color: #777;
+  text-align: center;
+}
+.users .box .nav-tabs {
+  border: none;
+  margin-bottom: 15px;
+}
+.users .box .nav-tabs > li {
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+.users .box .nav-tabs > li.active {
+  border-bottom: 1px solid #30a4e6;
+}
+.users .box .nav-tabs > li a {
+  padding: 10px 0;
+  border: none;
+  color: #333;
+  background: #fff;
+}
+.users .box .nav-tabs > li a:focus {
+  outline: none;
+}
+.users .box .nav-tabs > li.active > a {
+  border: none;
+  color: #30a4e6;
+}
+.users .box .nav-tabs.nav-justified > li {
+  display: table-cell;
+  width: 1%;
+}
+.users .box .message-box {
+  position: relative;
+  padding: 0 1px;
+}
+.users .box .message {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  margin: 0 -1px;
+}
+.users .box .message .alert {
+  padding: 10px 15px;
+}
+.users .auth-form .form-control,
+.users .auth-form .btn {
+  height: 42px;
+  padding: 8px 15px;
+}
+.users .auth-form .form-control {
+  background-color: #fbfbfb;
+}
+.users .auth-form .form-control:focus {
+  background-color: #fefefe;
+  border-color: #30a4e6;
+  outline: 0px none;
+  box-shadow: none;
+}
+.users .auth-form .form-control[disabled],
+.users .auth-form .form-control[readonly],
+.users .auth-form fieldset[disabled] .form-control {
+  cursor: not-allowed;
+  background-color: #EEE;
+  opacity: 1;
+}
+.users .resend.disabled {
+  color: #888;
+  text-decoration: none;
+  cursor: text;
+}
+.users .auth-form-group {
+  position: relative;
+}
+.users .auth-form-group a {
+  color: #30a4e6;
+  display: inline-block;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  cursor: pointer;
+}
+.users .auth-form .auth-form-group .form-control {
+  padding-right: 90px;
+}
+.users .auth-form .btn + .btn {
+  margin-top: 15px;
+}
+.users .footer {
+  margin-bottom: 40px;
+}
+.users .footer .links {
+  color: #ccc;
+  background: transparent;
+  padding: 10px 20px;
+  border: none;
+}
+.users .footer a,
+.users .footer .btn-link {
+  color: #999;
+  padding: 0 12px;
+}
