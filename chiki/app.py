@@ -270,7 +270,7 @@ def init_admin(init=None, config=None, pyfile=None,
         if not user:
             AdminUser(
                 username=current_app.config.get('ADMIN_USERNAME'),
-                password=current_app.config.get('ADMIN_PASSWORD'),
+                password=current_app.config.get('ADMIN_PASSWORD') or '123456',
                 root=True,
             ).save()
 
