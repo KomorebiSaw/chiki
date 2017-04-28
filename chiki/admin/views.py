@@ -4,6 +4,7 @@ import gc
 import traceback
 from datetime import datetime
 from flask import current_app, redirect, flash, request
+from flask.ext.login import current_user
 from flask.ext.admin import AdminIndexView as _AdminIndexView, expose
 from flask.ext.admin.actions import action
 from flask.ext.admin.babel import gettext, ngettext, lazy_gettext
@@ -399,6 +400,17 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
     def _create_ajax_loader(self, name, opts):
         return create_ajax_loader(self.model, name, name, opts)
 
+    def is_accessible(self):
+        if current_user.root is True:
+            return current_user.root
+        if current_user.group:
+            return self.__class__.__name__ in current_user.group.power_list
+        return False
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash('暂无操作权限！')
+        return self.render('admin/power.html')
+
 
 class SModelView(_SModelView):
 
@@ -419,9 +431,30 @@ class AdminIndexView(with_metaclass(CoolAdminMeta, _AdminIndexView)):
 
     MENU_ICON = 'diamond'
 
+    def is_accessible(self):
+        if current_user.root is True:
+            return current_user.root
+        if current_user.group:
+            return self.__class__.__name__ in current_user.group.power_list
+        return False
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect('/admin/user')
+
 
 class BaseView(with_metaclass(CoolAdminMeta, _BaseView)):
     """ 基础视图 """
+
+    def is_accessible(self):
+        if current_user.root is True:
+            return current_user.root
+        if current_user.group:
+            return self.__class__.__name__ in current_user.group.power_list
+        return False
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash('暂无操作权限！')
+        return self.render('admin/power.html')
 
 
 class IndexView(AdminIndexView):

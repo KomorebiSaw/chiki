@@ -3,7 +3,6 @@ import hashlib
 import random
 import string
 from chiki.base import db
-from chiki.utils import get_spm, get_ip
 from chiki.contrib.common import Item
 from chiki.contrib.users.base import user_manager as um
 from chiki.utils import get_ip, get_spm, get_channel, url2image

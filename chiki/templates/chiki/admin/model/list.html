@@ -42,6 +42,13 @@
 {% endblock %}
 
 {% block nav_menu_bar %}
+<ul class="nav navbar-nav navbar-right" style="margin: 0 5px;">
+    <li>
+        <div class="nav-item btn-box">
+            <a class="btn btn-primary" href="/admin/logout">退出</a>
+        </div>
+    </li>
+</ul>
 <ul class="nav nav-tabs actions-nav">
     <li class="active">
         <a href="javascript:void(0)">{{ _gettext('List') }}{% if count %} ({{ count }}){% endif %}</a>
