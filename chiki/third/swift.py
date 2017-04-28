@@ -24,8 +24,6 @@ class Swift(Base):
         super(Swift, self).init_app(app)
 
         self.host = self.get_config('host', self.HOST)
-        self.callback_host = self.get_config(
-            'callback_host', self.CALLBACK_HOST)
         self.callback_url = self.get_config(
             'callback_url', '/callback/swift/[key]/')
         self.endpoint = self.get_config(
@@ -59,13 +57,14 @@ class Swift(Base):
         doc = ElementTree.fromstring(xml)
         return dict((x.tag, to_text(x.text)) for x in doc)
 
-    def prepay(self, **kwargs):
+    def prepay(self, config=dict(), **kwargs):
         kwargs.setdefault('service', 'pay.weixin.jspay')
-        kwargs.setdefault('mch_id', self.get_config('mchid'))
+        kwargs.setdefault('mch_id', self.get_config('mchid', config=config))
         kwargs.setdefault('body', '云计费')
         kwargs.setdefault('total_fee', 1)
-        kwargs.setdefault('mch_create_ip', self.get_config('mch_create_ip', '127.0.0.1'))
-        host = self.callback_host if self.callback_host else request.host
+        kwargs.setdefault('mch_create_ip', self.get_config(
+            'mch_create_ip', '127.0.0.1'))
+        host = self.get_config('callback_host', request.host, config=config)
         backurl = 'http://%s%s' % (host, url_for(self.endpoint))
         kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('callback_url', 'http://%s/' % request.host)
@@ -80,11 +79,11 @@ class Swift(Base):
             current_app.logger.error(traceback.format_exc())
             return dict(status=-1, message=str(e))
 
-    def sign(self, **kwargs):
+    def sign(self, config=dict(), **kwargs):
         keys = sorted(
             filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
-        text += '&key=%s' % self.get_config('key')
+        text += '&key=%s' % self.get_config('key', config=config)
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
     def pay_url(self, id):

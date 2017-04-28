@@ -27,7 +27,7 @@ class Base(object):
         self.app = app
 
         name = self.__class__.__name__
-        if not self.config:
+        if self.config is None:
             self.config = app.config.get(self.key or name.upper())
 
         self.puppets = dict()
@@ -41,7 +41,10 @@ class Base(object):
     def get_key(self):
         return self.key if self.holder else 'default'
 
-    def get_config(self, key, default=None, repalce=True):
+    def get_config(self, key, default=None, repalce=True, config=None):
+        if config and key in config:
+            return config.get(key)
+
         if self.holder:
             value = self.config.get(
                 key, self.holder.get_config(key, default, False))

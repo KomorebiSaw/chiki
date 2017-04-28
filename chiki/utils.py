@@ -5,6 +5,7 @@ import sys
 import random
 import string
 import functools
+import hashlib
 import traceback
 import requests
 import urlparse
@@ -15,13 +16,13 @@ from flask import jsonify, current_app, request, redirect
 from flask.ext.login import current_user
 
 __all__ = [
-    'strip', 'json_success', 'json_error',
-    'datetime2best', 'time2best', 'today',
-    'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os', 'get_platform',
-    'get_channel', 'get_ip', 'is_ajax', 'str2datetime', 'is_json', 'is_empty',
-    'randstr', 'AttrDict', 'url2image', 'retry', 'tpl_data', 'get_module',
-    'rmb3', 'check_encode', 'url_with_user', 'get_url_arg',
-    'create_short_url', 'ip_limit', 'random_index', 'is_debug',
+    'strip', 'json_success', 'json_error', 'datetime2best', 'time2best',
+    'today', 'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os',
+    'get_platform', 'get_channel', 'get_ip', 'is_ajax', 'str2datetime',
+    'is_json', 'is_empty', 'randstr', 'AttrDict', 'url2image', 'retry',
+    'tpl_data', 'get_module', 'rmb3', 'check_encode', 'url_with_user',
+    'get_url_arg', 'create_short_url', 'ip_limit', 'random_index', 'is_debug',
+    'sign', 'add_args',
 ]
 
 
@@ -327,3 +328,17 @@ def random_index(rate):
 
 def is_debug():
     return current_app.debug or request.args.get('debug') == 'true'
+
+
+def sign(key, **kwargs):
+    keys = sorted(filter(
+        lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
+    text = '&'.join(['%s=%s' % x for x in keys])
+    text += '&key=%s' % key
+    return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
+
+
+def add_args(url, **kwargs):
+    if '?' in url:
+        return url + urlencode(kwargs)
+    return url + '?' + urlencode(kwargs)

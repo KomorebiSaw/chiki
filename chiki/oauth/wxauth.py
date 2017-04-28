@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import inspect
 import requests
 import urlparse
 import werobot.client
@@ -60,6 +61,7 @@ class WXAuth(Base):
     def __init__(self, app=None, key=None, config=None, holder=None):
         self.success_callback = None
         self.error_callback = None
+        self.config_callback = None
         super(WXAuth, self).__init__(app, key, config, holder)
 
     def init_app(self, app):
@@ -114,8 +116,8 @@ class WXAuth(Base):
         return dict((x, quote(y.encode('utf-8') if type(
             y) is unicode else y)) for x, y in kwargs.iteritems())
 
-    def get_access_url(self, action, code):
-        config = self.get_config(action)
+    def get_access_url(self, action, code, config=None):
+        config = self.get_config(action, config=config)
         query = dict(
             appid=config.get('appid'),
             secret=config.get('secret'),
@@ -125,12 +127,12 @@ class WXAuth(Base):
         return '%s?%s' % (self.ACCESS_URL, urlencode(query))
 
     @err_logger
-    def access_token(self, action, code):
-        url = self.get_access_url(action, code)
+    def access_token(self, action, code, config=None):
+        url = self.get_access_url(action, code, config=config)
         return requests.get(url).json()
 
-    def get_refresh_url(self, action, token):
-        config = self.get_config(action)
+    def get_refresh_url(self, action, token, config=None):
+        config = self.get_config(action, config=config)
         query = dict(
             appid=config.get('appid'),
             refresh_token=token,
@@ -139,8 +141,8 @@ class WXAuth(Base):
         return '%s?%s' % (self.REFRESH_URL, urlencode(query))
 
     @err_logger
-    def refresh_token(self, action, token):
-        url = self.get_refresh_url(action, token)
+    def refresh_token(self, action, token, config=None):
+        url = self.get_refresh_url(action, token, config=config)
         return requests.get(url).json()
 
     def get_userinfo_url(self, token, openid, lang='zh_CN'):
@@ -170,19 +172,21 @@ class WXAuth(Base):
         url = self.get_check_url(token, openid)
         return requests.get(url).json()['errcode'] == 0
 
-    def get_auth_url(self, action, next, scope=SNSAPI_BASE, state='STATE'):
+    def get_auth_url(self, action, next, scope=SNSAPI_BASE, state='STATE',
+                     config=None, **kwargs):
         if action == self.ACTION_QRCODE:
             scope = self.SNSAPI_LOGIN
 
-        config = self.get_config(action)
+        config = self.get_config(action, config=config)
 
-        host = self.get_config('callback_host')
+        host = self.get_config('callback_host', config=config)
+        appid = config.get('appid')
         if not host:
             callback = url_for(self.endpoint, scope=scope, next=next,
-                               action=action, _external=True)
+                               action=action, appid=appid, _external=True, **kwargs)
         else:
             callback = url_for(self.endpoint, scope=scope, next=next,
-                               action=action)
+                               action=action, appid=appid, **kwargs)
             callback = 'http://%s%s' % (host, callback)
         query = self.quote(
             appid=config.get('appid'),
@@ -208,7 +212,8 @@ class WXAuth(Base):
                 action = self.ACTION_QRCODE
         return action
 
-    def auth(self, action='', next='', scope=SNSAPI_BASE, state='STATE'):
+    def auth(self, action='', next='', scope=SNSAPI_BASE, state='STATE',
+             config=None, **kwargs):
         """发起微信登录，在需要的地方带用即可。
 
         :param action: 公众号授权登录(mp)、扫码登录(qrcode)
@@ -220,13 +225,14 @@ class WXAuth(Base):
         if action == 'mobile' or is_json():
             return abort(WXAUTH_REQUIRED)
 
-        return redirect(self.get_auth_url(action, next, scope, state))
+        return redirect(self.get_auth_url(action, next, scope, state, config))
 
     def callback(self):
         action = request.args.get('action', 'mp')
         code = request.args.get('code', '')
         next = request.args.get('next', '')
         scope = request.args.get('scope', self.SNSAPI_BASE)
+        appid = request.args.get('appid', '')
 
         if request.host not in next and next.startswith('http://'):
             url = request.url.replace(
@@ -239,7 +245,8 @@ class WXAuth(Base):
         if not code:
             return self.error(self.AUTH_ERROR, action, next)
 
-        access = self.access_token(action, code)
+        config = self.load_config(appid)
+        access = self.access_token(action, code, config=config)
         if not access or 'openid' not in access:
             log = '%s\naccess error\naccess: %s\nurl: %s' \
                   '\nnext: %s\ncode: %s\naccess: %s'
@@ -249,14 +256,22 @@ class WXAuth(Base):
                 request.url, next, code, str(access)))
             return self.error(self.ACCESS_ERROR, action, next)
 
-        return self.success(action, scope, access, next)
+        return self.success(action, scope, access, next, config=config)
+
+    def load_config(self, appid):
+        if callable(self.config_callback):
+            return self.config_callback(appid)
 
     def success(self, action, scope, access, next):
         callback = self.success_callback
         if not callback:
             return '授权成功，请设置回调'
 
-        res = callback(action, scope, access, next)
+        if 'config' in inspect.getargspec(callback)[0]:
+            res = callback(action, scope, access, next, config=config)
+        else:
+            res = callback(action, scope, access, next)
+
         if res:
             return res
 
@@ -304,4 +319,8 @@ class WXAuth(Base):
         :rtype: None或自定义Response
         """
         self.error_callback = callback
+        return callback
+
+    def config_handler(self, callback):
+        self.config_callback = callback
         return callback

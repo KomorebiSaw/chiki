@@ -59,6 +59,11 @@ def login():
     if next and not next.startswith('http://'):
         next = 'http://%s%s' % (request.host, next)
 
+    if hasattr(current_app, 'ipay'):
+        ipay = current_app.ipay
+        if ipay.auto_auth:
+            return ipay.auth(next)
+
     if hasattr(current_app, 'wxauth'):
         wxauth = current_app.wxauth
         action = request.args.get('action', '')

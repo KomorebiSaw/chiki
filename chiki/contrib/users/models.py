@@ -210,6 +210,7 @@ class User(db.Document, UserMixin):
     SEX_FROM_WECHAT = {0: SEX_UNKNOWN, 1: SEX_MALE, 2: SEX_FEMALE}
 
     id = db.IntField(primary_key=True, verbose_name='ID')
+    xid = db.IntField(verbose_name='XID')
     tid = db.StringField(verbose_name='TID')
     phone = db.StringField(max_length=20, verbose_name='手机')
     email = db.StringField(max_length=40, verbose_name='邮箱')
@@ -239,6 +240,7 @@ class User(db.Document, UserMixin):
 
     meta = {
         'indexes': [
+            'xid',
             'tid',
             'phone',
             'nickname',
