@@ -262,7 +262,7 @@ class WXAuth(Base):
         if callable(self.config_callback):
             return self.config_callback(appid)
 
-    def success(self, action, scope, access, next):
+    def success(self, action, scope, access, next, config=None):
         callback = self.success_callback
         if not callback:
             return '授权成功，请设置回调'
