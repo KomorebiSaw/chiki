@@ -68,6 +68,7 @@ class JinjaManager(object):
             cdn=self.cdn_filter,
             repr=self.repr,
             url_with_user=url_with_user,
+            show_hex=self.show_hex,
         )
 
     def context_processor(self):
@@ -200,6 +201,9 @@ class JinjaManager(object):
     def cdn_filter(self, url, width, height):
         url = current_app.config.get('LAZY_IMAGE', '')
         return url + ('@%sw_%sh_1e_1c_95Q.png' % (width, height))
+
+    def show_hex(self, input):
+        return ''.join(["\\x%s" % i.encode('hex') for i in input])
 
     def repr(self, text):
         res = repr(unicode(text))

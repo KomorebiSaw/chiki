@@ -4,7 +4,7 @@ import redis
 import traceback
 from StringIO import StringIO
 from flask import Blueprint, current_app, Response, render_template
-from flask import request, redirect, url_for
+from flask import request, redirect, url_for, send_file
 from flask.ext.babelex import Babel
 from flask.ext.login import login_required, current_user
 from flask.ext.mail import Mail
@@ -16,6 +16,7 @@ from chiki.contrib.common import Item, Page, Choices, Menu, bp as common_bp
 from chiki.contrib.users import um
 from chiki.contrib.admin.models import AdminUser
 from chiki.contrib.admin.views import bp as login_bp
+from chiki.settings import DATA_ROOT
 from chiki.jinja import init_jinja
 from chiki.logger import init_logger
 from chiki.media import MediaManager
@@ -129,8 +130,6 @@ def init_error_handler(app):
 
 def before_request():
     """ Admin 权限验证 """
-    print request.endpoint
-
     if not current_user.is_authenticated() and \
             request.endpoint != current_app.login_manager.login_view and \
             not request.endpoint == 'admin.static':
@@ -239,6 +238,12 @@ def init_app(init=None, config=None, pyfile=None,
                 with open(app.get_data_path('imgs/logo.jpg')) as fd:
                     user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
                 user.save()
+
+    @app.route('/1.gif')
+    def gif():
+        return send_file(
+            DATA_ROOT + '/1.gif',
+            cache_timeout=0, add_etags=False, mimetype='image/gif')
 
     return app
 
