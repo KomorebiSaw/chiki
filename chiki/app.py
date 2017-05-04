@@ -150,7 +150,11 @@ def init_app(init=None, config=None, pyfile=None,
 
     ENVVAR = app.config.get('ENVVAR')
     if ENVVAR and os.environ.get(ENVVAR):
-        app.config.from_envvar(app.config['ENVVAR'])
+        env = os.environ.get(ENVVAR)
+        for pyfile in env.split('|'):
+            if pyfile.startswith('./'):
+                pyfile = os.path.join(os.getcwd(), pyfile)
+            app.config.from_pyfile(pyfile)
 
     if app.debug:
         app.config.setdefault('DEBUG_TB_ENABLED', True)

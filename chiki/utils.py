@@ -2,6 +2,8 @@
 import re
 import os
 import sys
+import types
+import errno
 import random
 import string
 import functools
@@ -22,7 +24,7 @@ __all__ = [
     'is_json', 'is_empty', 'randstr', 'AttrDict', 'url2image', 'retry',
     'tpl_data', 'get_module', 'rmb3', 'check_encode', 'url_with_user',
     'get_url_arg', 'create_short_url', 'ip_limit', 'random_index', 'is_debug',
-    'sign', 'add_args',
+    'sign', 'add_args', 'import_file',
 ]
 
 
@@ -342,3 +344,17 @@ def add_args(url, **kwargs):
     if '?' in url:
         return url + urlencode(kwargs)
     return url + '?' + urlencode(kwargs)
+
+
+def import_file(filename):
+    d = types.ModuleType('module')
+    d.__file__ = filename
+    try:
+        with open(filename, mode='rb') as fd:
+            exec(compile(fd.read(), filename, 'exec'), d.__dict__)
+    except IOError as e:
+        if e.errno in (errno.ENOENT, errno.EISDIR):
+            return False
+        e.strerror = 'Unable to load file (%s)' % e.strerror
+        raise
+    return d
