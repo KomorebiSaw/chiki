@@ -4,6 +4,7 @@ import inspect
 import requests
 import urlparse
 import werobot.client
+import functools
 from chiki.api import abort, success
 from chiki.api.const import *
 from chiki.base import Base
@@ -267,7 +268,8 @@ class WXAuth(Base):
         if not callback:
             return '授权成功，请设置回调'
 
-        if 'config' in inspect.getargspec(callback)[0]:
+        if type(callback) == functools.partial or \
+                'config' in inspect.getargspec(callback)[0]:
             res = callback(action, scope, access, next, config=config)
         else:
             res = callback(action, scope, access, next)

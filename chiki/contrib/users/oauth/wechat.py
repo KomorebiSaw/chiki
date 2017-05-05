@@ -224,7 +224,7 @@ def init_wxauth(app):
         attrs[field] = db.StringField(verbose_name='%s公众号' % key)
         meta['indexes'].append(field)
 
-        def success(field, action, scope, access, next):
+        def success(field, action, scope, access, next, config=None):
             @login_required
             def callback():
                 wxuser = current_user.wechat_user
