@@ -342,7 +342,7 @@ def sign(key, **kwargs):
 
 def add_args(url, **kwargs):
     if '?' in url:
-        return url + urlencode(kwargs)
+        return url + '&' + urlencode(kwargs)
     return url + '?' + urlencode(kwargs)
 
 
