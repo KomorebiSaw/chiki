@@ -1,4 +1,5 @@
 # coding: utf8
+import os
 import sys
 import logging
 import logging.handlers
@@ -7,8 +8,15 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 __all__ = [
-    'Logger', 'init_logger',
+    'Logger', 'init_logger', 'DEBUG_LOG_FORMAT',
 ]
+
+DEBUG_LOG_FORMAT = (
+    '-' * 80 + '\n' +
+    '%(levelname)s in %(module)s [%(pathname)s:%(lineno)d]:\n' +
+    '%(message)s\n' +
+    '-' * 80
+)
 
 
 class Logger(object):

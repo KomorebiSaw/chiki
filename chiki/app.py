@@ -2,6 +2,7 @@
 import os
 import redis
 import traceback
+import logging
 from StringIO import StringIO
 from flask import Blueprint, current_app, Response, render_template
 from flask import request, redirect, url_for, send_file
@@ -18,7 +19,7 @@ from chiki.contrib.admin.models import AdminUser
 from chiki.contrib.admin.views import bp as login_bp
 from chiki.settings import DATA_ROOT
 from chiki.jinja import init_jinja
-from chiki.logger import init_logger
+from chiki.logger import init_logger, DEBUG_LOG_FORMAT
 from chiki.media import MediaManager
 from chiki.oauth import init_oauth
 from chiki.settings import TEMPLATE_ROOT
@@ -142,6 +143,13 @@ def init_app(init=None, config=None, pyfile=None,
     """ 创建应用 """
 
     app = Flask(__name__, template_folder=template_folder)
+
+    if os.environ.get('LOGGER_DEBUG'):
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(logging.Formatter(DEBUG_LOG_FORMAT))
+        app.logging.addHandler(handler)
+
     if config:
         app.config.from_object(config)
     if pyfile:
@@ -153,6 +161,7 @@ def init_app(init=None, config=None, pyfile=None,
         for pyfile in env.split('|'):
             if pyfile.startswith('./'):
                 pyfile = os.path.join(os.getcwd(), pyfile)
+            app.logger.info('load config pyfile: %s' % pyfile)
             app.config.from_pyfile(pyfile)
 
     if app.debug:
@@ -194,6 +203,8 @@ def init_app(init=None, config=None, pyfile=None,
     init_oauth(app)
     init_third(app)
     init_page(app)
+
+    app.logger.info('db config: %s' % app.config.get('MONGODB_SETTINGS'))
     db.init_app(app)
     media.init_app(app)
 
