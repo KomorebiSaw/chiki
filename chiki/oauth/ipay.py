@@ -63,7 +63,9 @@ class IPay(Base):
                 return redirect(next)
 
             res = self.post('/access/key', xid=xid, xkey=xkey)
-            if res['code'] != 0:
+            if res.get('code') != 0:
+                if request.args.get('debug'):
+                    return error(msg='授权失败：' % json.dumps(res))
                 return error(msg='授权失败')
 
             user = um.models.User(xid=xid).first()
