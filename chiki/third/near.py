@@ -99,14 +99,14 @@ class Near(Base):
         kwargs.setdefault('total_fee', '1')
         kwargs.setdefault('product_id', '20170101')
         kwargs.setdefault('goods_tag', 'default')
-        kwargs.setdefault('op_user_id', self.get_config('key'))
+        kwargs.setdefault('op_user_id', self.get_config('key', config=config))
         kwargs.setdefault('nonce_str', randstr(32))
         host = self.get_config('callback_host', request.host, config=config)
         backurl = 'http://%s%s' % (host, url_for(self.endpoint))
         kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('spbill_create_ip', self.get_config(
             'spbill_create_ip', get_ip()))
-        kwargs['sign'] = self.sign(**kwargs)
+        kwargs['sign'] = self.sign(config=config, **kwargs)
         kwargs['total_fee'] = str(kwargs['total_fee'])
 
         url = 'http://%s%s' % (self.host, self.prepay_url)
@@ -128,12 +128,12 @@ class Near(Base):
         except Exception, e:
             return dict(errcode=500, msg=str(e))
 
-    def sign(self, **kwargs):
+    def sign(self, config=dict(), **kwargs):
         keys = sorted(
             filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
         if self.need_secret:
-            text += self.get_config('secret')
+            text += self.get_config('secret', config=config)
         if current_app.debug:
             print text
         return hashlib.sha1(text.encode('utf-8')).hexdigest().upper()
