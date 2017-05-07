@@ -148,7 +148,7 @@ def init_app(init=None, config=None, pyfile=None,
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
         handler.setFormatter(logging.Formatter(DEBUG_LOG_FORMAT))
-        app.logging.addHandler(handler)
+        app.logger.addHandler(handler)
 
     if config:
         app.config.from_object(config)
