@@ -101,7 +101,7 @@ class Near(Base):
         kwargs.setdefault('goods_tag', 'default')
         kwargs.setdefault('op_user_id', self.get_config('key'))
         kwargs.setdefault('nonce_str', randstr(32))
-        host = self.callback_host if self.callback_host else request.host
+        host = self.get_config('callback_host', request.host, config=config)
         backurl = 'http://%s%s' % (host, url_for(self.endpoint))
         kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('spbill_create_ip', self.get_config(
