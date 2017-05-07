@@ -195,6 +195,8 @@ def init_app(init=None, config=None, pyfile=None,
     init_oauth(app)
     init_third(app)
     init_page(app)
+
+    app.logger.info('db config: %s' % app.config.get('MONGODB_SETTINGS'))
     db.init_app(app)
     media.init_app(app)
 
