@@ -56,7 +56,7 @@ class IPay(Base):
         @app.route(self.oauth_callback_url, endpoint=self.oauth_endpoint)
         def ipay_oauth_callback():
             xid = request.args.get('xid')
-            ukey = request.args.get('xkey')
+            xkey = request.args.get('xkey')
             next = request.args.get('next')
 
             if current_user.is_authenticated():
