@@ -42,9 +42,9 @@ class IPay(Base):
         def ipay_callback():
             res = ''
             try:
-                data = request.form
+                data = request.form.items()
                 s = data.pop('sign', '')
-                if s != sign(self.secret, **data.items()):
+                if s != sign(self.secret, **data):
                     return json.dumps(code=1)
                 if self.callback:
                     res = self.callback(self, data)
