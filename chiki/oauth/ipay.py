@@ -43,7 +43,7 @@ class IPay(Base):
             res = ''
             try:
                 data = request.form.items()
-                s = data.pop('sign', '')
+                s = data.pop('sign')
                 if s != sign(self.secret, **data):
                     return json.dumps(code=1)
                 if self.callback:
