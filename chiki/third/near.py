@@ -94,7 +94,7 @@ class Near(Base):
                 puppet.handler(callback, recursion=recursion)
         return callback
 
-    def prepay(self, **kwargs):
+    def prepay(self, config=dict(), **kwargs):
         kwargs.setdefault('body', '云计费')
         kwargs.setdefault('total_fee', '1')
         kwargs.setdefault('product_id', '20170101')
