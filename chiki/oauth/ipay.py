@@ -68,7 +68,7 @@ class IPay(Base):
                     return error(msg='授权失败：%s' % json.dumps(res))
                 return error(msg='授权失败')
 
-            user = um.models.User(xid=xid).first()
+            user = um.models.User.objects(xid=xid).first()
             if not user:
                 user = um.models.User(xid=xid)
                 user.create()
