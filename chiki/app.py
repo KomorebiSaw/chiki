@@ -153,7 +153,6 @@ def init_app(init=None, config=None, pyfile=None,
         for pyfile in env.split('|'):
             if pyfile.startswith('./'):
                 pyfile = os.path.join(os.getcwd(), pyfile)
-            app.logger.info('load config pyfile: %s' % pyfile)
             app.config.from_pyfile(pyfile)
 
     if app.debug:
@@ -196,7 +195,7 @@ def init_app(init=None, config=None, pyfile=None,
     init_third(app)
     init_page(app)
 
-    app.logger.info('db config: %s' % app.config.get('MONGODB_SETTINGS'))
+    app.logger.error('db config: %s' % app.config.get('MONGODB_SETTINGS'))
     db.init_app(app)
     media.init_app(app)
 
