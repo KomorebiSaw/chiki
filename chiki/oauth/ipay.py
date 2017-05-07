@@ -51,7 +51,7 @@ class IPay(Base):
             except:
                 current_app.logger.error(
                     'ipay callbck except: \n%s' % traceback.format_exc())
-            return res or json.dumps(code=0)
+            return res or json.dumps(dict(code=0))
 
         @app.route(self.oauth_callback_url, endpoint=self.oauth_endpoint)
         def ipay_oauth_callback():
