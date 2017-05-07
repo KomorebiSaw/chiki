@@ -112,7 +112,7 @@ class IPay(Base):
             host = Item.data('ipay_api_host', 'api.example.com', name='iPay接口')
             url = 'http://%s%s' % (host, url)
         kwargs.setdefault('pid', self.pid)
-        kwargs['sign'] = sign(self.secret, **kwargs.items())
+        kwargs['sign'] = sign(self.secret, **kwargs)
         try:
             return requests.post(url, kwargs).json()
         except Exception, e:
