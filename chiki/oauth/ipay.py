@@ -46,6 +46,7 @@ class IPay(Base):
                 s = data.pop('sign', '')
                 if s != sign(self.secret, **data):
                     return json.dumps(dict(code=1))
+
                 if self.callback:
                     res = self.callback(self, data)
             except:
