@@ -153,7 +153,7 @@ def init_app(init=None, config=None, pyfile=None,
         for pyfile in env.split('|'):
             if pyfile.startswith('./'):
                 pyfile = os.path.join(os.getcwd(), pyfile)
-            app.logger.info('load config pyfile: %s' % pyfile)
+            print 'load config pyfile: %s' % pyfile
             app.config.from_pyfile(pyfile)
 
     if app.debug:
