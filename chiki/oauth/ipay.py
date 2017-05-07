@@ -109,7 +109,7 @@ class IPay(Base):
 
     def post(self, url, **kwargs):
         if not url.startswith('http://'):
-            host = Item.data('ipay_api_host', 'api.example.com', name='iPay接口')
+            host = Item.data('ipay_api_host', 'api.amroom.cn', name='iPay接口')
             url = 'http://%s%s' % (host, url)
         kwargs.setdefault('pid', self.pid)
         kwargs['sign'] = sign(self.secret, **kwargs)
@@ -120,7 +120,7 @@ class IPay(Base):
 
     def auth(self, next):
         host = Item.data(
-            'ipay_auth_host', 'www.example.com', name='iPay域名')
+            'ipay_auth_host', 'www.amroom.cn', name='iPay域名')
         next = url_for(self.oauth_endpoint, next=next, _external=True)
         query = urlencode(dict(pid=self.pid, next=next))
         return redirect('http://%s/oauth/access?%s' % (host, query))
