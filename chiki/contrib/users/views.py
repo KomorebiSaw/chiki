@@ -75,7 +75,7 @@ def login():
             return wxauth.auth(wxauth.ACTION_QRCODE, next)
 
         ua = request.headers.get('User-Agent', '').lower()
-        if 'micromessenger' in ua and '192.168' not in request.host:
+        if 'micromessenger' in ua and '192.168' not in request.host and um.config.auto_wxauth:
             return wxauth.auth(wxauth.ACTION_MP, next)
 
     return login_from_account(next)
