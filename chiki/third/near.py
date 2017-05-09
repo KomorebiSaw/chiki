@@ -19,6 +19,9 @@ def near_required(func):
     @login_required
     def wrapper(*args, **kwargs):
         last = Item.time('near_openid_time', '', name='Near刷新时间')
+        if last < datetime.now() - timedelta(seconds=600):
+            Item.objects(key='near_openid_time').delete()
+            last = Item.time('near_openid_time', '', name='Near刷新时间')
         if 'near' in Item.data('payment', ''):
             host = Item.data('near_host', 'qqzz.ps798.cn', name='Near域名')
             if not current_user.near_openid \
