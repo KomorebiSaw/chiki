@@ -163,19 +163,21 @@ class WXPay(Base):
             current_app.logger.error(traceback.format_exc())
             return dict(return_code='ERROR', return_msg=str(e))
 
-    def transfers(self, **kwargs):
-        kwargs.setdefault('mch_appid', self.get_config('appid'))
-        kwargs.setdefault('mchid', self.get_config('mchid'))
+    def transfers(self, config=dict(), **kwargs):
+        ip = self.get_config('client_ip', config=config)
+        kwargs.setdefault('mch_appid', self.get_config('appid', config=config))
+        kwargs.setdefault('mchid', self.get_config('mchid', config=config))
         kwargs.setdefault('check_name', 'NO_CHECK')
         kwargs.setdefault('amount', 1)
         kwargs.setdefault('desc', '企业打款')
-        kwargs.setdefault('spbill_create_ip', self.get_config('client_ip'))
+        kwargs.setdefault('spbill_create_ip', ip)
         kwargs.setdefault('nonce_str', randstr(32))
-        kwargs.setdefault('sign', self.sign(**kwargs))
+        kwargs.setdefault('sign', self.sign(config=config, **kwargs))
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:
+            cert = self.get_config('cert', config=config)
             xml = requests.post(
-                self.TRANSFERS, data=data, cert=self.get_config('cert')
+                self.TRANSFERS, data=data, cert=cert,
             ).content
             return self.xml2dict(xml)
         except Exception, e:
@@ -235,10 +237,10 @@ class WXPay(Base):
             current_app.logger.error(traceback.format_exc())
             return dict(return_code='ERROR', return_msg=str(e))
 
-    def sign(self, **kwargs):
+    def sign(self, config=dict(), **kwargs):
         keys = sorted(filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
-        text += '&key=%s' % self.get_config('key')
+        text += '&key=%s' % self.get_config('key', config=config)
         return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
 
     def get_conf(self, prepay, tojson=True):

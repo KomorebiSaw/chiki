@@ -110,6 +110,20 @@ class IPay(Base):
         kwargs.setdefault('notify_url', backurl)
         return self.post('/payment/prepay', **kwargs)
 
+    def transfer(self, **kwargs):
+        kwargs.setdefault('name', '_')
+        kwargs.setdefault('price', 100)
+        host = self.callback_host if self.callback_host else request.host
+        backurl = 'http://%s%s' % (host, url_for(self.endpoint))
+        kwargs.setdefault('notify_url', backurl)
+        return self.post('/payment/transfer', **kwargs)
+
+    def access(self, **kwargs):
+        if current_user.is_authenticated():
+            kwargs.setdefault('oid', current_user.id)
+            kwargs.setdefault('xid', current_user.xid)
+        return self.post('/access', **kwargs)
+
     def post(self, url, **kwargs):
         if not url.startswith('http://'):
             host = Item.data('ipay_api_host', 'api.amroom.cn', name='iPay接口')

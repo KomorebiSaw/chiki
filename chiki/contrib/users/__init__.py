@@ -4,9 +4,11 @@ from chiki.contrib.common import Channel
 from chiki.contrib.users import admin, apis, forms, funcs, models, oauth, views
 from chiki.contrib.users.base import user_manager
 from chiki.contrib.users.oauth import wxauth_required
-from chiki.utils import AttrDict
+from chiki.utils import AttrDict, is_ajax
 from chiki.verify import init_verify
-from flask.ext.login import LoginManager, current_user
+from flask import request, flash, current_app, session, redirect, abort as _abort
+from flask.ext.login import LoginManager, current_user, login_url
+from chiki.api.const import abort, LOGIN_REQUIRED
 
 __all__ = [
     'user_manager', 'um', 'UserManager', 'wxauth_required',
@@ -55,6 +57,25 @@ class UserManager(object):
                 elif id.startswith('channel:'):
                     return Channel.objects(id=int(id.split(':')[-1])).first()
             return um.models.User.objects(id=id).first()
+
+        login = self.login
+        @login.unauthorized_handler
+        def unauthorized():
+            if is_ajax():
+                abort(LOGIN_REQUIRED)
+
+            if not login.login_view:
+                _abort(401)
+
+            if login.login_message:
+                if login.localize_callback is not None:
+                    flash(login.localize_callback(login.login_message),
+                          category=login.login_message_category)
+                else:
+                    flash(login.login_message,
+                          category=login.login_message_category)
+
+            return redirect(login_url(login.login_view, request.url))
 
     @property
     def need_email(self):
