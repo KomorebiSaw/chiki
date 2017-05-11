@@ -28,12 +28,27 @@ from .metaclass import CoolAdminMeta
 from .ajax import create_ajax_loader, process_ajax_references
 from ..mongoengine.fields import FileProxy, ImageProxy, Base64ImageProxy
 from ..utils import json_success, json_error
+from blinker import Namespace, signal
+from chiki.contrib.admin.models import AdminChangeLog
+
 
 __all__ = [
     "ModelView", "SModelView", "IndexView", "AdminIndexView", "BaseView",
 ]
 
 old_create_blueprint = _BaseView.create_blueprint
+
+model_signals = signal('change')
+
+def model_operating(model, type):
+    AdminChangeLog(
+        user=current_user.id,
+        model=model.__class__.__name__,
+        data=str(model.to_mongo()),
+        type=type,
+    ).save()
+
+model_signals.connect(model_operating)
 
 
 def create_blueprint(self, admin):
@@ -169,7 +184,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         return True
 
     def pre_model_change(self, form, model, created=False):
-        pass
+        model_signals.send(model, type='created' if created else 'edit')
 
     def on_model_change(self, form, model, created=False):
         if created is True and hasattr(model, 'create'):
@@ -177,6 +192,9 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
                 model.create()
         elif hasattr(model, 'modified'):
             model.modified = datetime.now()
+
+    def on_model_delete(self, model):
+        model_signals.send(model, type='delete')
 
     # @expose('/')
     # def index_view(self):

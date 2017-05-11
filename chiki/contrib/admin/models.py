@@ -82,3 +82,15 @@ class AdminUserLoginLog(db.Document):
     @staticmethod
     def logout(user):
         AdminUserLoginLog.log(user, AdminUserLoginLog.TYPE.LOGOUT)
+
+
+class AdminChangeLog(db.Document):
+    """ 管理员操作日志 """
+
+    TYPE = db.choices(edit='修改', created='创建', delete='删除')
+
+    user = db.ReferenceField('AdminUser', verbose_name='用户')
+    model = db.StringField(verbose_name='模块')
+    data = db.StringField(verbose_name='操作前')
+    type = db.StringField(verbose_name='类型', choices=TYPE.CHOICES)
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
