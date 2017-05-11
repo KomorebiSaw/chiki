@@ -51,7 +51,6 @@ def model_operating(model, type):
 model_signals.connect(model_operating)
 
 
-
 def create_blueprint(self, admin):
     if self.static_folder == 'static':
         root = os.path.dirname(os.path.dirname(__file__))
