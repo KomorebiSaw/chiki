@@ -119,7 +119,8 @@ def clone2setup(folder, repo=None, branch=None, copy=False, install=True):
         for name in ['media', 'data']:
             source = os.path.join(folder, name)
             target = os.path.join(env.path, name)
-            run('mkdir -p %s && cp -r %s/* %s' % (target, source, target))
+            if exists(source):
+                run('mkdir -p %s && cp -r %s/* %s' % (target, source, target))
 
 
 def clone4github():
