@@ -41,13 +41,12 @@ old_create_blueprint = _BaseView.create_blueprint
 model_signals = signal('change')
 
 def model_operating(model, type):
-    # AdminChangeLog(
-    #     user=current_user.id,
-    #     model=model.__class__.__name__,
-    #     data=str(model.to_mongo()),
-    #     type=type,
-    # ).save()
-    pass
+    AdminChangeLog(
+        user=current_user.id,
+        model=model.__class__.__name__,
+        data=str(model.to_mongo()),
+        type=type,
+    ).save()
 
 model_signals.connect(model_operating)
 
