@@ -73,7 +73,7 @@ class UserManager(object):
         self.config.allow_redirect = config.get('allow_redirect', True)
         self.config.userinfo = config.get('userinfo', True)
         self.config.auto_heart = config.get('auto_heart', True)
-        self.config.auth_wxauth = config.get('auto_wxauth', True)
+        self.config.auto_wxauth = config.get('auto_wxauth', True)
         self.config.register_auto_login = config.get('register_auto_login', True)
         self.config.reset_password_auto_login = config.get('reset_password_auto_login', True)
         self.config.required_bind_password = config.get('required_bind_password', True)
