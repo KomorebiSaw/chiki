@@ -164,7 +164,7 @@ class WXPay(Base):
             return dict(return_code='ERROR', return_msg=str(e))
 
     def transfers(self, config=dict(), **kwargs):
-        ip = self.get_config('client_ip', config=config)
+        ip = self.get_config('client_ip', config=config) or '127.0.0.1'
         kwargs.setdefault('mch_appid', self.get_config('appid', config=config))
         kwargs.setdefault('mchid', self.get_config('mchid', config=config))
         kwargs.setdefault('check_name', 'NO_CHECK')
