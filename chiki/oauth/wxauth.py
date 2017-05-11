@@ -225,7 +225,7 @@ class WXAuth(Base):
         if action == 'mobile' or is_json():
             return abort(WXAUTH_REQUIRED)
 
-        return redirect(self.get_auth_url(action, next, scope, state, config))
+        return redirect(self.get_auth_url(action, next, scope, state, config, **kwargs))
 
     def callback(self):
         action = request.args.get('action', 'mp')
