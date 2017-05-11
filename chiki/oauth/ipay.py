@@ -135,9 +135,12 @@ class IPay(Base):
         except Exception, e:
             return dict(code=-1, key='ERROR', msg=str(e))
 
-    def auth(self, next):
+    def auth_url(self, next):
         host = Item.data(
             'ipay_auth_host', 'www.amroom.cn', name='iPay域名')
         next = url_for(self.oauth_endpoint, next=next, _external=True)
         query = urlencode(dict(pid=self.pid, next=next))
-        return redirect('http://%s/oauth/access?%s' % (host, query))
+        return 'http://%s/oauth/access?%s' % (host, query)
+
+    def auth(self, next):
+        return redirect(self.auth_url(next))
