@@ -116,9 +116,10 @@ def clone2setup(folder, repo=None, branch=None, copy=False, install=True):
         xrun('python setup.py install')
 
     if copy:
-        source = os.path.join(folder, 'media')
-        target = os.path.join(env.path, 'media')
-        run('mkdir -p %s && cp -r %s/* %s' % (target, source, target))
+        for name in ['media', 'data']:
+            source = os.path.join(folder, name)
+            target = os.path.join(env.path, name)
+            run('mkdir -p %s && cp -r %s/* %s' % (target, source, target))
 
 
 def clone4github():
