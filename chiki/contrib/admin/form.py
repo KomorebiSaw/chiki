@@ -13,8 +13,10 @@ class LoginForm(Form):
 
     def validate_account(self, field):
         admin = AdminUser.objects(
-            username=self.account.data, password=self.password.data).first()
+            username=self.account.data).first()
         if not admin:
             raise ValueError('用户不存在')
+        if admin.password != self.password.data:
+            raise ValueError('密码错误')
 
         self.admin = admin
