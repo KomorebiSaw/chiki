@@ -1,7 +1,7 @@
 # coding: utf-8
 import os
 from fabric.api import cd, env, run, roles, task
-from fabric.api import settings, local
+from fabric.api import settings, local, runs_once
 from fabric.contrib.files import exists, append
 from .nginx import nginx
 from .server import restart, restart_back
@@ -76,8 +76,9 @@ def create_env():
 
     run('mkdir -p ~/.pip')
     xput('files/pip.conf', '~/.pip/pip.conf')
-    cmd = 'source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv %s'
-    run(cmd % env.project)
+    if not exists('/home/%s/.virtualenvs/%s' % (env.user, env.project)):
+        cmd = 'source /usr/local/bin/virtualenvwrapper.sh && mkvirtualenv %s'
+        run(cmd % env.project)
 
     for path in [env.path, env.src, env.dist]:
         run('mkdir -p %s' % path)
@@ -154,6 +155,7 @@ def deploy():
 
 
 @task
+@runs_once
 def commit(msg='auto commit'):
     local('git add --all ..')
     local('git commit -m "%s"' % msg)

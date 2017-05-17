@@ -46,6 +46,18 @@ def stage(stage='all'):
     env.stage = stage
 
 
+@roles('web', 'db', 'front', 'puppet')
+@task
+def ssh_config():
+    with settings(user='root', password=env.sudo_password):
+        with cd('/etc/ssh'):
+            run('sed -i "s/#ClientAliveInterval 0/ClientAliveInterval 60/g"'
+                ' sshd_config')
+            run('sed -i "s/#ClientAliveCountMax 3/ClientAliveCountMax 3/g"'
+                ' sshd_config')
+            run('service ssh reload')
+
+
 @roles('web')
 @task
 def tail_log(name='uwsgi.admin', line=100):
