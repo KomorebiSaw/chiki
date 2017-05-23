@@ -154,9 +154,9 @@ class ChannelView(ModelView):
 
 
 class QRCodeView(ModelView):
-    column_list = ['user', 'image', 'url', 'modified', 'created']
-    column_center_list = ['user', 'image', 'modified', 'created']
-    column_filters = ['user', 'url', 'modified', 'created']
+    column_list = ['user', 'image', 'url', 'scene', 'modified', 'created']
+    column_center_list = ['user', 'image', 'scene', 'modified', 'created']
+    column_filters = ['user', 'url', 'scene', 'modified', 'created']
     column_searchable_list = ('url',)
 
     def on_model_change(self, form, model, created=False):
