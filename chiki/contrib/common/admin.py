@@ -7,6 +7,7 @@ from PIL import Image
 from StringIO import StringIO
 from chiki.admin import ModelView, formatter_len, formatter_icon, formatter, formatter_model
 from chiki.admin import formatter_text, formatter_link, popover, quote, escape
+from chiki.admin import get_span
 from chiki.forms.fields import WangEditorField, DragSelectField
 from chiki.stat import statistics
 from chiki.utils import json_success
@@ -16,8 +17,38 @@ from flask import current_app, url_for, request
 from flask.ext.admin import expose
 from flask.ext.admin.form import BaseForm
 from .models import View, Item
+from ...jinja import markupper
 
 FA = '<i class="fa fa-%s"></i>'
+
+
+@markupper
+def type_bool(model):
+    FA_CHECK = '<i class="fa fa-check-circle text-success"></i>'
+    FA_MINUS = '<i class="fa fa-minus-circle text-danger"></i>'
+    view = '/admin/item/dropdown'
+    name = 'value'
+    value = model.value
+    if value == 'false' or value == 'False' or value is False:
+        value = False
+    else:
+        value = True
+
+    html = """<a class="btn btn-default btn-sm btn-active" target="_blank" data-id="%s" data-name="%s" data-value="%s" data-url="%s">
+        %s
+        </a>""" % (model.id, name, value, view, FA_CHECK if value else FA_MINUS)
+    return html
+
+@formatter_model
+def check_bool(model):   
+    tof = ['true', 'false', 'True', 'False', True, False]
+    if model.value in tof:
+        return type_bool(model)
+    else:
+        data = unicode(model.value)
+        if len(data) > 33:
+            return get_span(data, data[:32] + '...')
+        return model.value
 
 
 class ItemView(ModelView):
@@ -25,7 +56,8 @@ class ItemView(ModelView):
     column_list = ('key', 'name',  'value', 'type', 'modified', 'created')
     column_center_list = ('type', 'modified', 'created')
     column_filters = ('key', 'modified', 'created')
-    column_formatters = dict(value=formatter_len(32))
+    #column_formatters = dict(value=formatter_len(32))
+    column_formatters = dict(value=check_bool)
     column_searchable_list = ('key', 'name')
     form_overrides = dict(value=TextAreaField)
 

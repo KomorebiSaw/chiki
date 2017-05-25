@@ -10,6 +10,7 @@ from .utils import json_success
 
 
 def get_date_ranger(date_start, date_end):
+    #
     dates = []
     start = datetime.strptime(date_start, '%Y-%m-%d')
     end = datetime.strptime(date_end, '%Y-%m-%d')
@@ -24,6 +25,7 @@ def get_date_ranger(date_start, date_end):
 
 
 def get_date(key='day'):
+    #
     day = request.args.get(key, '')
     try:
         datetime.strptime(day, '%Y-%m-%d')
@@ -33,6 +35,7 @@ def get_date(key='day'):
 
 
 def get_dates(stat=True, start_key='start', end_key='end', start='', end=''):
+    #
     if callable(start):
         start = start()
     if callable(end):
@@ -58,6 +61,7 @@ def get_dates(stat=True, start_key='start', end_key='end', start='', end=''):
 
 
 def get_value_list(key, days, tid=None):
+    #
     query = dict(key=key, day__in=days)
     if tid:
         query['tid'] = tid
@@ -71,6 +75,7 @@ def get_value_list(key, days, tid=None):
 
 
 def get_hour_list(key, day, tid=None, hour=23):
+    #
     query = dict(key=key, day=day)
     if tid:
         query['tid'] = tid
@@ -84,6 +89,7 @@ def get_hour_list(key, day, tid=None, hour=23):
 
 
 def hour_value_list(day, key, *args, **kwargs):
+    #
     return get_hour_list(key, day, **kwargs)
 
 
@@ -104,6 +110,7 @@ def get_value(value, value2, default=True):
 
 
 # 多个值打包成一个
+#
 def get_sum_value(data):
     values = zip
     for v in data:
@@ -112,6 +119,7 @@ def get_sum_value(data):
 
 
 # 获取一个key的值 或多个key 的和
+#
 def date_value(key, days):
     if isinstance(key, list):
         value_list = [get_value_list('date_%s' % x, days) for x in key]
@@ -120,6 +128,7 @@ def date_value(key, days):
 
 
 # 获取一个key的值 或多个key 的和
+#
 def hour_value(key, day):
     if isinstance(key, list):
         value_list = [get_hour_list('hour_%s' % x, day) for x in key]
@@ -128,6 +137,7 @@ def hour_value(key, day):
 
 
 # 获取 key, key2, type
+#
 def change_value_list(data, key, days):
     style = data.get('style', '/')
     key_data = date_value(data.get('key'), days)
@@ -140,6 +150,7 @@ def change_value_list(data, key, days):
 
 
 # 获取 key, key2, type
+#
 def hour_change_value_list(data, day, key, *args, **kwargs):
     style = data.get('style', '/')
     key_data = hour_value(data.get('key'), day)
