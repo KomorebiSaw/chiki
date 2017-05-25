@@ -472,23 +472,25 @@ class QRCode(db.Document):
     user = db.ReferenceField('User', verbose_name='用户')
     url = db.StringField(verbose_name='链接')
     image = db.XImageField(verbose_name='二维码')
+    scene = db.StringField(verbose_name='场景')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['user', '-created'])
 
     @staticmethod
-    def get(user, url=None):
-        qr = QRCode.objects(user=user.id).first()
+    def get(user, url=None, config=None, scene=None):
+        qr = QRCode.objects(user=user.id, scene=scene).first()
         if not qr:
-            qr = QRCode(user=user.id, url=url)
+            qr = QRCode(user=user.id, url=url, scene=scene)
             qr.save()
 
         if url and qr.url != url:
             qr.url = url
             qr.image = None
 
-        config = current_app.config.get('QRCODE', {})
+        if not config:
+            config = current_app.config.get('QRCODE', {})
         if type(config) is list:
             config = random.choice(config)
         if config.get('wxclient', True) and (
@@ -504,7 +506,7 @@ class QRCode(db.Document):
         if qr.url and not qr.image:
             @retry(3)
             def simple():
-                qr.create_image(user)
+                qr.create_image(user, config)
 
         qr.save()
         return qr
@@ -635,8 +637,10 @@ class QRCode(db.Document):
         del draw
         return bg
 
-    def create_image(self, user):
-        config = current_app.config.get('QRCODE', {})
+    def create_image(self, user, config=None):
+        if not config:
+            config = current_app.config.get('QRCODE', {})
+
         if type(config) is list:
             config = random.choice(config)
         qr = self.create_qrcode(config)
