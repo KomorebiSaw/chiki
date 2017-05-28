@@ -69,7 +69,7 @@ class Swift(Base):
         kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('callback_url', 'http://%s/' % request.host)
         kwargs.setdefault('nonce_str', randstr(32))
-        kwargs['sign'] = self.sign(**kwargs)
+        kwargs['sign'] = self.sign(config=config, **kwargs)
 
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:
