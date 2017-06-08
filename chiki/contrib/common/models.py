@@ -142,7 +142,8 @@ class Item(db.Document):
 
     @staticmethod
     def bool(key, value=True, name=None):
-        value = Item.data(key, 'true' if value else 'false', name)
+        value = Item.data(
+            key, 'true' if value.lower() == 'true' else 'false', name)
         return True if value == 'true' or value == 'True' else False
 
     @staticmethod
