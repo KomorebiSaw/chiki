@@ -194,7 +194,7 @@ def get_ip():
 def is_ajax():
     return request.headers.get('X-Requested-With') == 'XMLHttpRequest' \
         or request.args.get('is_ajax', 'false') == 'true' \
-        or request.headers['Accept'].startswith('application/json')
+        or request.headers.get('Accept', '').startswith('application/json')
 
 
 def is_api():

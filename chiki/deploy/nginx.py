@@ -14,6 +14,16 @@ def nginx():
 
 @roles('web')
 @task
+def nginx_upgrade():
+    xput('files/upgrade.html', env.path)
+    with settings(user='root', password=env.sudo_password):
+        xput('nginx/web.upgrade.nginx.conf',
+             '/etc/nginx/sites-enabled/%s.nginx.conf' % env.project)
+        run('service nginx reload')
+
+
+@roles('web')
+@task
 def nginx_remove():
     run('rm /etc/nginx/sites-enabled/%s.nginx.conf' % env.project)
 
@@ -21,23 +31,23 @@ def nginx_remove():
 @roles('front')
 @task
 def nginx_front(update=True):
-    if update:
-        run('apt-get update && apt-get install nginx -y')
+    # if update:
+    #     run('apt-get update && apt-get install nginx -y')
 
     filename = '/etc/nginx/sites-enabled/%s.nginx.conf' % env.branch
     xput('nginx/front.nginx.conf', filename)
     run('service nginx reload')
 
 
-@roles('front')
-@task
-def nginx_upgrade(update=True):
-    if update:
-        run('apt-get update && apt-get install nginx -y')
+# @roles('front')
+# @task
+# def nginx_upgrade(update=True):
+#     if update:
+#         run('apt-get update && apt-get install nginx -y')
 
-    filename = '/etc/nginx/sites-enabled/%s.nginx.conf' % env.branch
-    xput('nginx/upgrade.nginx.conf', filename)
-    run('service nginx reload')
+#     filename = '/etc/nginx/sites-enabled/%s.nginx.conf' % env.branch
+#     xput('nginx/upgrade.nginx.conf', filename)
+#     run('service nginx reload')
 
 
 @roles('puppet')
