@@ -64,6 +64,13 @@ def tail_log(name='uwsgi.admin', line=100):
     run('tail -n %d %s/logs/%s.log' % (int(line), env.path, name))
 
 
+@roles('web')
+@task
+def git_config():
+    run('git config --global user.email "tiger@qq.com"')
+    run('git config --global user.name "tiger"')
+
+
 @roles('main')
 @task
 def crontab():

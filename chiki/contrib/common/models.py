@@ -361,6 +361,17 @@ class StatLog(db.Document):
             return item.value + value
 
     @staticmethod
+    def date_set(key, tid='', label='', value=1, day=None):
+        day = time.strftime('%Y-%m-%d') if not day else day
+        item = StatLog.objects(key=str(key), tid=tid, label=label, day=day, hour=-1).modify(
+            value=value,
+            set__modified=datetime.now(),
+        )
+        if not item:
+            StatLog(key=str(key), tid=tid, label=label, day=day, hour=-1, value=value).save()
+        return value
+
+    @staticmethod
     def date_get(key, tid='', label='', day=None):
         day = time.strftime('%Y-%m-%d') if not day else day
         log = StatLog.objects(key=str(key), tid=tid, label=label, day=day, hour=-1).first()
