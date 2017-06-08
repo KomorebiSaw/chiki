@@ -28,7 +28,7 @@ from .metaclass import CoolAdminMeta
 from .ajax import create_ajax_loader, process_ajax_references
 from ..mongoengine.fields import FileProxy, ImageProxy, Base64ImageProxy
 from ..utils import json_success, json_error
-from blinker import Namespace, signal
+from blinker import signal
 from chiki.contrib.admin.models import AdminChangeLog
 
 
@@ -37,8 +37,8 @@ __all__ = [
 ]
 
 old_create_blueprint = _BaseView.create_blueprint
-
 model_signals = signal('change')
+
 
 def model_operating(model, type):
     AdminChangeLog(

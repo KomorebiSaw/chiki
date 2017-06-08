@@ -39,8 +39,9 @@ def type_bool(model):
         </a>""" % (model.id, name, value, view, FA_CHECK if value else FA_MINUS)
     return html
 
+
 @formatter_model
-def check_bool(model):   
+def check_bool(model):
     tof = ['true', 'false', 'True', 'False', True, False]
     if model.value in tof:
         return type_bool(model)
