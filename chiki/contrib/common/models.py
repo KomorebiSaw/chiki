@@ -142,10 +142,8 @@ class Item(db.Document):
 
     @staticmethod
     def bool(key, value=True, name=None):
-        value = Item.data(key, 'true' if value == 'true' else 'false', name)
-        if isinstance(value, bool):
-            return value
-        return True if value.lower() == 'true' else False
+        value = Item.data(key, 'true' if value else 'false', name)
+        return True if value in ['true', 'True'] else False
 
     @staticmethod
     def time(key, value='', name=None):
