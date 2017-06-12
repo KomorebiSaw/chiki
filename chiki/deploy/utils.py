@@ -23,6 +23,11 @@ def xrun(cmd, envs=''):
     return run('%s ~/.virtualenvs/%s/bin/%s' % (envs, env.project, cmd))
 
 
+def scp(source, target, host, password=None):
+    run("sshpass -p %s scp %s:%s %s" % (
+        password or env.password, host, source, target))
+
+
 def execute(task, *args, **kwargs):
     if task not in ['stage', 's']:
         if env.stage == 'all':

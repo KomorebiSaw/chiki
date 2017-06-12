@@ -1,11 +1,11 @@
 # coding: utf-8
 import os
-from fabric.api import cd, env, run, roles, task
-from fabric.api import settings, local, runs_once
+from fabric.api import cd, env, run, roles, task, lcd
+from fabric.api import settings, local, runs_once, put
 from fabric.contrib.files import exists, append
 from .nginx import nginx
 from .server import restart, restart_back
-from .utils import execute, xrun, xput
+from .utils import execute, xrun, xput, scp
 
 
 @task
@@ -25,7 +25,7 @@ def build():
         ' python-virtualenv python-dev subversion curl'
         ' libxml2-dev libxslt1-dev libfreetype6-dev'
         ' libjpeg62 libpng3 libjpeg-dev libpng12-dev'
-        ' libffi-dev libssl-dev'
+        ' libffi-dev libssl-dev expect sshpass'
     )
     run('easy_install pip supervisor')
     run('pip install virtualenvwrapper')
@@ -96,7 +96,9 @@ def create_env():
         xput('uwsgi/%s.back.ini' % app, uwsgi)
 
 
-def clone(folder, repo=None, branch=None):
+@roles('repo')
+@task
+def clone(name, folder, repo=None, branch=None, copy=False):
     if exists(folder + '/.git'):
         run('cd %s && git stash && git pull' % folder)
     else:
@@ -105,25 +107,55 @@ def clone(folder, repo=None, branch=None):
     if branch:
         run('cd %s && git checkout %s' % (folder, branch))
 
-
-def clone2setup(folder, repo=None, branch=None, copy=False, install=True):
-    clone(folder, repo, branch)
-
-    requirements = os.path.join(folder, 'requirements.txt')
-    if exists(requirements) and install:
-        xrun('pip install -r %s' % requirements)
-
-    with cd(folder):
-        xrun('python setup.py install')
+    if exists(folder + '/setup.py'):
+        with cd(folder):
+            run('python setup.py sdist')
+            run('mv dist/`python setup.py --fullname`'
+                '.tar.gz %s.tar.gz' % name)
 
     if copy:
-        for name in ['media', 'data']:
-            source = os.path.join(folder, name)
-            target = os.path.join(env.path, name)
-            if exists(source):
-                run('mkdir -p %s && cp -r %s/* %s' % (target, source, target))
+        with cd(folder):
+            run('tar -zcvf %s.media.tar.gz media/web/dist data' % name)
 
 
+@roles('repo')
+@task
+def srepo(folder, items):
+    with cd(folder):
+        for key, item in items:
+            put(key, item)
+
+
+@roles('web')
+@task
+def setup(name, folder, copy=False, is_scp=True):
+    source = os.path.join(folder, '%s.tar.gz' % name)
+    target = os.path.join(env.dist, '%s.tar.gz' % name)
+    if is_scp:
+        scp(source, target, env.repo_host, getattr(env, 'repo_password', ''))
+    else:
+        put(source, target)
+    xrun('pip install %s' % target)
+
+    if copy:
+        source = os.path.join(folder, '%s.media.tar.gz' % name)
+        target = os.path.join(env.dist, '%s.media.tar.gz' % name)
+        if is_scp:
+            scp(source, target, env.repo_host, getattr(
+                env, 'repo_password', ''))
+        else:
+            put(source, target)
+        with cd(env.path):
+            run('tar -zxvf %s' % target)
+
+
+@task
+def clone2setup(name, folder, repo=None, branch=None, copy=False):
+    execute(clone, name, folder, repo, branch, copy=copy)
+    execute(setup, name, folder, copy=copy)
+
+
+@task
 def clone4github():
     repos = {
         'chiki': {
@@ -136,30 +168,93 @@ def clone4github():
     for name, repo in repos.iteritems():
         folder = os.path.join(env.src, name)
         if type(repo) == dict:
-            clone2setup(folder, repo['repo'], repo['branch'])
+            clone2setup(name, folder, repo['repo'], repo['branch'])
         else:
-            clone2setup(folder, repo)
+            clone2setup(name, folder, repo)
 
 
-@roles('web')
 @task
-def update(install=False):
-    clone2setup(os.path.join(env.src, env.project), copy=True, install=install)
+def sdist(copy=True):
+    copy = True if copy in ['True', 'true', True] else False
+    with lcd('../'):
+        local('python setup.py sdist')
+        local('mv dist/`python setup.py --fullname`'
+              '.tar.gz dist/%s.tar.gz' % env.project)
+        local('tar -zcvf dist/%s.media.tar.gz'
+              ' media/web/dist' % env.project)
+
+        if copy:
+            execute(srepo, env.dist, [
+                ('dist/%s.tar.gz' % env.project,
+                 '%s.tar.gz' % env.project),
+                ('dist/%s.media.tar.gz' % env.project,
+                 '%s.media.tar.gz' % env.project),
+            ])
+        else:
+            execute(srepo, env.dist, [
+                ('dist/%s.tar.gz' % env.project,
+                 '%s.tar.gz' % env.project),
+            ])
+
+    execute(setup, env.project, env.dist, copy=copy)
 
 
-@roles('web')
+@task
+def simi():
+    folder = os.environ.get('SIMI_DIR')
+    with lcd(folder):
+        local('python setup.py sdist')
+        local('mv dist/`python setup.py --fullname`.tar.gz dist/simi.tar.gz')
+
+        execute(srepo, env.dist, [
+            ('dist/simi.tar.gz', 'simi.tar.gz'),
+        ])
+
+    execute(setup, 'simi', env.dist)
+
+
+@task
+def chiki():
+    folder = os.environ.get('CHIKI_DIR')
+    with lcd(folder):
+        local('python setup.py sdist')
+        local('mv dist/`python setup.py --fullname`.tar.gz dist/chiki.tar.gz')
+
+        execute(srepo, env.dist, [
+            ('dist/chiki.tar.gz', 'chiki.tar.gz'),
+        ])
+
+    execute(setup, 'chiki', env.dist)
+
+
+@task
+def update(copy=True):
+    copy = True if copy in ['True', 'true', True] else False
+    clone2setup(os.path.join(env.src, env.project), copy=copy)
+
+
 @task
 def deploy():
-    clone2setup(os.path.join(env.src, env.project), copy=True)
-    clone4github()
+    execute(update)
+    execute(clone4github)
 
 
 @task
 @runs_once
-def commit(msg='auto commit'):
-    local('git add --all ..')
-    local('git commit -m "%s"' % msg)
-    local('git push -u origin master')
+def commit(msg='auto commit', project=None):
+    folder = '..'
+    branch = 'master'
+    if project:
+        if project == 'simi':
+            folder = os.environ.get('SIMI_DIR')
+        elif project == 'chiki':
+            folder = os.environ.get('CHIKI_DIR')
+            branch = 'old'
+
+    with lcd(folder):
+        local('git add --all .')
+        local('git commit -m "%s"' % msg)
+        local('git push -u origin %s' % branch)
 
 
 @task
