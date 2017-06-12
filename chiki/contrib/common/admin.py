@@ -26,14 +26,13 @@ FA = '<i class="fa fa-%s"></i>'
 def type_bool(model):
     FA_CHECK = '<i class="fa fa-check-circle text-success"></i>'
     FA_MINUS = '<i class="fa fa-minus-circle text-danger"></i>'
-    view = '/admin/item/dropdown'
+    view = '/admin/item/dropdowns'
     name = 'value'
     value = model.value
     if value == 'false' or value == 'False' or value is False:
         value = False
     else:
         value = True
-
     html = """<a class="btn btn-default btn-sm btn-active" target="_blank" data-id="%s" data-name="%s" data-value="%s" data-url="%s">
         %s
         </a>""" % (model.id, name, value, view, FA_CHECK if value else FA_MINUS)
@@ -72,6 +71,32 @@ class ItemView(ModelView):
     def on_model_change(self, form, model, create=False):
         if model.type == model.TYPE_INT:
             model.value = self.value
+
+    def on_field_change(self, model, name, value):
+        model[name] = value
+        if hasattr(model, 'modified'):
+            model['modified'] = datetime.now()
+
+    @expose('/dropdowns')
+    def dropdown(self):
+        id = request.args.get('id', 0, unicode)
+        val = request.args.get('key', '')
+        name = request.args.get('name', '', unicode)
+        value = request.args.get('value', '', unicode)
+        model = self.model
+
+        if not val:
+            val = 'false' if value == 'false' or value == 'False' or value is False else 'true'
+        if type(val) == int:
+            val = int(val)
+
+        obj = model.objects(id=id).first()
+        if obj:
+            self.on_field_change(obj, name, val)
+            obj.save()
+            return json_success()
+
+        return json_error(msg='该记录不存在')
 
 
 class StatLogView(ModelView):
