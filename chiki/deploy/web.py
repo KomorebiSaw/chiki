@@ -230,7 +230,7 @@ def chiki():
 @task
 def update(copy=True):
     copy = True if copy in ['True', 'true', True] else False
-    clone2setup(os.path.join(env.src, env.project), copy=copy)
+    clone2setup(env.project, os.path.join(env.src, env.project), copy=copy)
 
 
 @task
