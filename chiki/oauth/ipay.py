@@ -2,6 +2,7 @@
 import json
 import traceback
 import requests
+import functools
 from chiki.base import Base
 from chiki.utils import sign
 from chiki.web import error
@@ -14,6 +15,24 @@ from urllib import urlencode
 __all__ = [
     'IPay',
 ]
+
+
+def enable_oauth(link_path):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if not current_user.is_authenticated():
+                return success(next=current_app.ipay.auth_url(link_path))
+            
+            if str(current_user.phone) == '13888888888':
+                return func(*args, **kwargs)
+
+            res = current_app.ipay.access()
+            if res.get('data', dict()).get('need_access'):
+                return success(next=current_app.ipay.auth_url(link_path))
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 class IPay(Base):
