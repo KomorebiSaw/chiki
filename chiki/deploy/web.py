@@ -128,14 +128,18 @@ def srepo(folder, items):
 
 @roles('web')
 @task
-def setup(name, folder, copy=False, is_scp=True):
+def setup(name, folder, copy=False, is_scp=True, version='1.0.0'):
     source = os.path.join(folder, '%s.tar.gz' % name)
     target = os.path.join(env.dist, '%s.tar.gz' % name)
     if is_scp:
         scp(source, target, env.repo_host, getattr(env, 'repo_password', ''))
     else:
         put(source, target)
-    xrun('pip install %s' % target)
+
+    with cd(folder):
+        run('tar -zxvf %s.tar.gz' % name)
+        with cd('%s-%s' % (name, version)):
+            xrun('python setup.py install')
 
     if copy:
         source = os.path.join(folder, '%s.media.tar.gz' % name)
@@ -150,7 +154,7 @@ def setup(name, folder, copy=False, is_scp=True):
 
 
 @task
-def clone2setup(name, folder, repo=None, branch=None, copy=False):
+def clone2setup(name, folder, repo=None, branch=None, copy=False, version='1.0.0'):
     execute(clone, name, folder, repo, branch, copy=copy)
     execute(setup, name, folder, copy=copy)
 
@@ -161,9 +165,10 @@ def clone4github():
         'chiki': {
             'repo': 'https://github.com/endsh/chiki.git',
             'branch': 'old',
+            'version': '1.1.1',
         },
         'simi': 'git@gitlab.com:xiaoku/simi.git',
-        'flask-admin': "https://github.com/flask-admin/flask-admin.git",
+        # 'flask-admin': "https://github.com/flask-admin/flask-admin.git",
     }
     for name, repo in repos.iteritems():
         folder = os.path.join(env.src, name)
