@@ -102,6 +102,7 @@ def create_env():
 def pip(file='../requirements/prod.txt'):
     put(file, os.path.join(env.path, 'requirements.txt'))
     with cd(env.path):
+        # xrun('pip install -r setuptools==35.0.2')
         xrun('pip install -r requirements.txt')
 
 
