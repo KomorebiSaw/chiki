@@ -81,7 +81,28 @@ def git_config():
 def crontab():
     filename = os.path.join(env.path, 'etc/cron.conf')
     xput('files/cron.conf', filename)
-    run('crontab %s' % filename)
+
+    run(r'crontab -l | sed "s#no crontab for %(user)s##g"'
+        r' | sed ":a;N;s#\n#@@#g;ta"'
+        r' | sed "s=## %(branch)s start.*## %(branch)s end==g"'
+        r' | sed "s#@@#\n#g" > ~/cron.conf' % dict(
+            user=env.user,
+            branch=env.branch,
+            filename=filename,
+        )
+    )
+    run('echo "\n## %s start" >> ~/cron.conf' % env.branch)
+    run('cat %s >> ~/cron.conf' % filename)
+    run('echo "## %s end\n" >> ~/cron.conf' % env.branch)
+    run('cat ~/cron.conf')
+    run('crontab ~/cron.conf')
+
+
+@roles('main')
+@task
+def clear_crontab():
+    run('echo "# clear crontab\n" > ~/cron.conf')
+    run('crontab ~/cron.conf')
 
 
 @roles('main')
