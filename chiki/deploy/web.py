@@ -109,6 +109,7 @@ def clone(name, folder, repo=None, branch=None, copy=False):
 
     if exists(folder + '/setup.py'):
         with cd(folder):
+            run('rm -r dist `python setup.py --fullname`')
             run('python setup.py sdist')
             run('mv dist/`python setup.py --fullname`'
                 '.tar.gz %s.tar.gz' % name)
@@ -128,7 +129,7 @@ def srepo(folder, items):
 
 @roles('web')
 @task
-def setup(name, folder, copy=False, is_scp=True, version='1.0.0'):
+def setup(name, folder, copy=False, is_scp=True):
     source = os.path.join(folder, '%s.tar.gz' % name)
     target = os.path.join(env.dist, '%s.tar.gz' % name)
     if is_scp:
@@ -138,8 +139,11 @@ def setup(name, folder, copy=False, is_scp=True, version='1.0.0'):
 
     with cd(folder):
         run('tar -zxvf %s.tar.gz' % name)
-        with cd('%s-%s' % (name, version)):
+        run("mv `gzip -dc %s.tar.gz | tar tvf -| awk '{print $6}' "
+            "| awk -F '/' '{print $1}'|uniq` %s" % (name, name))
+        with cd(name):
             xrun('python setup.py install')
+        run('rm -r %s' % name)
 
     if copy:
         source = os.path.join(folder, '%s.media.tar.gz' % name)
@@ -154,7 +158,7 @@ def setup(name, folder, copy=False, is_scp=True, version='1.0.0'):
 
 
 @task
-def clone2setup(name, folder, repo=None, branch=None, copy=False, version='1.0.0'):
+def clone2setup(name, folder, repo=None, branch=None, copy=False):
     execute(clone, name, folder, repo, branch, copy=copy)
     execute(setup, name, folder, copy=copy)
 
@@ -165,10 +169,9 @@ def clone4github():
         'chiki': {
             'repo': 'https://github.com/endsh/chiki.git',
             'branch': 'old',
-            'version': '1.1.1',
         },
         'simi': 'git@gitlab.com:xiaoku/simi.git',
-        # 'flask-admin': "https://github.com/flask-admin/flask-admin.git",
+        'flask-admin': "https://github.com/flask-admin/flask-admin.git",
     }
     for name, repo in repos.iteritems():
         folder = os.path.join(env.src, name)
@@ -179,16 +182,16 @@ def clone4github():
 
 
 @task
-def sdist(copy=True):
+def sdist(copy=True, media='media/web/dist'):
     copy = True if copy in ['True', 'true', True] else False
     with lcd('../'):
         local('python setup.py sdist')
         local('mv dist/`python setup.py --fullname`'
               '.tar.gz dist/%s.tar.gz' % env.project)
-        local('tar -zcvf dist/%s.media.tar.gz'
-              ' media/web/dist' % env.project)
 
         if copy:
+            local('tar -zcvf dist/%s.media.tar.gz %s' % (
+                media, env.project))
             execute(srepo, env.dist, [
                 ('dist/%s.tar.gz' % env.project,
                  '%s.tar.gz' % env.project),
