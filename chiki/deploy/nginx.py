@@ -56,5 +56,6 @@ def nginx_puppet(update=True):
     if update:
         run('apt-get update && apt-get install nginx -y')
 
-    xput('nginx/puppet.nginx.conf', '/etc/nginx/sites-enabled/default')
+    xput('nginx/puppet.nginx.conf',
+         '/etc/nginx/sites-enabled/%s.nginx.conf' % env.project)
     run('service nginx reload')
