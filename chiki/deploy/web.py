@@ -98,7 +98,8 @@ def create_env():
 
 @roles('repo')
 @task
-def clone(name, folder, repo=None, branch=None, copy=False):
+def clone(name, folder, repo=None, branch=None, copy=False,
+          media='media/web/dist data'):
     if exists(folder + '/.git'):
         run('cd %s && git stash && git pull' % folder)
     else:
@@ -109,14 +110,14 @@ def clone(name, folder, repo=None, branch=None, copy=False):
 
     if exists(folder + '/setup.py'):
         with cd(folder):
-            run('rm -r dist `python setup.py --fullname`')
+            run('rm -rf dist `python setup.py --fullname`')
             run('python setup.py sdist')
             run('mv dist/`python setup.py --fullname`'
                 '.tar.gz %s.tar.gz' % name)
 
     if copy:
         with cd(folder):
-            run('tar -zcvf %s.media.tar.gz media/web/dist data' % name)
+            run('tar -zcvf %s.media.tar.gz %s' % (name, media))
 
 
 @roles('repo')
@@ -137,13 +138,14 @@ def setup(name, folder, copy=False, is_scp=True):
     else:
         put(source, target)
 
-    with cd(folder):
+    with cd(env.dist):
         run('tar -zxvf %s.tar.gz' % name)
         run("mv `gzip -dc %s.tar.gz | tar tvf -| awk '{print $6}' "
             "| awk -F '/' '{print $1}'|uniq` %s" % (name, name))
         with cd(name):
             xrun('python setup.py install')
-        run('rm -r %s' % name)
+        if exists(name):
+            run('rm -r %s' % name)
 
     if copy:
         source = os.path.join(folder, '%s.media.tar.gz' % name)
@@ -158,8 +160,9 @@ def setup(name, folder, copy=False, is_scp=True):
 
 
 @task
-def clone2setup(name, folder, repo=None, branch=None, copy=False):
-    execute(clone, name, folder, repo, branch, copy=copy)
+def clone2setup(name, folder, repo=None, branch=None, copy=False,
+                media='media/web/dist data'):
+    execute(clone, name, folder, repo, branch, copy=copy, media=media)
     execute(setup, name, folder, copy=copy)
 
 
@@ -182,7 +185,7 @@ def clone4github():
 
 
 @task
-def sdist(copy=True, media='media/web/dist'):
+def sdist(copy=False, media='media/web/dist'):
     copy = True if copy in ['True', 'true', True] else False
     with lcd('../'):
         local('python setup.py sdist')
@@ -236,7 +239,7 @@ def chiki():
 
 
 @task
-def update(copy=True):
+def update(copy=False, media='media/web/dist data'):
     copy = True if copy in ['True', 'true', True] else False
     clone2setup(env.project, os.path.join(env.src, env.project), copy=copy)
 
