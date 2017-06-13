@@ -12,6 +12,7 @@ from .utils import execute, xrun, xput, scp
 def all():
     execute(init)
     execute(create_env)
+    execute(pip)
     execute(deploy)
     execute(nginx)
 
@@ -94,6 +95,14 @@ def create_env():
         xput('etc/%s.py' % app, config)
         xput('uwsgi/%s.ini' % app, uwsgi)
         xput('uwsgi/%s.back.ini' % app, uwsgi)
+
+
+@roles('web')
+@task
+def pip(file='../requirements/prod.txt'):
+    put(file, os.path.join(env.path, 'requirements.txt'))
+    with cd(env.path):
+        xrun('pip install -r requirements.txt')
 
 
 @roles('repo')
