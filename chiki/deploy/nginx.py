@@ -61,3 +61,9 @@ def nginx_puppet(update=False):
     xput('nginx/puppet.nginx.conf',
          '/etc/nginx/sites-enabled/%s.nginx.conf' % env.project)
     run('service nginx reload')
+
+
+@roles('puppet')
+@task
+def nginx_puppet_remove():
+    run('rm /etc/nginx/sites-enabled/default')
