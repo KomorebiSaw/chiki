@@ -89,8 +89,8 @@ def crontab():
             user=env.user,
             branch=env.branch,
             filename=filename,
-        )
-    )
+        ))
+
     run('echo "\n## %s start" >> ~/cron.conf' % env.branch)
     run('cat %s >> ~/cron.conf' % filename)
     run('echo "## %s end\n" >> ~/cron.conf' % env.branch)

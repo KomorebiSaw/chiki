@@ -30,9 +30,10 @@ def nginx_remove():
 
 @roles('front')
 @task
-def nginx_front(update=True):
-    # if update:
-    #     run('apt-get update && apt-get install nginx -y')
+def nginx_front(update=False):
+    update = True if update in ['True', 'true', True] else False
+    if update:
+        run('apt-get update && apt-get install nginx -y')
 
     filename = '/etc/nginx/sites-enabled/%s.nginx.conf' % env.branch
     xput('nginx/front.nginx.conf', filename)
@@ -52,7 +53,8 @@ def nginx_front(update=True):
 
 @roles('puppet')
 @task
-def nginx_puppet(update=True):
+def nginx_puppet(update=False):
+    update = True if update in ['True', 'true', True] else False
     if update:
         run('apt-get update && apt-get install nginx -y')
 
