@@ -236,4 +236,6 @@ def init_wxauth(app):
 
     WeChatUser = type('WeChatUser', (um.models.WeChatUser, ), attrs)
     um.add_model(WeChatUser)
-    app.cool_manager.add_model(WeChatUser)
+
+    if hasattr(app, 'cool_manager'):
+        app.cool_manager.add_model(WeChatUser)

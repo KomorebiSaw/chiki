@@ -139,11 +139,9 @@ def before_request():
 
 def init_app(init=None, config=None, pyfile=None,
              template_folder='templates', index=False, error=True,
-             is_web=False, is_api=False):
+             is_web=False, is_api=False, manager=False):
     """ 创建应用 """
-
     app = Flask(__name__, template_folder=template_folder)
-
     if os.environ.get('LOGGER_DEBUG'):
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
@@ -205,13 +203,13 @@ def init_app(init=None, config=None, pyfile=None,
     init_third(app)
     init_page(app)
 
-    app.logger.info('db config: %s' % app.config.get('MONGODB_SETTINGS'))
     db.init_app(app)
     media.init_app(app)
 
-    with app.app_context():
-        cm.init_app(app)
-        Choices.init()
+    if app.is_admin and not manager:
+        with app.app_context():
+            cm.init_app(app)
+            Choices.init()
 
     if callable(init):
         init(app)
@@ -237,19 +235,20 @@ def init_app(init=None, config=None, pyfile=None,
         def chiki_back():
             return 'true'
 
-    with app.app_context():
-        if hasattr(app, 'user_manager'):
-            user = um.models.User.objects(id=100000).first()
-            if not user:
-                user = um.models.User(
-                    id=100000, phone='13888888888', password='123456',
-                    nickname=app.config.get('SITE_NAME'))
-                user.tid = user.create_tid()
-                user.save()
-            if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
-                with open(app.get_data_path('imgs/logo.jpg')) as fd:
-                    user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
-                user.save()
+    if app.is_admin and not manager:
+        with app.app_context():
+            if hasattr(app, 'user_manager'):
+                user = um.models.User.objects(id=100000).first()
+                if not user:
+                    user = um.models.User(
+                        id=100000, phone='13888888888', password='123456',
+                        nickname=app.config.get('SITE_NAME'))
+                    user.tid = user.create_tid()
+                    user.save()
+                if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
+                    with open(app.get_data_path('imgs/logo.jpg')) as fd:
+                        user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
+                    user.save()
 
     @app.route('/1.gif')
     def gif():
@@ -274,10 +273,12 @@ def init_api(init=None, config=None, pyfile=None,
 
 
 def init_admin(init=None, config=None, pyfile=None,
-               template_folder='templates', index=True, error=True):
+               template_folder='templates', index=True,
+               error=True, manager=False):
     """ 创建后台管理应用 """
 
-    app = init_app(init, config, pyfile, template_folder, index, error)
+    app = init_app(init, config, pyfile, template_folder, index,
+                   error, manager=manager)
     app.register_blueprint(login_bp)
     app.login_manager.login_view = 'admin_users.admin_login'
     init_upimg(app)
