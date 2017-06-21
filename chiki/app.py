@@ -206,7 +206,7 @@ def init_app(init=None, config=None, pyfile=None,
     db.init_app(app)
     media.init_app(app)
 
-    if app.is_admin and not manager:
+    if not manager:
         with app.app_context():
             cm.init_app(app)
             Choices.init()
