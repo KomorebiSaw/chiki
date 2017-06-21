@@ -204,7 +204,7 @@ def sdist(copy=False, media='media/web/dist'):
 
         if copy:
             local('tar -zcvf dist/%s.media.tar.gz %s' % (
-                media, env.project))
+                env.project, media))
             execute(srepo, env.dist, [
                 ('dist/%s.tar.gz' % env.project,
                  '%s.tar.gz' % env.project),
