@@ -98,7 +98,8 @@ def on_wechat_login(action, next):
             current_user.is_user() and \
             not current_user.inviter:
         try:
-            uid = int(get_url_arg(next, 'uid') or 0)
+            uid = int(
+                get_url_arg(next, 'uid') or request.args.get('uid', 0, int))
             um.funcs.on_invite(current_user, uid)
         except:
             current_app.logger.error(traceback.format_exc())
