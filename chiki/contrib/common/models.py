@@ -1139,4 +1139,4 @@ class Log(db.Document):
     message = db.StringField(verbose_name='信息')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
-    meta = dict(indexes=['-created', 'level'])
+    meta = dict(indexes=['-created', 'levelname'])
