@@ -590,3 +590,11 @@ class ViewView(ModelView):
         for admin in current_app.extensions.get('admin', []):
             admin._refresh()
         return json_success(msg='保存成功')
+
+
+class LogView(ModelView):
+
+    column_list = ['levelname', 'module', 'funcName', 'lineno', 'message', 'created']
+    column_center_list = ['levelname', 'module', 'funcName', 'lineno', 'created']
+    column_filters = ['levelname', 'module', 'funcName', 'lineno', 'created']
+    column_searchable_list = ['message', 'url', 'user_agent']

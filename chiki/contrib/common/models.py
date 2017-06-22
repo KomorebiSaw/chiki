@@ -1141,4 +1141,4 @@ class Log(db.Document):
     user_agent = db.StringField(verbose_name='UA')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
-    meta = dict(indexes=['-created', 'levelname'])
+    meta = dict(indexes=['-created', 'levelname', 'message', 'url', 'user_agent'])
