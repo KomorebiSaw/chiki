@@ -94,8 +94,8 @@ class IPay(Base):
                 user = um.models.User(xid=xid)
                 user.create()
 
-                current_app.logger.info('create user: %d %s %s' % (
-                    user.id, user.xid, request.url))
+                current_app.logger.info('ipay create user: %d %s' % (
+                    user.id, user.xid))
 
             login_user(user, remember=True)
 
