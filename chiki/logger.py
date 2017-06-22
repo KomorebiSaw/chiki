@@ -5,6 +5,7 @@ import logging
 import logging.handlers
 from datetime import datetime
 from chiki.contrib.common import Log
+from flask import request
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -34,6 +35,8 @@ class ChikiHandler(logging.Handler):
                 funcName=record.funcName,
                 lineno=record.lineno,
                 message=record.message,
+                url=request.url,
+                user_agent=request.headers.get('User-Agent', ''),
                 created=datetime.fromtimestamp(record.created),
             ).save()
         except:
