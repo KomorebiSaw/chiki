@@ -1124,3 +1124,19 @@ class IP(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['-created', ('type', 'ip')])
+
+
+class Log(db.Document):
+    """ 运行日志 """
+
+    name = db.StringField(verbose_name='名称')
+    levelname = db.StringField(verbose_name='等级')
+    thread = db.IntField(verbose_name='进程')
+    threadName = db.StringField(verbose_name='进程名称')
+    module = db.StringField(verbose_name='模块')
+    funcName = db.StringField(verbose_name='方法')
+    lineno = db.IntField(verbose_name='行号')
+    message = db.StringField(verbose_name='信息')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = dict(indexes=['-created'])

@@ -3,6 +3,8 @@ import os
 import sys
 import logging
 import logging.handlers
+from datetime import datetime
+from chiki.contrib.common import Log
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -19,6 +21,25 @@ DEBUG_LOG_FORMAT = (
 )
 
 
+class ChikiHandler(logging.Handler):
+
+    def emit(self, record):
+        try:
+            Log(
+                name=record.name,
+                levelname=record.levelname,
+                thread=record.thread,
+                threadName=record.threadName,
+                module=record.module,
+                funcName=record.funcName,
+                lineno=record.lineno,
+                message=record.message,
+                created=datetime.fromtimestamp(record.created),
+            ).save()
+        except:
+            pass
+
+
 class Logger(object):
 
     def __init__(self, app=None):
@@ -30,22 +51,25 @@ class Logger(object):
 
     def init_app(self, app):
         config = app.config.get('LOGGING')
+        handler = ChikiHandler()
+        handler.setLevel(logging.INFO)
+        app.logger.addHandler(handler)
         if not config:
             return
 
-        config_mail = config.get('SMTP')
-        if config_mail: #如果存在smtp配置
-            app.logger.info('Add SMTP Logging Handler')
-            mail_handler = logging.handlers.SMTPHandler(
-                config_mail['HOST'],  #smtp 服务器地址
-                config_mail['USER'], #smtp 发件人
-                config_mail['TOADDRS'], #smtp 收件人
-                config_mail['SUBJECT'], #smtp 主题
-                (config_mail['USER'], config_mail['PASSWORD'])) #smtp账号密码
-            mail_handler.setLevel(logging.ERROR)
-            app.logger.addHandler(mail_handler)
-        else:
-            app.logger.info('No SMTP Config Found')
+        # config_mail = config.get('SMTP')
+        # if config_mail: #如果存在smtp配置
+        #     app.logger.info('Add SMTP Logging Handler')
+        #     mail_handler = logging.handlers.SMTPHandler(
+        #         config_mail['HOST'],  #smtp 服务器地址
+        #         config_mail['USER'], #smtp 发件人
+        #         config_mail['TOADDRS'], #smtp 收件人
+        #         config_mail['SUBJECT'], #smtp 主题
+        #         (config_mail['USER'], config_mail['PASSWORD'])) #smtp账号密码
+        #     mail_handler.setLevel(logging.ERROR)
+        #     app.logger.addHandler(mail_handler)
+        # else:
+        #     app.logger.info('No SMTP Config Found')
 
         config_file = config.get('FILE')
         if config_file:#如果存在文件配置

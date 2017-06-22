@@ -106,14 +106,17 @@ def init_error_handler(app):
 
     @app.errorhandler(403)
     def error_403(error):
+        app.logger.error('403 - %s' % request.url)
         return render_template('403.html'), 403
 
     @app.errorhandler(404)
     def error_404(error):
+        app.logger.error('404 - %s' % request.url)
         return render_template('404.html'), 404
 
     @app.errorhandler(500)
     def error_500(error):
+        app.logger.error('500 - %s' % request.url)
         return render_template('500.html'), 500
 
 
