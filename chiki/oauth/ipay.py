@@ -94,6 +94,9 @@ class IPay(Base):
                 user = um.models.User(xid=xid)
                 user.create()
 
+                current_app.logger.info('create user: %d %s %s' % (
+                    user.id, user.xid, request.url))
+
             login_user(user, remember=True)
 
             if user.is_user() and not user.active:
