@@ -15,6 +15,7 @@ from chiki.base import db
 from chiki.cool import cm
 from chiki.contrib.common import Item, Page, Choices, Menu, bp as common_bp
 from chiki.contrib.users import um
+from chiki.contrib.admin import admin
 from chiki.contrib.admin.models import AdminUser
 from chiki.contrib.admin.views import bp as login_bp
 from chiki.settings import DATA_ROOT

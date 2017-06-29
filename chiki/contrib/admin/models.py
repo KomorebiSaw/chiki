@@ -91,6 +91,7 @@ class AdminChangeLog(db.Document):
 
     user = db.ReferenceField('AdminUser', verbose_name='用户')
     model = db.StringField(verbose_name='模块')
-    data = db.StringField(verbose_name='操作前')
+    before_data = db.StringField(verbose_name='操作前')
+    after_data = db.StringField(verbose_name='操作后')
     type = db.StringField(verbose_name='类型', choices=TYPE.CHOICES)
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')

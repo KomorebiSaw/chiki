@@ -40,11 +40,21 @@ old_create_blueprint = _BaseView.create_blueprint
 model_signals = signal('change')
 
 
-def model_operating(model, type):
+def model_operating(model, type, **kwargs):
+    before = dict(id=model.id)
+    after = dict(id=model.id)
+    if kwargs.get('form'):
+        for k, v in kwargs.get('form').data.iteritems():
+            if v != model[k]:
+                before[k] = model[k]
+                after[k] = v
+    else:
+        before = model.to_mongo()
     AdminChangeLog(
         user=current_user.id,
         model=model.__class__.__name__,
-        data=str(model.to_mongo()),
+        before_data=str(before),
+        after_data=str(after),
         type=type,
     ).save()
 
@@ -184,7 +194,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         return True
 
     def pre_model_change(self, form, model, created=False):
-        model_signals.send(model, type='created' if created else 'edit')
+        model_signals.send(model, type='created' if created else 'edit', form=form)
 
     def on_model_change(self, form, model, created=False):
         if created is True and hasattr(model, 'create'):
