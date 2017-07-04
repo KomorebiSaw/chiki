@@ -594,7 +594,7 @@ class ViewView(ModelView):
 
 class LogView(ModelView):
 
-    column_list = ['levelname', 'module', 'funcName', 'lineno', 'message', 'created']
-    column_center_list = ['levelname', 'module', 'funcName', 'lineno', 'created']
+    column_list = ['levelname', 'module', 'funcName', 'lineno', 'message', 'url', 'created']
+    column_center_list = ['levelname', 'module', 'funcName', 'lineno', 'url', 'created']
     column_filters = ['levelname', 'module', 'funcName', 'lineno', 'created']
     column_searchable_list = ['message', 'url', 'user_agent']

@@ -297,9 +297,10 @@ def get_url_arg(url, key):
     return res[0] if res else None
 
 
-def create_short_url(key, url):
+def create_short_url(key, url, **kwargs):
     tpl = 'http://api.t.sina.com.cn/short_url/shorten.json?%s'
-    res = requests.get(tpl % urlencode(dict(source=key, url_long=url))).json()
+    res = requests.get(
+        tpl % urlencode(dict(source=key, url_long=url)), **kwargs).json()
     return res[0]['url_short'] if res[0]['type'] == 0 else url
 
 

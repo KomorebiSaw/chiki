@@ -107,17 +107,17 @@ def init_error_handler(app):
 
     @app.errorhandler(403)
     def error_403(error):
-        app.logger.error('403')
+        app.logger.error('403 - %s' % error)
         return render_template('403.html'), 403
 
     @app.errorhandler(404)
     def error_404(error):
-        app.logger.error('404')
+        app.logger.error('404 - %s' % error)
         return render_template('404.html'), 404
 
     @app.errorhandler(500)
     def error_500(error):
-        app.logger.error('500')
+        app.logger.error('500 - %s' % error)
         return render_template('500.html'), 500
 
 
@@ -259,6 +259,10 @@ def init_app(init=None, config=None, pyfile=None,
         return send_file(
             DATA_ROOT + '/1.gif',
             cache_timeout=0, add_etags=False, mimetype='image/gif')
+
+    @app.route('/test/error')
+    def test_error():
+        raise ValueError('testing!!!')
 
     return app
 
