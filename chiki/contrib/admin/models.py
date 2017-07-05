@@ -15,6 +15,7 @@ class AdminUser(db.Document):
     group = db.ReferenceField('Group', verbose_name='组')
     root = db.BooleanField(default=False, verbose_name='超级管理员')
     active = db.BooleanField(default=True, verbose_name='激活')
+    freezed = db.DateTimeField(verbose_name='冻结时间')
     logined = db.DateTimeField(default=datetime.now, verbose_name='登录时间')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
@@ -76,7 +77,7 @@ class Group(db.Document):
 class AdminUserLoginLog(db.Document):
     """ 管理登录日志 """
 
-    TYPE = db.choices(login='登录', logout='退出')
+    TYPE = db.choices(login='登录', logout='退出', error='密码错误')
 
     user = db.ReferenceField('AdminUser', verbose_name='用户')
     type = db.StringField(choices=TYPE.CHOICES, verbose_name='类型')
@@ -100,6 +101,10 @@ class AdminUserLoginLog(db.Document):
     @staticmethod
     def logout(user):
         AdminUserLoginLog.log(user, AdminUserLoginLog.TYPE.LOGOUT)
+
+    @staticmethod
+    def error(user):
+        AdminUserLoginLog.log(user, AdminUserLoginLog.TYPE.ERROR)
 
 
 class AdminChangeLog(db.Document):
