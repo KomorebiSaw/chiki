@@ -62,15 +62,15 @@ class Group(db.Document):
 
     @cached_property
     def can_create_list(self):
-        return [x.name for x in self.power]
+        return [x.name for x in self.can_create]
 
     @cached_property
     def can_edit_list(self):
-        return [x.name for x in self.power]
+        return [x.name for x in self.can_edit]
 
     @cached_property
     def can_delete_list(self):
-        return [x.name for x in self.power]
+        return [x.name for x in self.can_delete]
 
 
 class AdminUserLoginLog(db.Document):
