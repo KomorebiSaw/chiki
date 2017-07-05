@@ -4,7 +4,7 @@ from chiki.contrib.common import Channel
 from chiki.contrib.users import admin, apis, forms, funcs, models, oauth, views
 from chiki.contrib.users.base import user_manager
 from chiki.contrib.users.oauth import wxauth_required
-from chiki.utils import AttrDict, is_ajax
+from chiki.utils import AttrDict, is_ajax, sign
 from chiki.verify import init_verify
 from flask import request, flash, current_app, redirect, abort as _abort
 from flask.ext.login import LoginManager, current_user, login_url
@@ -47,16 +47,22 @@ class UserManager(object):
 
         @self.login.user_loader
         def load_user(id):
-            if type(id) in (str, unicode):
-                if id.startswith('wechat:'):
-                    return um.models.WeChatUser.objects(id=id.split(':')[-1]).first()
-                elif id.startswith('qq:'):
-                    return um.models.QQUser.objects(id=id.split(':')[-1]).first()
-                elif id.startswith('weibo:'):
-                    return um.models.WeiBoUser.objects(id=id.split(':')[-1]).first()
-                elif id.startswith('channel:'):
-                    return Channel.objects(id=int(id.split(':')[-1])).first()
-            return um.models.User.objects(id=id).first()
+            id = str(id)
+            if id.startswith('wechat:'):
+                return um.models.WeChatUser.objects(id=id.split(':')[-1]).first()
+            elif id.startswith('qq:'):
+                return um.models.QQUser.objects(id=id.split(':')[-1]).first()
+            elif id.startswith('weibo:'):
+                return um.models.WeiBoUser.objects(id=id.split(':')[-1]).first()
+            elif id.startswith('channel:'):
+                return Channel.objects(id=int(id.split(':')[-1])).first()
+
+            uid, s = id.rsplit(u'|', 1)
+            user = um.models.User.objects(id=int(uid)).first()
+            if user:
+                key = current_app.config.get('SECRET_KEY')
+                if s == sign(key, password=user.password):
+                    return user
 
         # login = self.login
         # @login.unauthorized_handler

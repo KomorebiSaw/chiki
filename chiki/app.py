@@ -27,6 +27,7 @@ from chiki.settings import TEMPLATE_ROOT
 from chiki.third import init_third
 from chiki.upimg import init_upimg
 from chiki.web import error as error_msg
+from chiki.utils import sign
 from chiki._flask import Flask
 
 __all__ = [
@@ -293,7 +294,12 @@ def init_admin(init=None, config=None, pyfile=None,
 
     @app.login_manager.user_loader
     def load_user(id):
-        return AdminUser.objects(id=id).first()
+        uid, s = id.rsplit(u'|', 1)
+        user = AdminUser.objects(id=uid).first()
+        if user:
+            key = current_app.config.get('SECRET_KEY')
+            if s == sign(key, password=user.password):
+                return user
 
     with app.app_context():
         user = AdminUser.objects(root=True).first()

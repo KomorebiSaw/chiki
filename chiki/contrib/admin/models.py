@@ -1,6 +1,8 @@
 # coding: utf-8
 from chiki.base import db
+from chiki.utils import sign
 from datetime import datetime
+from flask import current_app
 from werkzeug.utils import cached_property
 from chiki.utils import get_ip, get_spm
 
@@ -36,7 +38,8 @@ class AdminUser(db.Document):
         return False
 
     def get_id(self):
-        return self.id
+        s = sign(current_app.config.get('SECRET_KEY'), password=self.password)
+        return '{0}|{1}'.format(self.id, s)
 
 
 class Group(db.Document):

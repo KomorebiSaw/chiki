@@ -5,7 +5,7 @@ import string
 from chiki.base import db
 from chiki.contrib.common import Item
 from chiki.contrib.users.base import user_manager as um
-from chiki.utils import get_ip, get_spm, get_channel, url2image
+from chiki.utils import get_ip, get_spm, get_channel, url2image, sign
 from datetime import datetime, timedelta
 from flask import current_app, request
 from flask.ext.login import current_user
@@ -158,7 +158,8 @@ class UserMixin(object):
 
     def get_id(self):
         """ 获取用户ID """
-        return self.id
+        s = sign(current_app.config.get('SECRET_KEY'), password=self.password)
+        return '{0}|{1}'.format(self.id, s)
 
     def is_allow_invite(self, user):
         return True
