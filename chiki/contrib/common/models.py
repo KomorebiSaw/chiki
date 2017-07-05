@@ -1018,37 +1018,40 @@ class Model(db.Document):
 
 @property
 def can_create(self):
-    group = current_user.group
-    name = self.__class__.__name__
-    if current_user.root is True \
-            or getattr(self, 'can_use') is True \
-            or group and name in group.power_list \
-            and name in group.can_create_list:
-        return self._can_create
+    if current_user.is_authenticated():
+        group = current_user.group
+        name = self.__class__.__name__
+        if current_user.root is True \
+                or getattr(self, 'can_use') is True \
+                or group and name in group.power_list \
+                and name in group.can_create_list:
+            return self._can_create
     return False
 
 
 @property
 def can_edit(self):
-    group = current_user.group
-    name = self.__class__.__name__
-    if current_user.root is True \
-            or getattr(self, 'can_use') is True \
-            or group and name in group.power_list \
-            and name in group.can_edit_list:
-        return self._can_edit
+    if current_user.is_authenticated():
+        group = current_user.group
+        name = self.__class__.__name__
+        if current_user.root is True \
+                or getattr(self, 'can_use') is True \
+                or group and name in group.power_list \
+                and name in group.can_edit_list:
+            return self._can_edit
     return False
 
 
 @property
 def can_delete(self):
-    group = current_user.group
-    name = self.__class__.__name__
-    if current_user.root is True \
-            or getattr(self, 'can_use') is True \
-            or group and name in group.power_list \
-            and name in group.can_delete_list:
-        return self._can_delete
+    if current_user.is_authenticated():
+        group = current_user.group
+        name = self.__class__.__name__
+        if current_user.root is True \
+                or getattr(self, 'can_use') is True \
+                or group and name in group.power_list \
+                and name in group.can_delete_list:
+            return self._can_delete
     return False
 
 
@@ -1103,9 +1106,9 @@ class View(db.Document):
             view._can_edit = view.can_edit
             view._can_delete = view.can_delete
 
-            view.can_create = can_create
-            view.can_edit = can_edit
-            view.can_delete = can_delete
+            setattr(view.__class__, 'can_create', can_create)
+            setattr(view.__class__, 'can_edit', can_edit)
+            setattr(view.__class__, 'can_delete', can_delete)
 
             # view.page_size = self.page_size or view.page_size
             # view.can_create = self.can_create
