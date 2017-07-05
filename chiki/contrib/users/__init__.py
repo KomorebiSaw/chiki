@@ -57,12 +57,15 @@ class UserManager(object):
             elif id.startswith('channel:'):
                 return Channel.objects(id=int(id.split(':')[-1])).first()
 
-            uid, s = id.rsplit(u'|', 1)
-            user = um.models.User.objects(id=int(uid)).first()
-            if user:
-                key = current_app.config.get('SECRET_KEY')
-                if s == sign(key, password=user.password):
-                    return user
+            try:
+                uid, s = id.rsplit(u'|', 1)
+                user = um.models.User.objects(id=int(uid)).first()
+                if user:
+                    key = current_app.config.get('SECRET_KEY')
+                    if s == sign(key, password=user.password):
+                        return user
+            except:
+                pass
 
         # login = self.login
         # @login.unauthorized_handler

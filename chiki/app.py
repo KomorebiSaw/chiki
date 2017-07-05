@@ -294,12 +294,15 @@ def init_admin(init=None, config=None, pyfile=None,
 
     @app.login_manager.user_loader
     def load_user(id):
-        uid, s = id.rsplit(u'|', 1)
-        user = AdminUser.objects(id=uid).first()
-        if user:
-            key = current_app.config.get('SECRET_KEY')
-            if s == sign(key, password=user.password):
-                return user
+        try:
+            uid, s = id.rsplit(u'|', 1)
+            user = AdminUser.objects(id=uid).first()
+            if user:
+                key = current_app.config.get('SECRET_KEY')
+                if s == sign(key, password=user.password):
+                    return user
+        except:
+            pass
 
     with app.app_context():
         user = AdminUser.objects(root=True).first()
