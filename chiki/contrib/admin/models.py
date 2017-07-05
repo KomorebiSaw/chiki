@@ -46,7 +46,10 @@ class Group(db.Document):
     """ 管理组 """
 
     name = db.StringField(verbose_name='组名')
-    power = db.ListField(db.ReferenceField('View'), verbose_name='权限')
+    power = db.ListField(db.ReferenceField('View'), verbose_name='使用权限')
+    can_create = db.ListField(db.ReferenceField('View'), verbose_name='创建权限')
+    can_edit = db.ListField(db.ReferenceField('View'), verbose_name='编辑权限')
+    can_delete = db.ListField(db.ReferenceField('View'), verbose_name='删除权限')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
@@ -55,6 +58,18 @@ class Group(db.Document):
 
     @cached_property
     def power_list(self):
+        return [x.name for x in self.power]
+
+    @cached_property
+    def can_create_list(self):
+        return [x.name for x in self.power]
+
+    @cached_property
+    def can_edit_list(self):
+        return [x.name for x in self.power]
+
+    @cached_property
+    def can_delete_list(self):
         return [x.name for x in self.power]
 
 

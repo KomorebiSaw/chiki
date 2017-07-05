@@ -1016,6 +1016,42 @@ class Model(db.Document):
         return self.name
 
 
+@property
+def can_create(self):
+    group = current_user.group
+    name = self.__class__.__name__
+    if current_user.root is True \
+            or getattr(self, 'can_use') is True \
+            or group and name in group.power_list \
+            and name in group.can_create_list:
+        return self._can_create
+    return False
+
+
+@property
+def can_edit(self):
+    group = current_user.group
+    name = self.__class__.__name__
+    if current_user.root is True \
+            or getattr(self, 'can_use') is True \
+            or group and name in group.power_list \
+            and name in group.can_edit_list:
+        return self._can_edit
+    return False
+
+
+@property
+def can_delete(self):
+    group = current_user.group
+    name = self.__class__.__name__
+    if current_user.root is True \
+            or getattr(self, 'can_use') is True \
+            or group and name in group.power_list \
+            and name in group.can_delete_list:
+        return self._can_delete
+    return False
+
+
 class View(db.Document):
     """ 管理 """
 
@@ -1062,23 +1098,32 @@ class View(db.Document):
                     view.menu_icon_value = view.model.MENU_ICON
                 else:
                     view.menu_icon_value = 'file-o'
-            view.page_size = self.page_size or view.page_size
-            view.can_create = self.can_create
-            view.can_edit = self.can_edit
-            view.can_delete = self.can_delete
-            if self.column_default_sort:
-                try:
-                    view.column_default_sort = json.loads(self.column_default_sort)
-                except:
-                    pass
-            view.column_list = self.column_list or view.column_list
-            view.column_center_list = self.column_center_list or getattr(view, 'column_center_list', None)
-            view.column_hidden_list = self.column_hidden_list or getattr(view, 'column_hidden_list', None)
-            view.column_filters = self.column_filters or view.column_filters
-            view.column_sortable_list = self.column_sortable_list or view.column_sortable_list
-            view.column_searchable_list = self.column_searchable_list or view.column_searchable_list
-            view.form_excluded_columns = self.form_excluded_columns or view.form_excluded_columns
-            view._refresh_cache()
+
+            view._can_create = view.can_create
+            view._can_edit = view.can_edit
+            view._can_delete = view.can_delete
+
+            view.can_create = can_create
+            view.can_edit = can_edit
+            view.can_delete = can_delete
+
+            # view.page_size = self.page_size or view.page_size
+            # view.can_create = self.can_create
+            # view.can_edit = self.can_edit
+            # view.can_delete = self.can_delete
+            # if self.column_default_sort:
+            #     try:
+            #         view.column_default_sort = json.loads(self.column_default_sort)
+            #     except:
+            #         pass
+            # view.column_list = self.column_list or view.column_list
+            # view.column_center_list = self.column_center_list or getattr(view, 'column_center_list', None)
+            # view.column_hidden_list = self.column_hidden_list or getattr(view, 'column_hidden_list', None)
+            # view.column_filters = self.column_filters or view.column_filters
+            # view.column_sortable_list = self.column_sortable_list or view.column_sortable_list
+            # view.column_searchable_list = self.column_searchable_list or view.column_searchable_list
+            # view.form_excluded_columns = self.form_excluded_columns or view.form_excluded_columns
+            # view._refresh_cache()
         elif not view.menu_icon_value:
             if hasattr(view, 'MENU_ICON'):
                 view.menu_icon_value = view.MENU_ICON

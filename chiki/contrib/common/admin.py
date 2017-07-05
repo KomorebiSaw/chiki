@@ -52,6 +52,7 @@ def check_bool(model):
 
 
 class ItemView(ModelView):
+    can_use = True
     column_default_sort = ('key', True)
     column_list = ('key', 'name',  'value', 'type', 'modified', 'created')
     column_center_list = ('type', 'modified', 'created')
