@@ -1022,7 +1022,7 @@ def can_create(self):
         group = current_user.group
         name = self.__class__.__name__
         if current_user.root is True \
-                or getattr(self, 'can_use') is True \
+                or getattr(self, 'can_use', False) is True \
                 or group and name in group.power_list \
                 and name in group.can_create_list:
             return self._can_create
@@ -1035,7 +1035,7 @@ def can_edit(self):
         group = current_user.group
         name = self.__class__.__name__
         if current_user.root is True \
-                or getattr(self, 'can_use') is True \
+                or getattr(self, 'can_use', False) is True \
                 or group and name in group.power_list \
                 and name in group.can_edit_list:
             return self._can_edit
@@ -1048,7 +1048,7 @@ def can_delete(self):
         group = current_user.group
         name = self.__class__.__name__
         if current_user.root is True \
-                or getattr(self, 'can_use') is True \
+                or getattr(self, 'can_use', False) is True \
                 or group and name in group.power_list \
                 and name in group.can_delete_list:
             return self._can_delete
