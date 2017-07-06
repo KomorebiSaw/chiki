@@ -1185,8 +1185,9 @@ class Log(db.Document):
     funcName = db.StringField(verbose_name='方法')
     lineno = db.IntField(verbose_name='行号')
     message = db.StringField(verbose_name='信息')
+    exc = db.StringField(verbose_name='异常')
     url = db.StringField(verbose_name='链接')
     user_agent = db.StringField(verbose_name='UA')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
-    meta = dict(indexes=['-created', 'levelname', 'message', 'url', 'user_agent'])
+    meta = dict(indexes=['-created', 'levelname', 'url', 'message', 'user_agent'])

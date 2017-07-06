@@ -5,9 +5,11 @@ import os.path
 import qrcode as _qrcode
 from PIL import Image
 from StringIO import StringIO
-from chiki.admin import ModelView, formatter_len, formatter_icon, formatter, formatter_model
+from chiki.admin import ModelView, formatter_len, formatter_icon, formatter
+from chiki.admin import formatter_popover, formatter_model
 from chiki.admin import formatter_text, formatter_link, popover, quote, escape
 from chiki.admin import get_span
+from chiki.jinja import markup
 from chiki.forms.fields import WangEditorField, DragSelectField
 from chiki.stat import statistics
 from chiki.utils import json_success
@@ -595,7 +597,14 @@ class ViewView(ModelView):
 
 class LogView(ModelView):
 
-    column_list = ['levelname', 'module', 'funcName', 'lineno', 'message', 'url', 'created']
-    column_center_list = ['levelname', 'module', 'funcName', 'lineno', 'url', 'created']
+    show_popover = True
+    column_list = ['message', 'levelname', 'module', 'funcName', 'lineno', 'url', 'created']
+    column_center_list = ['levelname', 'module', 'funcName', 'lineno', 'created']
     column_filters = ['levelname', 'module', 'funcName', 'lineno', 'created']
     column_searchable_list = ['message', 'url', 'user_agent']
+    column_formatters = dict(
+        message=formatter_popover(lambda m: (
+            m.message, '<pre>%s</pre>' % markup(m.exc or ''))),
+    )
+
+    html = """<style>.popover {max-width: 800px;}</style>"""

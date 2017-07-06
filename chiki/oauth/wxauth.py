@@ -178,12 +178,13 @@ class WXAuth(Base):
         if action == self.ACTION_QRCODE:
             scope = self.SNSAPI_LOGIN
 
-        conf = self.get_config(action, config=F)
+        conf = self.get_config(action, config=config)
         host = self.get_config('callback_host', config=config)
         appid = conf.get('appid')
         if not host:
             callback = url_for(self.endpoint, scope=scope, next=next,
-                               action=action, appid=appid, _external=True, **kwargs)
+                               action=action, appid=appid, _external=True,
+                               **kwargs)
         else:
             callback = url_for(self.endpoint, scope=scope, next=next,
                                action=action, appid=appid, **kwargs)

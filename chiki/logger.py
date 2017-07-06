@@ -1,13 +1,15 @@
 # coding: utf8
-import os
 import sys
 import logging
 import logging.handlers
+import traceback
+from StringIO import StringIO
 from datetime import datetime
 from chiki.contrib.common import Log
 from flask import request
 
 reload(sys)
+
 sys.setdefaultencoding('utf8')
 
 __all__ = [
@@ -26,6 +28,14 @@ class ChikiHandler(logging.Handler):
 
     def emit(self, record):
         try:
+            exc = ''
+            if record.exc_info:
+                ei = record.exc_info
+                sio = StringIO()
+                traceback.print_exception(ei[0], ei[1], ei[2], None, sio)
+                exc = sio.getvalue()
+                sio.close()
+
             Log(
                 name=record.name,
                 levelname=record.levelname,
@@ -34,13 +44,14 @@ class ChikiHandler(logging.Handler):
                 module=record.module,
                 funcName=record.funcName,
                 lineno=record.lineno,
-                message=record.message,
+                message=record.msg,
+                exc=exc,
                 url=request.url,
                 user_agent=request.headers.get('User-Agent', ''),
                 created=datetime.fromtimestamp(record.created),
             ).save()
         except:
-            pass
+            traceback.print_exc()
 
 
 class Logger(object):
