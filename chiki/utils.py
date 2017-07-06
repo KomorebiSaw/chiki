@@ -330,7 +330,11 @@ def random_index(rate):
 
 
 def is_debug():
-    return current_app.debug or request.args.get('debug') == 'true'
+    return current_app.debug or \
+        request.args.get('debug') == 'true' or \
+        request.host.startswith('0.0.0.0') or \
+        request.host.startswith('127.0.') or \
+        request.host.startswith('192.168.')
 
 
 def sign(key, **kwargs):

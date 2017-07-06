@@ -178,7 +178,7 @@ class WXAuth(Base):
         if action == self.ACTION_QRCODE:
             scope = self.SNSAPI_LOGIN
 
-        conf = self.get_config(action, config=config)
+        conf = self.get_config(action, config=F)
         host = self.get_config('callback_host', config=config)
         appid = conf.get('appid')
         if not host:
@@ -225,7 +225,11 @@ class WXAuth(Base):
         if action == 'mobile' or is_json():
             return abort(WXAUTH_REQUIRED)
 
-        return redirect(self.get_auth_url(action, next, scope, state, config, **kwargs))
+        if config is None:
+            config = self.load_config()
+
+        return redirect(self.get_auth_url(
+            action, next, scope, state, config, **kwargs))
 
     def callback(self):
         action = request.args.get('action', 'mp')
@@ -258,7 +262,7 @@ class WXAuth(Base):
 
         return self.success(action, scope, access, next, config=config)
 
-    def load_config(self, appid):
+    def load_config(self, appid=None):
         if callable(self.config_callback):
             return self.config_callback(appid)
 
