@@ -24,7 +24,7 @@ def enable_oauth(link_path):
         def wrapper(*args, **kwargs):
             if not current_user.is_authenticated():
                 return success(next=current_app.ipay.auth_url(link_path))
-            
+
             if str(current_user.phone) == '13888888888':
                 return func(*args, **kwargs)
 
