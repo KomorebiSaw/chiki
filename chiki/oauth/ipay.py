@@ -4,7 +4,7 @@ import traceback
 import requests
 import functools
 from chiki.base import Base
-from chiki.utils import sign
+from chiki.utils import sign, is_debug
 from chiki.web import error
 from chiki.api import success
 from chiki.contrib.common import Item
@@ -25,12 +25,10 @@ def enable_oauth(link_path):
             if not current_user.is_authenticated():
                 return success(next=current_app.ipay.auth_url(link_path))
 
-            if str(current_user.phone) == '13888888888':
-                return func(*args, **kwargs)
-
-            res = current_app.ipay.access()
-            if res.get('data', dict()).get('need_access'):
-                return success(next=current_app.ipay.auth_url(link_path))
+            if not is_debug():
+                res = current_app.ipay.access()
+                if res.get('data', dict()).get('need_access'):
+                    return success(next=current_app.ipay.auth_url(link_path))
             return func(*args, **kwargs)
         return wrapper
     return decorator
