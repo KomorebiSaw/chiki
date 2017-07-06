@@ -1,8 +1,10 @@
 #coding: utf-8
+from datetime import datetime
 from chiki.forms import Form
+from chiki.utils import today
 from wtforms import BooleanField, PasswordField, TextField
 from chiki.forms import Strip, Lower, DataRequired
-from .models import AdminUser
+from .models import AdminUser, AdminUserLoginLog
 
 
 class LoginForm(Form):
@@ -16,7 +18,17 @@ class LoginForm(Form):
             username=self.account.data).first()
         if not admin:
             raise ValueError('用户不存在')
+        if not admin.active:
+            raise ValueError('用户被冻结')
         if admin.password != self.password.data:
+            AdminUserLoginLog.error(admin.id)
+            count = AdminUserLoginLog.objects(created__gte=today, 
+                                              user=admin.id,
+                                              type=AdminUserLoginLog.TYPE.ERROR).count()
+            if count >= 20:
+                admin.active = False
+                admin.freezed = datetime.now()
+                admin.save()
             raise ValueError('密码错误')
 
         self.admin = admin
