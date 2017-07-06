@@ -25,7 +25,7 @@ def enable_oauth(link_path):
             if not current_user.is_authenticated():
                 return success(next=current_app.ipay.auth_url(link_path))
 
-            if not is_debug():
+            if not is_debug() and not current_user.debug:
                 res = current_app.ipay.access()
                 if res.get('data', dict()).get('need_access'):
                     return success(next=current_app.ipay.auth_url(link_path))
