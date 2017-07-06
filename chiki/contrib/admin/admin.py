@@ -4,16 +4,23 @@ from chiki.admin import ModelView
 
 class AdminUserView(ModelView):
     """ 管理员 """
-    can_edit = False
-    can_delete = False
-
-    column_center_list = ('username', 'password', 'root', 'active', 'logined',
-                          'modified', 'created', 'group')
+    # can_edit = False
+    # can_delete = False
+    column_list = ('username', 'root', 'active', 'logined',
+                   'modified', 'created', 'group')
+    column_center_list = column_list
 
 
 class GroupView(ModelView):
     """ 管理组 """
     column_center_list = ('name', 'modified', 'created')
+
+    form_args = dict(
+        power=dict(allow_blank=True),
+        can_create=dict(allow_blank=True),
+        can_edit=dict(allow_blank=True),
+        can_delete=dict(allow_blank=True),
+    )
 
     def __unicode__(self):
         return self.name
