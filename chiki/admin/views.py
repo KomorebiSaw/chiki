@@ -40,23 +40,29 @@ old_create_blueprint = _BaseView.create_blueprint
 model_signals = signal('change')
 
 
-def model_operating(model, type, **kwargs):
-    before = dict(id=model.id)
-    after = dict(id=model.id)
-    if kwargs.get('form'):
-        for k, v in kwargs.get('form').data.iteritems():
-            if v != model[k]:
-                before[k] = model[k]
-                after[k] = v
-    else:
-        before = model.to_mongo()
-    AdminChangeLog(
-        user=current_user.id,
-        model=model.__class__.__name__,
-        before_data=str(before),
-        after_data=str(after),
-        type=type,
-    ).save()
+# def model_operating(model, type, **kwargs):
+#     before = after = dict(id=model.id)
+#     if kwargs.get('form'):
+#         for k, v in kwargs.get('form').data.iteritems():
+#             if v != model[k]:
+#                 before[k] = model[k]
+#                 after[k] = v
+#     else:
+#         before = model.to_mongo()
+#     AdminChangeLog.log(
+#         user=current_user.id,
+#         model=model.__class__.__name__,
+#         before_data=str(before),
+#         after_data=str(after),
+#         type=type,
+#     )
+
+def model_operating(lable, model, **kwargs):
+    user = current_user.id
+    if lable == 'update':
+        AdminChangeLog.modify_data(user, model=model, **kwargs)
+    elif lable == 'dropdown':
+        AdminChangeLog.dropdown_modify(user, model=model, **kwargs)
 
 model_signals.connect(model_operating)
 
@@ -194,7 +200,9 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         return True
 
     def pre_model_change(self, form, model, created=False):
-        model_signals.send(model, type='created' if created else 'edit', form=form)
+        model_signals.send(
+            'update', model=model, type='created' if created else 'edit',
+            form=form)
 
     def on_model_change(self, form, model, created=False):
         if created is True and hasattr(model, 'create'):
@@ -204,7 +212,7 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
             model.modified = datetime.now()
 
     def on_model_delete(self, model):
-        model_signals.send(model, type='delete')
+        model_signals.send('update', model=model, type='delete')
 
     # @expose('/')
     # def index_view(self):
@@ -407,6 +415,15 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
         value = request.args.get('value', '', unicode)
         model = self.model
 
+        group = current_user.group
+        m_name = self.__class__.__name__
+        if not current_user.is_authenticated() \
+                or not (current_user.root is True
+                        or getattr(self, 'can_use', False) is True
+                        or group and m_name in group.power_list
+                        and m_name in group.can_edit_list):
+            return json_error()
+
         if not val:
             val = False if value == 'False' else True
         if type(val) == int:
@@ -414,8 +431,12 @@ class ModelView(with_metaclass(CoolAdminMeta, _ModelView)):
 
         obj = model.objects(id=id).first()
         if obj:
+            before_data = obj[name]
             self.on_field_change(obj, name, val)
             obj.save()
+            model_signals.send(
+                'dropdown', model=model, key=name,
+                before_data=before_data, after_data=val, id=id)
             return json_success()
 
         return json_error(msg='该记录不存在')

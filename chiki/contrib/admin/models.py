@@ -2,7 +2,7 @@
 from chiki.base import db
 from chiki.utils import sign
 from datetime import datetime
-from flask import current_app
+from flask import current_app, request
 from werkzeug.utils import cached_property
 from chiki.utils import get_ip, get_spm
 
@@ -117,4 +117,50 @@ class AdminChangeLog(db.Document):
     before_data = db.StringField(verbose_name='操作前')
     after_data = db.StringField(verbose_name='操作后')
     type = db.StringField(verbose_name='类型', choices=TYPE.CHOICES)
+    spm = db.StringField(verbose_name='spm')
+    ip = db.StringField(verbose_name='IP')
+    headers = db.StringField(verbose_name='头信息')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    @staticmethod
+    def log(user, model, before_data, after_data, type, **kwargs):
+        ip = kwargs.get('ip', get_ip())
+        spm = kwargs.get('spm', get_spm())
+        headers = kwargs.get('headers', request.headers)
+        AdminChangeLog(
+            user=user, model=model, before_data=before_data,
+            after_data=after_data, type=type, ip=ip, spm=spm,
+            headers=str(headers)
+        ).save()
+
+    @staticmethod
+    def modify_data(user, model, **kwargs):
+        # 使用 before = after = dict(id=model.id) 到有内存引用的问题
+        before = dict(id=model.id)
+        after = dict(id=model.id)
+        if kwargs.get('form'):
+            for k, v in kwargs.get('form').data.iteritems():
+                if v != model[k]:
+                    before[k] = model[k]
+                    after[k] = v
+        else:
+            before = model.to_mongo()
+        if kwargs.get('type') == 'delete':
+            after = ''
+        AdminChangeLog.log(
+            user=user, model=model.__class__.__name__,
+            before_data=str(before), after_data=str(after),
+            type=kwargs.get('type'),
+        )
+
+    @staticmethod
+    def dropdown_modify(user, model, **kwargs):
+        before_data = dict(id=kwargs.get('id'))
+        after_data = dict(id=kwargs.get('id'))
+        key = kwargs.get('key')
+        before_data[key] = kwargs.get('before_data')
+        after_data[key] = kwargs.get('after_data')
+
+        AdminChangeLog.log(
+            user=user, model=model.__name__, before_data=str(before_data),
+            after_data=str(after_data), type='edit', what='waht')
