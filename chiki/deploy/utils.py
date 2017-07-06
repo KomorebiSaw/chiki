@@ -29,10 +29,13 @@ def scp(source, target, host, password=None):
 
 
 def execute(task, *args, **kwargs):
+    if 'exclude_envs' not in env:
+        env.exclude_envs = ['test']
+
     if task not in ['stage', 's']:
         if env.stage == 'all':
             for stage, e in env.envs.iteritems():
-                if stage != 'test':
+                if stage not in env.exclude_envs:
                     with settings(stage=stage, **e):
                         _execute(task, *args, **kwargs)
             return
