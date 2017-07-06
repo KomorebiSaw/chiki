@@ -112,6 +112,35 @@ def service(command):
         xrun("%s service %s" % (env.project, command))
 
 
+@roles('main')
+@task
+def start_service(name):
+    with cd(env.path):
+        with settings(abort_exception=FabricException):
+            try:
+                run('kill -s 15 `cat %s/run/%s.pid`' % (env.path, name))
+            except FabricException:
+                pass
+            run('$(nohup ~/.virtualenvs/%(project)s/bin/%(project)s service'
+                ' %(name)s >> %(path)s/logs/%(name)s.log 2>&1 &) && sleep 3'
+                % dict(
+                    project=env.project,
+                    name=name,
+                    path=env.path,
+                ))
+
+
+@roles('main')
+@task
+def stop_service(name):
+    with cd(env.path):
+        with settings(abort_exception=FabricException):
+            try:
+                run('kill -s 15 `cat %s/run/%s.pid`' % (env.path, name))
+            except FabricException:
+                pass
+
+
 @task
 def cmd(text):
     run(text)
