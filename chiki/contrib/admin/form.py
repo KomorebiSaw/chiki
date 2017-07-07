@@ -22,9 +22,10 @@ class LoginForm(Form):
             raise ValueError('用户被冻结')
         if admin.password != self.password.data:
             AdminUserLoginLog.error(admin.id)
-            count = AdminUserLoginLog.objects(created__gte=today, 
-                                              user=admin.id,
-                                              type=AdminUserLoginLog.TYPE.ERROR).count()
+            count = AdminUserLoginLog.objects(
+                created__gte=max(today(), admin.freezed),
+                user=admin.id,
+                type=AdminUserLoginLog.TYPE.ERROR).count()
             if count >= 20:
                 admin.active = False
                 admin.freezed = datetime.now()

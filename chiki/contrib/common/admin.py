@@ -133,7 +133,7 @@ class ShareLogView(ModelView):
 
 
 class ImageItemView(ModelView):
-    column_center_list = ('image', 'created')
+    column_center_list = ('name', 'image', 'created')
     column_filters = ('created',)
 
 

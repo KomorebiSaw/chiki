@@ -905,6 +905,7 @@ class ImageItem(db.Document):
 
     MENU_ICON = 'picture-o'
 
+    name = db.StringField(verbose_name='名称')
     image = db.XImageField(verbose_name='图片')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
