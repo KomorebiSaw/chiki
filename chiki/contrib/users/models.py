@@ -501,6 +501,7 @@ class UserLog(db.Document):
     TYPE_REGISTER = 'register'
     TYPE_LOGIN = 'login'
     TYPE_LOGOUT = 'logout'
+    TYPE_LOGIN_ERROR = 'login_error'
     TYPE_CHANGE_PASSWORD = 'change_password'
     TYPE_RESET_PASSWORD = 'reset_password'
     TYPE_ACTIVE = 'active'
@@ -555,6 +556,10 @@ class UserLog(db.Document):
     @staticmethod
     def login(id, device, key='', spm=None, ip=None):
         UserLog.log(UserLog.TYPE_LOGIN, id, device, key, spm, ip)
+
+    @staticmethod
+    def login_error(id, device, key='', spm=None, ip=None):
+        UserLog.log(UserLog.TYPE_LOGIN_ERROR, id, device, key, spm, ip)
 
     @staticmethod
     def logout(id, device, key='', spm=None, ip=None):

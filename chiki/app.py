@@ -134,9 +134,10 @@ def init_error_handler(app):
 
 def before_request():
     """ Admin 权限验证 """
-    if not current_user.is_authenticated() and \
+    if not current_user.is_authenticated() and request.endpoint and \
             request.endpoint != current_app.login_manager.login_view and \
-            not request.endpoint == 'admin.static':
+            not request.endpoint == 'admin.static' and \
+            not request.endpoint.endswith('dash_oauth_callback'):
         return current_app.login_manager.unauthorized()
 
 

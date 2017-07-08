@@ -10,6 +10,7 @@ from chiki.utils import get_ip, get_spm
 class AdminUser(db.Document):
     """ 管理员 """
 
+    xid = db.IntField(verbose_name='XID')
     username = db.StringField(verbose_name='用户')
     password = db.StringField(verbose_name='密码')
     group = db.ReferenceField('Group', verbose_name='组')

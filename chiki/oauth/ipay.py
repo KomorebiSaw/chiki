@@ -7,6 +7,7 @@ from chiki.base import Base
 from chiki.utils import sign, is_debug
 from chiki.web import error
 from chiki.api import success
+from chiki.contrib.admin import AdminUser, AdminUserLoginLog, Group
 from chiki.contrib.common import Item
 from chiki.contrib.users import um
 from flask import current_app, request, redirect, url_for
@@ -54,7 +55,11 @@ class IPay(Base):
         self.oauth_callback_url = self.get_config(
             'oauth_callback_url', '/oauth/callback/ipay/[key]/')
         self.oauth_endpoint = self.get_config(
-            'oauth_endpoint', 'ipay_[key]_oauth_callback')
+            'oauth_endpoint', 'ipay_[key]_dauth_callback')
+        self.dash_oauth_callback_url = self.get_config(
+            'dash_oauth_callback_url', '/oauth/callback/dash_ipay/[key]/')
+        self.dash_oauth_endpoint = self.get_config(
+            'dash_oauth_endpoint', 'ipay_[key]_dash_oauth_callback')
 
         @app.route(self.callback_url, endpoint=self.endpoint, methods=['POST'])
         def ipay_callback():
@@ -106,6 +111,35 @@ class IPay(Base):
                 user.login()
 
             um.funcs.on_wechat_login('ipay', next)
+            return redirect(next)
+
+        @app.route(self.dash_oauth_callback_url,
+                   endpoint=self.dash_oauth_endpoint)
+        def ipay_dash_oauth_callback():
+            xid = request.args.get('xid')
+            xkey = request.args.get('xkey')
+            next = request.args.get('next')
+
+            res = self.post('/dash/access/key', xid=xid, xkey=xkey)
+            if res.get('code') != 0:
+                if request.args.get('debug'):
+                    return error(msg='授权失败：%s' % json.dumps(res))
+                return error(msg='授权失败')
+
+            user = AdminUser.objects(xid=xid).first()
+            if not user:
+                user = AdminUser(xid=xid)
+
+            res = res.get('data', dict())
+            user.username = res.get('username')
+            user.password = res.get('password')
+            user.root = res.get('group') == 'root'
+            user.group = Group.objects(name=res.get('group_name')).first()
+            user.save()
+
+            login_user(user)
+
+            AdminUserLoginLog.login(user.id)
             return redirect(next)
 
     def handler(self, callback, recursion=True):
@@ -163,5 +197,15 @@ class IPay(Base):
         query = urlencode(dict(pid=self.pid, next=next))
         return 'http://%s/oauth/access?%s' % (host, query)
 
+    def dash_auth_url(self, next):
+        host = Item.data(
+            'ipay_dash_host', 'dash.amroom.cn', name='Dash域名')
+        next = url_for(self.dash_oauth_endpoint, next=next, _external=True)
+        query = urlencode(dict(pid=self.pid, next=next))
+        return 'http://%s/oauth/access?%s' % (host, query)
+
     def auth(self, next):
         return redirect(self.auth_url(next))
+
+    def dash_auth(self, next):
+        return redirect(self.dash_auth_url(next))
