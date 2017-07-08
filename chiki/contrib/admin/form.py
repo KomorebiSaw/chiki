@@ -23,7 +23,7 @@ class LoginForm(Form):
         if admin.password != self.password.data:
             AdminUserLoginLog.error(admin.id)
             count = AdminUserLoginLog.objects(
-                created__gte=max(today(), admin.freezed),
+                created__gte=max(today(), admin.freezed or today()),
                 user=admin.id,
                 type=AdminUserLoginLog.TYPE.ERROR).count()
             if count >= 20:
