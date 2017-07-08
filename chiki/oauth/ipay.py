@@ -111,6 +111,13 @@ class IPay(Base):
                 user.login()
 
             um.funcs.on_wechat_login('ipay', next)
+
+            host = Item.data('ipay_callback_host', '', name='测试重定向地址')
+            if host:
+                if next.startswith('http://'):
+                    next = 'http://%s/%s' % (host, next[7:].split('/', 1)[1])
+                elif next.startswith('/'):
+                    next = 'http://%s%s' % (host, next)
             return redirect(next)
 
         @app.route(self.dash_oauth_callback_url,
