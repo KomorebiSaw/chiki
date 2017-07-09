@@ -1,7 +1,7 @@
 # coding: utf-8
 import json
 import urllib
-import os.path
+import os
 import qrcode as _qrcode
 from PIL import Image
 from StringIO import StringIO
@@ -496,6 +496,9 @@ class Form(BaseForm):
                 attr.choices = choices
 
 
+MENUS_JSON = """[{"id":"UserView"},{"id":"运营","children":[{"id":"QRCodeView"},{"id":"WeChatUserView"}]},{"id":"日志","children":[{"id":"UserLogView"},{"id":"LogView"},{"id":"TraceLogView"},{"id":"StatLogView"},{"id":"AdminUserLoginLogView"},{"id":"AdminChangeLogView"}]},{"id":"工具","children":[{"id":"WebStaticAdmin"},{"id":"ItemView"},{"id":"ViewView"},{"id":"AdminUserView"},{"id":"GroupView"}]}]"""
+
+
 class ViewView(ModelView):
     tabs = [
         dict(endpoint='.set_menu', title='菜单', text='菜单'),
@@ -559,6 +562,19 @@ class ViewView(ModelView):
     @expose('/set_menu')
     def set_menu(self):
         menus = json.loads(Item.data('admin_menus', '[]', name='管理菜单'))
+
+        if not menus:
+            filename = current_app.get_data_path('admin.menus.json')
+            if os.path.isfile(filename):
+                try:
+                    with open(filename) as fd:
+                        menus = json.loads(fd.read())
+                except:
+                    pass
+
+            if not menus:
+                menus = json.loads(MENUS_JSON)
+
         views = dict()
         cates = dict()
         for view in View.objects.all():
@@ -590,6 +606,11 @@ class ViewView(ModelView):
     def save_menu(self):
         menus = request.form.get('menus')
         Item.set_data('admin_menus', menus, name='管理菜单')
+
+        filename = current_app.get_data_path('admin.menus.json')
+        with open(filename, 'w+') as fd:
+            fd.write(menus)
+
         for admin in current_app.extensions.get('admin', []):
             admin._refresh()
         return json_success(msg='保存成功')
