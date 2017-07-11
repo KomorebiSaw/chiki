@@ -13,7 +13,8 @@ from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask.ext.session import Session
 from chiki.base import db
 from chiki.cool import cm
-from chiki.contrib.common import Item, Page, Choices, Menu, bp as common_bp
+from chiki.contrib.common import Item, Page, Choices, Menu, TraceLog
+from chiki.contrib.common import bp as common_bp
 from chiki.contrib.users import um
 from chiki.contrib.admin import admin
 from chiki.contrib.admin.models import AdminUser
@@ -27,7 +28,7 @@ from chiki.settings import TEMPLATE_ROOT
 from chiki.third import init_third
 from chiki.upimg import init_upimg
 from chiki.web import error as error_msg
-from chiki.utils import sign
+from chiki.utils import sign, json_success
 from chiki._flask import Flask
 
 __all__ = [
@@ -263,6 +264,21 @@ def init_app(init=None, config=None, pyfile=None,
     @app.route('/test/error')
     def test_error():
         raise ValueError('testing!!!')
+
+    @app.route('/trace/log', methods=['POST'])
+    def trace_log():
+        user = None
+        if current_user.is_authenticated():
+            user = current_user.id
+
+        TraceLog(
+            user=user,
+            key=request.form.get('key', ''),
+            tid=request.form.get('tid', ''),
+            label=request.form.get('label', ''),
+            value=request.form.get('value', ''),
+        ).save()
+        return json_success()
 
     return app
 
