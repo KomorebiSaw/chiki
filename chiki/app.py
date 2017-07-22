@@ -33,6 +33,8 @@ from chiki._flask import Flask
 
 __all__ = [
     "init_app", 'init_web', 'init_api', "init_admin", "start_error",
+    'register_app', 'register_web', 'register_api', 'register_admin',
+    'wsgi', 'apps',
 ]
 
 DEBUG_TB_PANELS = (
@@ -49,7 +51,28 @@ DEBUG_TB_PANELS = (
     'chiki.debug_toolbar_mongo.panel.MongoDebugPanel',
 )
 
+
+class WsgiCreater(object):
+
+    def __getattr__(self, key):
+        global apps
+        if key not in self.__dict__:
+            module, sub = key.split('_', 1)
+            __import__(module)
+            info = apps[sub]
+            try:
+                app = info['run']()
+                setattr(self, key, app)
+                return app
+            except Exception, e:
+                start_error(config=info['config'])
+                return
+        return self.__dict__.get(key)
+
+
 media = MediaManager()
+apps = dict()
+wsgi = WsgiCreater()
 
 
 def init_page(app):
@@ -333,6 +356,59 @@ def init_admin(init=None, config=None, pyfile=None,
         return before_request()
 
     return app
+
+
+def register_app(name, config, init_app, manager=False):
+    def wrapper(init):
+        global apps
+
+        def run():
+            return init_app(
+                init=init,
+                config=config,
+                template_folder=config.TEMPLATE_FOLDER,
+            )
+
+        apps[name] = dict(
+            name=name,
+            config=config,
+            init=init,
+            init_app=init_app,
+            manager=False,
+            run=run,
+        )
+
+        if manager is True:
+            def run():
+                return init_app(
+                    init=init,
+                    config=config,
+                    template_folder=config.TEMPLATE_FOLDER,
+                    manager=True,
+                )
+
+            apps['manager'] = dict(
+                name='manager',
+                config=config,
+                init=init,
+                init_app=init_app,
+                manager=True,
+                run=run,
+            )
+        return init
+    return wrapper
+
+
+def register_admin(name='admin', config=None, manager=True):
+    return register_app(name, config, init_admin, manager=manager)
+
+
+def register_api(name='api', config=None):
+    return register_app(name, config, init_api)
+
+
+def register_web(name='web', config=None):
+    return register_app(name, config, init_web)
 
 
 def start_error(init=None, config=None):

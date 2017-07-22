@@ -40,7 +40,6 @@ setup(
     entry_points={
         'console_scripts': [
             'chiki = chiki.cli:main',
-            'chiki-run = chiki.cli:run',
         ]
     },
     include_package_data=True,

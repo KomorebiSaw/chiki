@@ -1,9 +1,25 @@
 # coding: utf-8
 import re
 import os
+import sys
 import click
+import inspect
 from datetime import datetime
 from cookiecutter.main import cookiecutter
+from flask import Flask
+from flask.ext.script import Manager, Command
+from chiki.app import apps
+from chiki.service import run as run_service
+
+commands = dict()
+
+
+def command(cmd=None):
+    def wrapper(func):
+        global commands
+        commands[cmd or func.__name__] = func
+        return func
+    return wrapper
 
 
 def search_item(path, items):
@@ -17,6 +33,7 @@ def search_item(path, items):
                 items += [re.sub(',\n +', ', ', sub[0]) for sub in subs]
 
 
+@command('item')
 def create_item():
     items = []
     name = os.popen('python setup.py --name').read()[:-1]
@@ -75,30 +92,69 @@ def run(model='simple'):
         fd.write(content)
 
 
-@click.command()
-@click.argument('cmd')
-def run(cmd):
-    if cmd == 'item':
-        create_item()
+def get_project_name():
+    if os.path.isfile('setup.py'):
+        with open('setup.py') as fd:
+            res = re.search('name=[\'"](.*)[\'"]', fd.read())
+            if res:
+                return res.group(1)
 
 
-@click.command()
-@click.argument('template')
-@click.option(
-    '--no-input', is_flag=True,
-    help='Do not prompt for parameters and only use cookiecutter.json '
-         'file content',
-)
-@click.option(
-    '-c', '--checkout',
-    help='branch, tag or commit to checkout after git clone',
-)
-@click.option('-a', '--api', is_flag=True, help='create the api server')
-@click.option('-w', '--web', is_flag=True, help='create the web server')
-def main(template, no_input, checkout, api, web):
-    context = dict(today=datetime.now().strftime('%Y-%m-%d'))
-    if api:
-        context['has_api'] = True
-    if web:
-        context['has_web'] = True
-    cookiecutter(template, checkout, no_input, extra_context=context)
+def create_command(info):
+    def cmd(debug=False, reloader=False, host='0.0.0.0',
+            port=info['config'].PORT):
+        app = info['run']()
+        app.run(debug=debug, use_reloader=reloader, host=host, port=port)
+    return cmd
+
+
+def main():
+    global apps, commands
+
+    basename = os.path.basename(sys.argv[0])
+    if basename != 'chiki':
+        project = basename
+
+    if not project:
+        sys.path.append('.')
+        project = get_project_name()
+
+    if project:
+        __import__(project)
+
+    if 'manager' in apps:
+        manager = Manager(apps['manager']['run'])
+
+        for cmd, app in apps.iteritems():
+            manager.add_command(cmd, Command(create_command(app)))
+
+        for cmd, command in commands.iteritems():
+            manager.add_command(cmd, Command(command))
+
+        @manager.command
+        @manager.option('name')
+        def service(name, model='simple'):
+            if not run_service(name, model):
+                module = '%s.services.%s' % (project, name)
+                action = __import__(module)
+                for sub in module.split('.')[1:]:
+                    action = getattr(action, sub)
+                if inspect.getargspec(action.run)[0]:
+                    action.run(model)
+                else:
+                    action.run()
+    else:
+        manager = Manager(Flask(__name__))
+
+    @manager.command
+    @manager.option('template')
+    def create_project(template, checkout='', no_input=False,
+                       api=False, web=False):
+        context = dict(today=datetime.now().strftime('%Y-%m-%d'))
+        if api:
+            context['has_api'] = True
+        if web:
+            context['has_web'] = True
+        cookiecutter(template, checkout, no_input, extra_context=context)
+
+    manager.run()
