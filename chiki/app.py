@@ -34,7 +34,7 @@ from chiki._flask import Flask
 __all__ = [
     "init_app", 'init_web', 'init_api', "init_admin", "start_error",
     'register_app', 'register_web', 'register_api', 'register_admin',
-    'wsgi', 'apps',
+    'apps',
 ]
 
 DEBUG_TB_PANELS = (
@@ -52,27 +52,8 @@ DEBUG_TB_PANELS = (
 )
 
 
-class WsgiCreater(object):
-
-    def __getattr__(self, key):
-        global apps
-        if key not in self.__dict__:
-            module, sub = key.split('_', 1)
-            __import__(module)
-            info = apps[sub]
-            try:
-                app = info['run']()
-                setattr(self, key, app)
-                return app
-            except Exception, e:
-                start_error(config=info['config'])
-                return
-        return self.__dict__.get(key)
-
-
 media = MediaManager()
 apps = dict()
-wsgi = WsgiCreater()
 
 
 def init_page(app):
@@ -362,11 +343,25 @@ def register_app(name, config, init_app, manager=False):
     def wrapper(init):
         global apps
 
+        class Wsgi(object):
+            def __init__(self):
+                self.app = None
+
+            def __call__(self, environ, start_response):
+                if not self.app:
+                    self.app = init_app(
+                        init=init,
+                        config=config,
+                        template_folder=config.TEMPLATE_FOLDER,
+                    )
+                return self.app(environ, start_response)
+
         def run():
             return init_app(
                 init=init,
                 config=config,
                 template_folder=config.TEMPLATE_FOLDER,
+                manager=True,
             )
 
         apps[name] = dict(
@@ -376,7 +371,11 @@ def register_app(name, config, init_app, manager=False):
             init_app=init_app,
             manager=False,
             run=run,
+            wsgi=Wsgi(),
         )
+        if config and hasattr(config, 'PROJECT'):
+            module = __import__(config.PROJECT)
+            setattr(module, 'wsgi_%s' % name, apps[name]['wsgi'])
 
         if manager is True:
             def run():
