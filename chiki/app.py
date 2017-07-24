@@ -361,12 +361,14 @@ def register_app(name, config, init_app, manager=False):
                 return self.app(environ, start_response)
 
         def run():
-            return init_app(
+            kwargs = dict(
                 init=init,
                 config=config,
                 template_folder=config.TEMPLATE_FOLDER,
-                manager=True,
             )
+            if manager:
+                kwargs['manager'] = manager
+            return init_app(**kwargs)
 
         apps[name] = dict(
             name=name,
