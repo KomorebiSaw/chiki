@@ -195,7 +195,9 @@ def init_app(init=None, config=None, pyfile=None,
         def before_request():
             if request.path == current_app.config.get('WEROBOT_ROLE'):
                 return
-            if not app.debug and 'micromessenger' not in request.headers['User-Agent'].lower():
+
+            ua = request.headers['User-Agent'].lower()
+            if not app.debug and 'micromessenger' not in ua:
                 return error_msg('请用微信客户端扫一扫')
 
     app.get_data_path = get_data_path
@@ -289,14 +291,16 @@ def init_app(init=None, config=None, pyfile=None,
 
 def init_web(init=None, config=None, pyfile=None,
              template_folder='templates', index=False, error=True):
-    app = init_app(init, config, pyfile, template_folder, index, error, is_web=True)
+    app = init_app(init, config, pyfile, template_folder,
+                   index, error, is_web=True)
     app.register_blueprint(common_bp)
     return app
 
 
 def init_api(init=None, config=None, pyfile=None,
              template_folder='templates', index=False, error=False):
-    app = init_app(init, config, pyfile, template_folder, index, error, is_api=True)
+    app = init_app(init, config, pyfile, template_folder,
+                   index, error, is_api=True)
     return app
 
 
@@ -357,12 +361,12 @@ def register_app(name, config, init_app, manager=False):
                 return self.app(environ, start_response)
 
         def run():
-            return init_app(
+            kwargs = dict(
                 init=init,
                 config=config,
                 template_folder=config.TEMPLATE_FOLDER,
-                manager=True,
             )
+            return init_app(**kwargs)
 
         apps[name] = dict(
             name=name,
@@ -374,8 +378,11 @@ def register_app(name, config, init_app, manager=False):
             wsgi=Wsgi(),
         )
         if config and hasattr(config, 'PROJECT'):
-            module = __import__(config.PROJECT)
-            setattr(module, 'wsgi_%s' % name, apps[name]['wsgi'])
+            try:
+                module = __import__(config.PROJECT)
+                setattr(module, 'wsgi_%s' % name, apps[name]['wsgi'])
+            except Exception:
+                start_error(config=config)
 
         if manager is True:
             def run():
