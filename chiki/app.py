@@ -366,8 +366,6 @@ def register_app(name, config, init_app, manager=False):
                 config=config,
                 template_folder=config.TEMPLATE_FOLDER,
             )
-            if manager:
-                kwargs['manager'] = manager
             return init_app(**kwargs)
 
         apps[name] = dict(

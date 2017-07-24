@@ -2,7 +2,6 @@
 import re
 import os
 import sys
-import click
 import inspect
 from datetime import datetime
 from cookiecutter.main import cookiecutter
