@@ -905,9 +905,15 @@ class ImageItem(db.Document):
 
     MENU_ICON = 'picture-o'
 
+    key = db.StringField(verbose_name='key', primary_key=True)
     name = db.StringField(verbose_name='名称')
     image = db.XImageField(verbose_name='图片')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    @staticmethod
+    def get(key):
+        image = ImageItem.objects(key=key).order_by('-create').first()
+        return image.image.get_link() if image else ''
 
 
 class Option(db.Document):

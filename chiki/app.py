@@ -13,7 +13,7 @@ from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask.ext.session import Session
 from chiki.base import db
 from chiki.cool import cm
-from chiki.contrib.common import Item, Page, Choices, Menu, TraceLog
+from chiki.contrib.common import Item, Page, Choices, Menu, TraceLog, ImageItem
 from chiki.contrib.common import bp as common_bp
 from chiki.contrib.users import um
 from chiki.contrib.admin import admin
@@ -225,7 +225,7 @@ def init_app(init=None, config=None, pyfile=None,
 
     @app.context_processor
     def context_processor():
-        return dict(Item=Item, Menu=Menu, url_for=url_for)
+        return dict(Item=Item, Menu=Menu, url_for=url_for, ImageItem=ImageItem)
 
     if error:
         init_error_handler(app)
