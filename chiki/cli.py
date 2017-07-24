@@ -111,6 +111,7 @@ def create_command(info):
 def main():
     global apps, commands
 
+    project = None
     basename = os.path.basename(sys.argv[0])
     if basename != 'chiki':
         project = basename
