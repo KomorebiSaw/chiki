@@ -911,9 +911,9 @@ class ImageItem(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     @staticmethod
-    def get(key):
+    def get(key, size=tuple()):
         image = ImageItem.objects(key=key).order_by('-create').first()
-        return image.image.get_link() if image else ''
+        return image.image.get_link(*size) if image else ''
 
 
 class Option(db.Document):
