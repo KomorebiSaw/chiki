@@ -1,5 +1,6 @@
 # coding: utf-8
 from chiki.admin import ModelView
+from chiki.admin.formatters import formatter_link
 
 
 class AdminUserView(ModelView):
@@ -9,11 +10,19 @@ class AdminUserView(ModelView):
     column_list = ('username', 'root', 'active', 'logined',
                    'modified', 'created', 'group')
     column_center_list = column_list
+    column_formatters = dict(
+        username=formatter_link(
+            lambda m: (m.username, '/admin/adminchangelog/?flt1_2=%s' % m.id)),
+    )
 
 
 class GroupView(ModelView):
     """ 管理组 """
     column_center_list = ('name', 'modified', 'created')
+    column_formatters = dict(
+        name=formatter_link(
+            lambda x: (x.name, '/admin/adminuser/?flt1_2=%s' % x.id)),
+    )
 
     form_args = dict(
         power=dict(allow_blank=True),
