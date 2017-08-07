@@ -911,14 +911,13 @@ class ImageItem(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     @staticmethod
-    def get(key, name, size=tuple(), default=''):
+    def get(key, name='默认', size=tuple()):
         image = ImageItem.objects(key=key).order_by('-create').first()
-
-        if image:
-            return image.image.get_link(*size) if image else ''
-        else:
-            ImageItem(key=key, name=name, image='').save()
-            return default
+        if not image:
+            image = ImageItem(
+                key=key, name=name
+            ).save()
+        return image.image.get_link(*size) if image.image else ''
 
 
 class Option(db.Document):
