@@ -37,7 +37,7 @@ def nginx_front(update=False):
     if update:
         run('apt-get update && apt-get install nginx -y')
 
-    filename = '/etc/nginx/sites-enabled/%s.nginx.conf' % env.branch
+    filename = '/etc/nginx/sites-enabled/%s.front.nginx.conf' % env.branch
     xput('nginx/front.nginx.conf', filename)
     run('service nginx reload')
 
