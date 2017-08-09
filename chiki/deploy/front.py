@@ -4,6 +4,8 @@ from datetime import datetime
 from .web import restart as _restart, restart_back
 from .utils import execute, xput
 
+# env.cdn_host = 'cdn.51cxin.cn'
+
 
 @task
 @roles('web')
@@ -47,9 +49,9 @@ def media(source='../media/web/dist', target=None, app='web', restart=True):
         if stage not in env.exclude_envs:
             tpl = (
                 r'sed -r -i "s#SITE_STATIC_PREFIX.*#SITE_STATIC_PREFI'
-                r'X = \"http://cdn.51cxin.cn/%s/\"#" %s/etc/%s.py'
+                r'X = \"http://%s/%s/\"#" %s/etc/%s.py'
             )
-            local(tpl % (target, stage, app))
+            local(tpl % (env.cdn_host, target, stage, app))
 
     with settings(stage='all'):
         execute(upload_etc, app)

@@ -162,7 +162,7 @@ def hour_change_value_list(data, day, key, *args, **kwargs):
     return list(map(lambda x: get_value(x[0], x[1], data.get('default', True)), zip(key_data, key2_data)))
 
 
-def init_stat(cls, key, subs, tpl, modal, **kwargs):
+def init_stat(cls, key, subs, tpl, projects, modal, **kwargs):
     """ 初始化统计 """
 
     @expose('/' if key == 'index' else '/%s' % key)
@@ -208,8 +208,17 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
             key = '%s%s' % (prefix, item.get('key'))
             if modal:
                 key = '%s_%s' % (key, request.args.get('id'))
-            # axis： 小时列表或者天列表
-            value = value_list(key, axis)
+            if projects:
+                # if set(['value_list', 'change']).intersection(item):
+                if 'hour_value_list' in item and prefix == 'hour_':
+                    value = value_list(key, projects)
+                elif 'value_list' in item and prefix == 'date_':
+                    value = value_list(key, axis, projects)
+                else:
+                    value = value_list(key, axis)
+            else:
+                # axis： 小时列表或者天列表
+                value = value_list(key, axis)
             handle = item.get('handle')
             if callable(handle):
                 value = [handle(x) for x in value]
@@ -257,14 +266,17 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
     setattr(cls, '%s_data' % key, data)
 
 
-def statistics(tpl=None, modal=False, **kwargs):
+def statistics(tpl=None, modal=False, projects=None, **kwargs):
     def wrapper(cls):
         default = 'admin/stat-modal.html' if modal else 'admin/stat.html'
         datas = getattr(cls, 'datas', None)
+        # data = getattr(cls, 'data', None)
         if datas:
             for key, subs in datas.iteritems():
-                init_stat(cls, key, subs, tpl if tpl is not None else default, modal)
-
+                init_stat(cls, key, subs, tpl if tpl is not None else default, projects, modal)
+        # if data:
+        #     for key, subs in data.iteritems():
+        #         init_stat(cls, key, subs, tpl if tpl is not None else default, projects, modal)
         for p in dir(cls):
             attr = getattr(cls, p)
             if hasattr(attr, '_urls'):
