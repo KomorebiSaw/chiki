@@ -2,6 +2,7 @@
 import os
 import redis
 import traceback
+import logging
 from StringIO import StringIO
 from flask import Blueprint, current_app, Response, render_template
 from flask import request, redirect, url_for, send_file
@@ -12,23 +13,28 @@ from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask.ext.session import Session
 from chiki.base import db
 from chiki.cool import cm
-from chiki.contrib.common import Item, Page, Choices, Menu, bp as common_bp
+from chiki.contrib.common import Item, Page, Choices, Menu, TraceLog, ImageItem
+from chiki.contrib.common import bp as common_bp
 from chiki.contrib.users import um
+from chiki.contrib.admin import admin
 from chiki.contrib.admin.models import AdminUser
 from chiki.contrib.admin.views import bp as login_bp
 from chiki.settings import DATA_ROOT
 from chiki.jinja import init_jinja
-from chiki.logger import init_logger
+from chiki.logger import init_logger, DEBUG_LOG_FORMAT
 from chiki.media import MediaManager
 from chiki.oauth import init_oauth
 from chiki.settings import TEMPLATE_ROOT
 from chiki.third import init_third
 from chiki.upimg import init_upimg
 from chiki.web import error as error_msg
+from chiki.utils import sign, json_success
 from chiki._flask import Flask
 
 __all__ = [
     "init_app", 'init_web', 'init_api', "init_admin", "start_error",
+    'register_app', 'register_web', 'register_api', 'register_admin',
+    'apps',
 ]
 
 DEBUG_TB_PANELS = (
@@ -45,7 +51,9 @@ DEBUG_TB_PANELS = (
     'chiki.debug_toolbar_mongo.panel.MongoDebugPanel',
 )
 
+
 media = MediaManager()
+apps = dict()
 
 
 def init_page(app):
@@ -109,6 +117,7 @@ def init_error_handler(app):
 
     @app.errorhandler(404)
     def error_404(error):
+        app.logger.error('404 - %s' % error)
         return render_template('404.html'), 404
 
     @app.errorhandler(500)
@@ -130,18 +139,25 @@ def init_error_handler(app):
 
 def before_request():
     """ Admin 权限验证 """
-    if not current_user.is_authenticated() and \
+    if not current_user.is_authenticated() and request.endpoint and \
             request.endpoint != current_app.login_manager.login_view and \
-            not request.endpoint == 'admin.static':
+            not request.endpoint == 'admin.static' and \
+            not request.endpoint.endswith('dash_oauth_callback'):
         return current_app.login_manager.unauthorized()
 
 
 def init_app(init=None, config=None, pyfile=None,
              template_folder='templates', index=False, error=True,
-             is_web=False, is_api=False):
+             is_web=False, is_api=False, manager=False):
     """ 创建应用 """
-
     app = Flask(__name__, template_folder=template_folder)
+    if os.environ.get('LOGGER_DEBUG'):
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(logging.Formatter(DEBUG_LOG_FORMAT))
+        app.logger.addHandler(handler)
+        app.logger.setLevel(logging.DEBUG)
+
     if config:
         app.config.from_object(config)
     if pyfile:
@@ -153,6 +169,7 @@ def init_app(init=None, config=None, pyfile=None,
         for pyfile in env.split('|'):
             if pyfile.startswith('./'):
                 pyfile = os.path.join(os.getcwd(), pyfile)
+            app.logger.info('load config pyfile: %s' % pyfile)
             app.config.from_pyfile(pyfile)
 
     if app.debug:
@@ -178,7 +195,9 @@ def init_app(init=None, config=None, pyfile=None,
         def before_request():
             if request.path == current_app.config.get('WEROBOT_ROLE'):
                 return
-            if not app.debug and 'micromessenger' not in request.headers['User-Agent'].lower():
+
+            ua = request.headers['User-Agent'].lower()
+            if not app.debug and 'micromessenger' not in ua:
                 return error_msg('请用微信客户端扫一扫')
 
     app.get_data_path = get_data_path
@@ -194,19 +213,21 @@ def init_app(init=None, config=None, pyfile=None,
     init_oauth(app)
     init_third(app)
     init_page(app)
+
     db.init_app(app)
     media.init_app(app)
 
-    with app.app_context():
-        cm.init_app(app)
-        Choices.init()
+    if app.is_admin and not manager:
+        with app.app_context():
+            cm.init_app(app)
+            Choices.init()
 
     if callable(init):
         init(app)
 
     @app.context_processor
     def context_processor():
-        return dict(Item=Item, Menu=Menu, url_for=url_for)
+        return dict(Item=Item, Menu=Menu, url_for=url_for, ImageItem=ImageItem)
 
     if error:
         init_error_handler(app)
@@ -225,19 +246,20 @@ def init_app(init=None, config=None, pyfile=None,
         def chiki_back():
             return 'true'
 
-    with app.app_context():
-        if hasattr(app, 'user_manager'):
-            user = um.models.User.objects(id=100000).first()
-            if not user:
-                user = um.models.User(
-                    id=100000, phone='13888888888', password='123456',
-                    nickname=app.config.get('SITE_NAME'))
-                user.tid = user.create_tid()
-                user.save()
-            if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
-                with open(app.get_data_path('imgs/logo.jpg')) as fd:
-                    user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
-                user.save()
+    if app.is_admin and not manager:
+        with app.app_context():
+            if hasattr(app, 'user_manager'):
+                user = um.models.User.objects(id=100000).first()
+                if not user:
+                    user = um.models.User(
+                        id=100000, phone='13888888888', password='123456',
+                        nickname=app.config.get('SITE_NAME'))
+                    user.tid = user.create_tid()
+                    user.save()
+                if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
+                    with open(app.get_data_path('imgs/logo.jpg')) as fd:
+                        user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
+                    user.save()
 
     @app.route('/1.gif')
     def gif():
@@ -245,34 +267,65 @@ def init_app(init=None, config=None, pyfile=None,
             DATA_ROOT + '/1.gif',
             cache_timeout=0, add_etags=False, mimetype='image/gif')
 
+    @app.route('/test/error')
+    def test_error():
+        raise ValueError('testing!!!')
+
+    @app.route('/trace/log', methods=['POST'])
+    def trace_log():
+        user = None
+        if current_user.is_authenticated():
+            user = current_user.id
+
+        TraceLog(
+            user=user,
+            key=request.form.get('key', ''),
+            tid=request.form.get('tid', ''),
+            label=request.form.get('label', ''),
+            value=request.form.get('value', ''),
+        ).save()
+        return json_success()
+
     return app
 
 
 def init_web(init=None, config=None, pyfile=None,
              template_folder='templates', index=False, error=True):
-    app = init_app(init, config, pyfile, template_folder, index, error, is_web=True)
+    app = init_app(init, config, pyfile, template_folder,
+                   index, error, is_web=True)
     app.register_blueprint(common_bp)
     return app
 
 
 def init_api(init=None, config=None, pyfile=None,
              template_folder='templates', index=False, error=False):
-    app = init_app(init, config, pyfile, template_folder, index, error, is_api=True)
+    app = init_app(init, config, pyfile, template_folder,
+                   index, error, is_api=True)
     return app
 
 
 def init_admin(init=None, config=None, pyfile=None,
-               template_folder='templates', index=True, error=True):
+               template_folder='templates', index=True,
+               error=True, manager=False):
     """ 创建后台管理应用 """
 
-    app = init_app(init, config, pyfile, template_folder, index, error)
+    app = init_app(init, config, pyfile, template_folder, index,
+                   error, manager=manager)
     app.register_blueprint(login_bp)
     app.login_manager.login_view = 'admin_users.admin_login'
     init_upimg(app)
 
     @app.login_manager.user_loader
     def load_user(id):
-        return AdminUser.objects(id=id).first()
+        try:
+            uid, s = id.rsplit(u'|', 1)
+            user = AdminUser.objects(id=uid).first()
+            if user:
+                key = current_app.config.get('SECRET_KEY')
+                if s == sign(key, password=user.password):
+                    return user
+        except:
+            pass
 
     with app.app_context():
         user = AdminUser.objects(root=True).first()
@@ -288,6 +341,80 @@ def init_admin(init=None, config=None, pyfile=None,
         return before_request()
 
     return app
+
+
+def register_app(name, config, init_app, manager=False):
+    def wrapper(init):
+        global apps
+
+        class Wsgi(object):
+            def __init__(self):
+                self.app = None
+
+            def __call__(self, environ, start_response):
+                if not self.app:
+                    self.app = init_app(
+                        init=init,
+                        config=config,
+                        template_folder=config.TEMPLATE_FOLDER,
+                    )
+                return self.app(environ, start_response)
+
+        def run():
+            kwargs = dict(
+                init=init,
+                config=config,
+                template_folder=config.TEMPLATE_FOLDER,
+            )
+            return init_app(**kwargs)
+
+        apps[name] = dict(
+            name=name,
+            config=config,
+            init=init,
+            init_app=init_app,
+            manager=False,
+            run=run,
+            wsgi=Wsgi(),
+        )
+        if config and hasattr(config, 'PROJECT'):
+            try:
+                module = __import__(config.PROJECT)
+                setattr(module, 'wsgi_%s' % name, apps[name]['wsgi'])
+            except Exception:
+                start_error(config=config)
+
+        if manager is True:
+            def run():
+                return init_app(
+                    init=init,
+                    config=config,
+                    template_folder=config.TEMPLATE_FOLDER,
+                    manager=True,
+                )
+
+            apps['manager'] = dict(
+                name='manager',
+                config=config,
+                init=init,
+                init_app=init_app,
+                manager=True,
+                run=run,
+            )
+        return init
+    return wrapper
+
+
+def register_admin(name='admin', config=None, manager=True):
+    return register_app(name, config, init_admin, manager=manager)
+
+
+def register_api(name='api', config=None):
+    return register_app(name, config, init_api)
+
+
+def register_web(name='web', config=None):
+    return register_app(name, config, init_web)
 
 
 def start_error(init=None, config=None):

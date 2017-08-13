@@ -2,7 +2,12 @@
 import os
 import fcntl
 import inspect
+import signal
+import time
+import traceback
 from functools import wraps
+from flask import current_app
+from chiki.contrib.common import TraceLog
 
 cmds = dict()
 
@@ -56,5 +61,48 @@ def single(filename):
                     return
             os.remove(filename)
             return res
+        return wrapper
+    return decorator
+
+
+def loop(name, sleep=5):
+    """ 循环服务 """
+
+    exit = []
+
+    def signal_term(a, b):
+        exit.append(True)
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            folder = current_app.config.get('RUN_FOLDER', '')
+            filename = os.path.join(folder, '%s.pid' % name)
+            with open(filename, 'w+') as fd:
+                fd.write(str(os.getpid()))
+
+            if current_app.debug:
+                print 'start service with process:', os.getpid()
+
+            signal.signal(signal.SIGTERM, signal_term)
+
+            while not exit:
+                try:
+                    func()
+
+                    i = 0
+                    while i < sleep * 10:
+                        i += 1
+                        time.sleep(0.1)
+                except KeyboardInterrupt as e:
+                    break
+                except Exception:
+                    traceback.print_exc()
+                    TraceLog(
+                        key='service-%s' % name,
+                        value=traceback.format_exc(),
+                    ).save()
+
+            os.remove(filename)
         return wrapper
     return decorator

@@ -22,7 +22,7 @@ __all__ = [
     'Login', 'Logout', 'ResetPassword',
     'ResetPasswordPhone', 'ResetPasswordEmail',
     'Bind', 'BindPhone', 'BindEmail', 'BindAuto',
-    'UserInfo', 'resources'
+    'UserInfo', 'resources', 'resource',
 ]
 
 resources = {}

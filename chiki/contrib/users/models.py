@@ -5,7 +5,7 @@ import string
 from chiki.base import db
 from chiki.contrib.common import Item
 from chiki.contrib.users.base import user_manager as um
-from chiki.utils import get_ip, get_spm, get_channel, url2image
+from chiki.utils import get_ip, get_spm, get_channel, url2image, sign
 from datetime import datetime, timedelta
 from flask import current_app, request
 from flask.ext.login import current_user
@@ -158,7 +158,8 @@ class UserMixin(object):
 
     def get_id(self):
         """ 获取用户ID """
-        return self.id
+        s = sign(current_app.config.get('SECRET_KEY'), password=self.password)
+        return '{0}|{1}'.format(self.id, s)
 
     def is_allow_invite(self, user):
         return True
@@ -500,6 +501,7 @@ class UserLog(db.Document):
     TYPE_REGISTER = 'register'
     TYPE_LOGIN = 'login'
     TYPE_LOGOUT = 'logout'
+    TYPE_LOGIN_ERROR = 'login_error'
     TYPE_CHANGE_PASSWORD = 'change_password'
     TYPE_RESET_PASSWORD = 'reset_password'
     TYPE_ACTIVE = 'active'
@@ -507,6 +509,7 @@ class UserLog(db.Document):
         (TYPE_BIND, '绑定手机'),
         (TYPE_REGISTER, '注册'),
         (TYPE_LOGIN, '登录'),
+        (TYPE_LOGIN_ERROR, '登录错误'),
         (TYPE_LOGOUT, '退出'),
         (TYPE_CHANGE_PASSWORD, '修改密码'),
         (TYPE_RESET_PASSWORD, '重置密码'),
@@ -537,35 +540,42 @@ class UserLog(db.Document):
     def log(type, id, device, key='', spm=None, ip=None):
         spm = spm if spm else get_spm()
         ip = ip if ip else get_ip()
-        UserLog(user=id, type=type, device=device, key=key, spm=spm, ip=ip).save()
+        um.models.UserLog(user=id, type=type, device=device,
+                          key=key, spm=spm, ip=ip).save()
 
     @staticmethod
     def active(id, device='', key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_ACTIVE, id, device, key, spm, ip)
+        um.models.UserLog.log(UserLog.TYPE_ACTIVE, id, device, key, spm, ip)
 
     @staticmethod
     def bind(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_BIND, id, device, key, spm, ip)
+        um.models.UserLog.log(UserLog.TYPE_BIND, id, device, key, spm, ip)
 
     @staticmethod
     def register(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_REGISTER, id, device, key, spm, ip)
+        um.models.UserLog.log(UserLog.TYPE_REGISTER, id, device, key, spm, ip)
 
     @staticmethod
     def login(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_LOGIN, id, device, key, spm, ip)
+        um.models.UserLog.log(UserLog.TYPE_LOGIN, id, device, key, spm, ip)
+
+    @staticmethod
+    def login_error(id, device, key='', spm=None, ip=None):
+        um.models.UserLog.log(UserLog.TYPE_LOGIN_ERROR,
+                              id, device, key, spm, ip)
 
     @staticmethod
     def logout(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_LOGOUT, id, device, key, spm, ip)
+        um.models.UserLog.log(UserLog.TYPE_LOGOUT, id, device, key, spm, ip)
 
     @staticmethod
     def change_password(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_CHNAGE_PASSWORD, id, device, key, spm, ip)
+        um.models.UserLog.log(UserLog.TYPE_CHNAGE_PASSWORD,
+                              id, device, key, spm, ip)
 
     @staticmethod
     def reset_password(id, device, key='', spm=None, ip=None):
-        UserLog.log(UserLog.TYPE_RESET_PASSWORD, id, device, key, spm, ip)
+        um.models.UserLog.log(UserLog.TYPE_RESET_PASSWORD, id, device, key, spm, ip)
 
 
 class PhoneCode(db.Document):

@@ -1,12 +1,15 @@
 # coding: utf-8
 import json
 import urllib
-import os.path
+import os
 import qrcode as _qrcode
 from PIL import Image
 from StringIO import StringIO
-from chiki.admin import ModelView, formatter_len, formatter_icon, formatter, formatter_model
+from chiki.admin import ModelView, formatter_len, formatter_icon, formatter
+from chiki.admin import formatter_popover, formatter_model
 from chiki.admin import formatter_text, formatter_link, popover, quote, escape
+from chiki.admin import get_span
+from chiki.jinja import markup
 from chiki.forms.fields import WangEditorField, DragSelectField
 from chiki.stat import statistics
 from chiki.utils import json_success
@@ -16,16 +19,51 @@ from flask import current_app, url_for, request
 from flask.ext.admin import expose
 from flask.ext.admin.form import BaseForm
 from .models import View, Item
+from ...jinja import markupper
 
 FA = '<i class="fa fa-%s"></i>'
 
 
+@markupper
+def type_bool(model):
+    FA_CHECK = '<i class="fa fa-check-circle text-success"></i>'
+    FA_MINUS = '<i class="fa fa-minus-circle text-danger"></i>'
+    view = '/admin/item/dropdowns'
+    name = 'value'
+    value = model.value
+    if value == 'false' or value == 'False' or value is False:
+        value = False
+    else:
+        value = True
+    html = """<a class="btn btn-default btn-sm btn-active" target="_blank" data-id="%s" data-name="%s" data-value="%s" data-url="%s">
+        %s
+        </a>""" % (model.id, name, value, view, FA_CHECK if value else FA_MINUS)
+    return html
+
+
+@formatter_model
+def check_bool(model):
+    print 'type: ', model.type
+    if model.type == 'int':
+        return model.value
+    tof = ['true', 'false', 'True', 'False', True, False]
+    if model.value in tof:
+        return type_bool(model)
+    else:
+        data = unicode(model.value)
+        if len(data) > 33:
+            return get_span(data, data[:32] + '...')
+        return model.value
+
+
 class ItemView(ModelView):
+    can_use = True
     column_default_sort = ('key', True)
     column_list = ('key', 'name',  'value', 'type', 'modified', 'created')
     column_center_list = ('type', 'modified', 'created')
     column_filters = ('key', 'modified', 'created')
-    column_formatters = dict(value=formatter_len(32))
+    #column_formatters = dict(value=formatter_len(32))
+    column_formatters = dict(value=check_bool)
     column_searchable_list = ('key', 'name')
     form_overrides = dict(value=TextAreaField)
 
@@ -39,6 +77,32 @@ class ItemView(ModelView):
     def on_model_change(self, form, model, create=False):
         if model.type == model.TYPE_INT:
             model.value = self.value
+
+    def on_field_change(self, model, name, value):
+        model[name] = value
+        if hasattr(model, 'modified'):
+            model['modified'] = datetime.now()
+
+    @expose('/dropdowns')
+    def dropdown(self):
+        id = request.args.get('id', 0, unicode)
+        val = request.args.get('key', '')
+        name = request.args.get('name', '', unicode)
+        value = request.args.get('value', '', unicode)
+        model = self.model
+
+        if not val:
+            val = 'false' if value == 'false' or value == 'False' or value is False else 'true'
+        if type(val) == int:
+            val = int(val)
+
+        obj = model.objects(id=id).first()
+        if obj:
+            self.on_field_change(obj, name, val)
+            obj.save()
+            return json_success()
+
+        return json_error(msg='该记录不存在')
 
 
 class StatLogView(ModelView):
@@ -72,7 +136,7 @@ class ShareLogView(ModelView):
 
 
 class ImageItemView(ModelView):
-    column_center_list = ('image', 'created')
+    column_center_list = ('name', 'image', 'created')
     column_filters = ('created',)
 
 
@@ -154,9 +218,9 @@ class ChannelView(ModelView):
 
 
 class QRCodeView(ModelView):
-    column_list = ['user', 'image', 'url', 'modified', 'created']
-    column_center_list = ['user', 'image', 'modified', 'created']
-    column_filters = ['user', 'url', 'modified', 'created']
+    column_list = ['user', 'image', 'url', 'scene', 'modified', 'created']
+    column_center_list = ['user', 'image', 'scene', 'modified', 'created']
+    column_filters = ['user', 'url', 'scene', 'modified', 'created']
     column_searchable_list = ('url',)
 
     def on_model_change(self, form, model, created=False):
@@ -435,6 +499,9 @@ class Form(BaseForm):
                 attr.choices = choices
 
 
+MENUS_JSON = """[{"id":"UserView"},{"id":"运营","children":[{"id":"QRCodeView"},{"id":"WeChatUserView"}]},{"id":"日志","children":[{"id":"UserLogView"},{"id":"LogView"},{"id":"TraceLogView"},{"id":"StatLogView"},{"id":"AdminUserLoginLogView"},{"id":"AdminChangeLogView"}]},{"id":"工具","children":[{"id":"WebStaticAdmin"},{"id":"ItemView"},{"id":"ViewView"},{"id":"AdminUserView"},{"id":"GroupView"}]}]"""
+
+
 class ViewView(ModelView):
     tabs = [
         dict(endpoint='.set_menu', title='菜单', text='菜单'),
@@ -498,6 +565,19 @@ class ViewView(ModelView):
     @expose('/set_menu')
     def set_menu(self):
         menus = json.loads(Item.data('admin_menus', '[]', name='管理菜单'))
+
+        if not menus:
+            filename = current_app.get_data_path('admin.menus.json')
+            if os.path.isfile(filename):
+                try:
+                    with open(filename) as fd:
+                        menus = json.loads(fd.read())
+                except:
+                    pass
+
+            if not menus:
+                menus = json.loads(MENUS_JSON)
+
         views = dict()
         cates = dict()
         for view in View.objects.all():
@@ -529,6 +609,26 @@ class ViewView(ModelView):
     def save_menu(self):
         menus = request.form.get('menus')
         Item.set_data('admin_menus', menus, name='管理菜单')
+
+        filename = current_app.get_data_path('admin.menus.json')
+        with open(filename, 'w+') as fd:
+            fd.write(menus)
+
         for admin in current_app.extensions.get('admin', []):
             admin._refresh()
         return json_success(msg='保存成功')
+
+
+class LogView(ModelView):
+
+    show_popover = True
+    column_list = ['message', 'levelname', 'module', 'funcName', 'lineno', 'url', 'created']
+    column_center_list = ['levelname', 'module', 'funcName', 'lineno', 'created']
+    column_filters = ['levelname', 'module', 'funcName', 'lineno', 'created']
+    column_searchable_list = ['message', 'url', 'user_agent']
+    column_formatters = dict(
+        message=formatter_popover(lambda m: (
+            m.message, '<pre>%s</pre>' % markup(m.exc or ''))),
+    )
+
+    html = """<style>.popover {max-width: 800px;}</style>"""

@@ -75,7 +75,8 @@ def login():
             return wxauth.auth(wxauth.ACTION_QRCODE, next)
 
         ua = request.headers.get('User-Agent', '').lower()
-        if 'micromessenger' in ua and '192.168' not in request.host and um.config.auto_wxauth:
+        if 'micromessenger' in ua and '192.168' not in request.host \
+                and um.config.auto_wxauth:
             return wxauth.auth(wxauth.ACTION_MP, next)
 
     return login_from_account(next)
@@ -140,5 +141,5 @@ def bind():
 
     email_form = um.forms.BindEmailForm()
     phone_form = um.forms.BindPhoneForm()
-    return render_template(um.tpls.bind,
-        next=next, email_form=email_form, phone_form=phone_form)
+    return render_template(
+        um.tpls.bind, next=next, email_form=email_form, phone_form=phone_form)

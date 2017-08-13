@@ -5,6 +5,7 @@ import random
 import hashlib
 from flask import Flask, url_for, current_app, request
 from flask.app import setupmethod
+from flask.ext.login import current_user
 from functools import wraps
 
 case = string.lowercase + string.digits
@@ -14,6 +15,8 @@ funcs = dict()
 
 
 def url_for(endpoint, **values):
+    if current_user.is_authenticated():
+        values.setdefault('uid', current_user.id)
     if current_app.config.get('PATCH_URL'):
         arg1 = hashlib.md5(request.host + endpoint).hexdigest()[:4]
         arg2 = hashlib.md5(request.host + endpoint).hexdigest()[:4]

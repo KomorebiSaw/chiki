@@ -143,7 +143,7 @@ class Item(db.Document):
     @staticmethod
     def bool(key, value=True, name=None):
         value = Item.data(key, 'true' if value else 'false', name)
-        return True if value == 'true' else False
+        return True if value in ['true', 'True'] else False
 
     @staticmethod
     def time(key, value='', name=None):
@@ -361,6 +361,17 @@ class StatLog(db.Document):
             return item.value + value
 
     @staticmethod
+    def date_set(key, tid='', label='', value=1, day=None):
+        day = time.strftime('%Y-%m-%d') if not day else day
+        item = StatLog.objects(key=str(key), tid=tid, label=label, day=day, hour=-1).modify(
+            value=value,
+            set__modified=datetime.now(),
+        )
+        if not item:
+            StatLog(key=str(key), tid=tid, label=label, day=day, hour=-1, value=value).save()
+        return value
+
+    @staticmethod
     def date_get(key, tid='', label='', day=None):
         day = time.strftime('%Y-%m-%d') if not day else day
         log = StatLog.objects(key=str(key), tid=tid, label=label, day=day, hour=-1).first()
@@ -472,23 +483,25 @@ class QRCode(db.Document):
     user = db.ReferenceField('User', verbose_name='用户')
     url = db.StringField(verbose_name='链接')
     image = db.XImageField(verbose_name='二维码')
+    scene = db.StringField(verbose_name='场景')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['user', '-created'])
 
     @staticmethod
-    def get(user, url=None):
-        qr = QRCode.objects(user=user.id).first()
+    def get(user, url=None, config=None, scene=None):
+        qr = QRCode.objects(user=user.id, scene=scene).first()
         if not qr:
-            qr = QRCode(user=user.id, url=url)
+            qr = QRCode(user=user.id, url=url, scene=scene)
             qr.save()
 
         if url and qr.url != url:
             qr.url = url
             qr.image = None
 
-        config = current_app.config.get('QRCODE', {})
+        if not config:
+            config = current_app.config.get('QRCODE', {})
         if type(config) is list:
             config = random.choice(config)
         if config.get('wxclient', True) and (
@@ -504,7 +517,7 @@ class QRCode(db.Document):
         if qr.url and not qr.image:
             @retry(3)
             def simple():
-                qr.create_image(user)
+                qr.create_image(user, config)
 
         qr.save()
         return qr
@@ -635,8 +648,10 @@ class QRCode(db.Document):
         del draw
         return bg
 
-    def create_image(self, user):
-        config = current_app.config.get('QRCODE', {})
+    def create_image(self, user, config=None):
+        if not config:
+            config = current_app.config.get('QRCODE', {})
+
         if type(config) is list:
             config = random.choice(config)
         qr = self.create_qrcode(config)
@@ -890,8 +905,19 @@ class ImageItem(db.Document):
 
     MENU_ICON = 'picture-o'
 
+    key = db.StringField(verbose_name='key', primary_key=True)
+    name = db.StringField(verbose_name='名称')
     image = db.XImageField(verbose_name='图片')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    @staticmethod
+    def get(key, name='默认', size=tuple()):
+        image = ImageItem.objects(key=key).order_by('-create').first()
+        if not image:
+            image = ImageItem(
+                key=key, name=name
+            ).save()
+        return image.image.get_link(*size) if image.image else ''
 
 
 class Option(db.Document):
@@ -1001,6 +1027,45 @@ class Model(db.Document):
         return self.name
 
 
+@property
+def can_create(self):
+    if current_user.is_authenticated():
+        group = current_user.group
+        name = self.__class__.__name__
+        if current_user.root is True \
+                or getattr(self, 'can_use', False) is True \
+                or group and name in group.power_list \
+                and name in group.can_create_list:
+            return self._can_create
+    return False
+
+
+@property
+def can_edit(self):
+    if current_user.is_authenticated():
+        group = current_user.group
+        name = self.__class__.__name__
+        if current_user.root is True \
+                or getattr(self, 'can_use', False) is True \
+                or group and name in group.power_list \
+                and name in group.can_edit_list:
+            return self._can_edit
+    return False
+
+
+@property
+def can_delete(self):
+    if current_user.is_authenticated():
+        group = current_user.group
+        name = self.__class__.__name__
+        if current_user.root is True \
+                or getattr(self, 'can_use', False) is True \
+                or group and name in group.power_list \
+                and name in group.can_delete_list:
+            return self._can_delete
+    return False
+
+
 class View(db.Document):
     """ 管理 """
 
@@ -1047,23 +1112,32 @@ class View(db.Document):
                     view.menu_icon_value = view.model.MENU_ICON
                 else:
                     view.menu_icon_value = 'file-o'
-            view.page_size = self.page_size or view.page_size
-            view.can_create = self.can_create
-            view.can_edit = self.can_edit
-            view.can_delete = self.can_delete
-            if self.column_default_sort:
-                try:
-                    view.column_default_sort = json.loads(self.column_default_sort)
-                except:
-                    pass
-            view.column_list = self.column_list or view.column_list
-            view.column_center_list = self.column_center_list or getattr(view, 'column_center_list', None)
-            view.column_hidden_list = self.column_hidden_list or getattr(view, 'column_hidden_list', None)
-            view.column_filters = self.column_filters or view.column_filters
-            view.column_sortable_list = self.column_sortable_list or view.column_sortable_list
-            view.column_searchable_list = self.column_searchable_list or view.column_searchable_list
-            view.form_excluded_columns = self.form_excluded_columns or view.form_excluded_columns
-            view._refresh_cache()
+
+            view._can_create = view.can_create
+            view._can_edit = view.can_edit
+            view._can_delete = view.can_delete
+
+            setattr(view.__class__, 'can_create', can_create)
+            setattr(view.__class__, 'can_edit', can_edit)
+            setattr(view.__class__, 'can_delete', can_delete)
+
+            # view.page_size = self.page_size or view.page_size
+            # view.can_create = self.can_create
+            # view.can_edit = self.can_edit
+            # view.can_delete = self.can_delete
+            # if self.column_default_sort:
+            #     try:
+            #         view.column_default_sort = json.loads(self.column_default_sort)
+            #     except:
+            #         pass
+            # view.column_list = self.column_list or view.column_list
+            # view.column_center_list = self.column_center_list or getattr(view, 'column_center_list', None)
+            # view.column_hidden_list = self.column_hidden_list or getattr(view, 'column_hidden_list', None)
+            # view.column_filters = self.column_filters or view.column_filters
+            # view.column_sortable_list = self.column_sortable_list or view.column_sortable_list
+            # view.column_searchable_list = self.column_searchable_list or view.column_searchable_list
+            # view.form_excluded_columns = self.form_excluded_columns or view.form_excluded_columns
+            # view._refresh_cache()
         elif not view.menu_icon_value:
             if hasattr(view, 'MENU_ICON'):
                 view.menu_icon_value = view.MENU_ICON
@@ -1109,3 +1183,22 @@ class IP(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['-created', ('type', 'ip')])
+
+
+class Log(db.Document):
+    """ 运行日志 """
+
+    name = db.StringField(verbose_name='名称')
+    levelname = db.StringField(verbose_name='等级')
+    thread = db.IntField(verbose_name='进程')
+    threadName = db.StringField(verbose_name='进程名称')
+    module = db.StringField(verbose_name='模块')
+    funcName = db.StringField(verbose_name='方法')
+    lineno = db.IntField(verbose_name='行号')
+    message = db.StringField(verbose_name='信息')
+    exc = db.StringField(verbose_name='异常')
+    url = db.StringField(verbose_name='链接')
+    user_agent = db.StringField(verbose_name='UA')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = dict(indexes=['-created', 'levelname', 'url', 'message', 'user_agent'])

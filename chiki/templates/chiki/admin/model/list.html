@@ -344,7 +344,7 @@
                         $this.data('value', 'False')
                         $this.html('<i class="fa fa-minus-circle text-danger"></i>')
                     } else {
-                        alert('该记录不存在')
+                        alert(data.msg)
                     }
                 })
             } else {
@@ -354,7 +354,7 @@
                         $this.data('value', 'True')
                         $this.html('<i class="fa fa-check-circle text-success"></i>')
                     } else {
-                        alert('该记录不存在')
+                        alert(data.msg)
                     }
                 })
             }

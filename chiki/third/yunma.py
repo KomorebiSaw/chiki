@@ -1,0 +1,118 @@
+# coding: utf-8
+import json
+import base64
+import hashlib
+import requests
+import traceback
+import functools
+from datetime import datetime, timedelta
+from chiki.base import Base
+from chiki.contrib.common import Item
+from chiki.utils import randstr, today, get_ip
+from flask import request, current_app, url_for, redirect
+from flask.ext.login import login_required, current_user
+from urllib import urlencode
+
+
+class Yunma(Base):
+
+    HOST = 'test.neargh.com:8093'
+    CALLBACK_HOST = ''
+    PREPAY_URL = '/paying/lovepay/getQr'
+    QUERY_URL = '/paying/lovepay/getPayState'
+
+    def __init__(self, app=None, key=None, config=None, holder=None):
+        self.callback = None
+        super(Yunma, self).__init__(app, key, config, holder)
+
+    def init_app(self, app):
+        super(Yunma, self).init_app(app)
+
+        self.host = self.get_config('host', self.HOST)
+        self.prepay_url = self.get_config('prepay_url', self.PREPAY_URL)
+        self.query_url = self.get_config('query_url', self.QUERY_URL)
+        self.need_secret = self.get_config('need_secret', True)
+        self.callback_host = self.get_config(
+            'callback_host', self.CALLBACK_HOST)
+        self.callback_url = self.get_config(
+            'callback_url', '/callback/yunma/[key]/')
+        self.endpoint = self.get_config(
+            'endpoint', 'near_[key]_callback')
+
+        @app.route(self.callback_url, endpoint=self.endpoint, methods=['POST'])
+        def yunma_callback():
+            res = ''
+            try:
+                res = json.loads(request.data)
+                if self.callback:
+                    res = self.callback(self, res)
+            except:
+                current_app.logger.error(
+                    'yunma callbck except: \n%s' % traceback.format_exc())
+            return res or json.dumps(dict(
+                errcode=200,
+                msg='成功接收请求',
+                tradeNum=request.form.get('tradeNum', ''),
+                notifyUrl=request.url,
+            ))
+
+        if not self.holder:
+            @app.route('/near_openid_callback')
+            @login_required
+            def near_openid_callback():
+                current_user.near_openid = request.args.get('openId')
+                current_user.near_appid = request.args.get('appId')
+                current_user.neared = datetime.now()
+                current_user.save()
+                return redirect(url_for('common.index'))
+
+    def handler(self, callback, recursion=True):
+        self.callback = callback
+        if recursion:
+            for puppet in self.puppets.itervalues():
+                puppet.handler(callback, recursion=recursion)
+        return callback
+
+    def prepay(self, config=dict(), **kwargs):
+        kwargs.setdefault('body', '云计费')
+        kwargs.setdefault('total_fee', '1')
+        kwargs.setdefault('product_id', '20170101')
+        kwargs.setdefault('goods_tag', 'default')
+        kwargs.setdefault('op_user_id', self.get_config('key', config=config))
+        kwargs.setdefault('nonce_str', randstr(32))
+        host = self.get_config('callback_host', request.host, config=config)
+        backurl = 'http://%s%s' % (host, url_for(self.endpoint))
+        kwargs.setdefault('notify_url', backurl)
+        kwargs.setdefault('spbill_create_ip', self.get_config(
+            'spbill_create_ip', get_ip()))
+        kwargs['sign'] = self.sign(config=config, **kwargs)
+        kwargs['total_fee'] = str(kwargs['total_fee'])
+
+        url = 'http://%s%s' % (self.host, self.prepay_url)
+        data = json.dumps(kwargs, ensure_ascii=False).encode('utf-8')
+        if current_app.debug:
+            print url
+            print data
+
+        try:
+            return requests.post(url, data=data).json()
+        except Exception, e:
+            return dict(errcode=500, msg=str(e))
+
+    def query(self, id):
+        url = 'http://%s%s' % (self.host, self.prepay_url)
+        try:
+            data = json.dumps(dict(tradeNum=id))
+            return requests.post(url, data=data).json()
+        except Exception, e:
+            return dict(errcode=500, msg=str(e))
+
+    def sign(self, config=dict(), **kwargs):
+        keys = sorted(
+            filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
+        text = '&'.join(['%s=%s' % x for x in keys])
+        if self.need_secret:
+            text += self.get_config('secret', config=config)
+        if current_app.debug:
+            print text
+        return hashlib.sha1(text.encode('utf-8')).hexdigest().upper()

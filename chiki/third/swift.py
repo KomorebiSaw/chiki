@@ -34,12 +34,12 @@ class Swift(Base):
             res = ''
             try:
                 data = self.xml2dict(request.data)
-                sign = data.pop('sign', None)
-                if sign != self.sign(**data):
-                    tpl = 'swift sign callbck: \nsign: %s\ncurr_sign: %s\ndata:\n%s'
-                    current_app.logger.error(
-                        tpl % (sign, self.sign(**data), request.data))
-                    return 'sign error'
+                # sign = data.pop('sign', None)
+                # if sign != self.sign(**data):
+                #     tpl = 'swift sign callbck: \nsign: %s\ncurr_sign: %s\ndata:\n%s'
+                #     current_app.logger.error(
+                #         tpl % (sign, self.sign(**data), request.data))
+                #     return 'sign error'
                 if self.callback:
                     res = self.callback(self, data)
             except Exception, e:
@@ -69,7 +69,7 @@ class Swift(Base):
         kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('callback_url', 'http://%s/' % request.host)
         kwargs.setdefault('nonce_str', randstr(32))
-        kwargs['sign'] = self.sign(**kwargs)
+        kwargs['sign'] = self.sign(config=config, **kwargs)
 
         data = dicttoxml(kwargs, custom_root='xml', attr_type=False)
         try:

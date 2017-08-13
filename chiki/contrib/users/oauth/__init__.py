@@ -23,42 +23,39 @@ def init_oauth(app):
         if current_app.is_admin:
             return
 
-        if current_user.is_authenticated() and 'channel' in str(current_user.get_id()):
-            return
-
-        um = current_app.user_manager
-        if current_user.is_authenticated() and \
-                current_user.is_user() and \
-                not current_user.inviter:
-            try:
-                uid = request.args.get('uid', 0, int)
-                um.funcs.on_invite(current_user, uid)
-            except:
-                current_app.logger.error(traceback.format_exc())
-
-        if current_user.is_authenticated() and current_user.is_user() and not current_user.active:
-            logout_user()
-            error(msg=Item.data('active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
-
-        if current_user.is_authenticated() \
-                and request.endpoint not in current_app.user_manager.config.allow_oauth_urls \
-                and not request.path.startswith('/admin'):
+        if current_user.is_authenticated():
+            if 'channel' in str(current_user.get_id()):
+                return
 
             um = current_app.user_manager
-            model = um.config.oauth_model
-            remember = um.config.oauth_remember
+            if current_user.is_user() and not current_user.inviter:
+                try:
+                    uid = request.args.get('uid', 0, int)
+                    um.funcs.on_invite(current_user, uid)
+                except:
+                    current_app.logger.error(traceback.format_exc())
 
-            um.models.User.heart()
-            if not current_user.is_user():
-                if model == 'auto':
-                    user = um.models.User.from_oauth(current_user)
-                    login_user(user, remember=remember)
+            if current_user.is_user() and not current_user.active:
+                logout_user()
+                return error(msg=Item.data(
+                    'active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
+
+            config = current_app.user_manager.config
+            if request.endpoint not in config.allow_oauth_urls:
+                model = um.config.oauth_model
+                remember = um.config.oauth_remember
+
+                um.models.User.heart()
+                if not current_user.is_user():
+                    if model == 'auto':
+                        user = um.models.User.from_oauth(current_user)
+                        login_user(user, remember=remember)
+                        return
+                elif current_user.phone or current_user.email or model == 'auto':
                     return
-            elif current_user.phone or current_user.email or model == 'auto':
-                return
 
             if is_json():
                 abort(NEED_BIND)
 
             query = urlencode(dict(next=request.url))
-            return redirect('%s?%s' % (current_app.user_manager.config.bind_url, query))
+            return redirect('%s?%s' % (config.bind_url, query))

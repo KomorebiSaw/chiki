@@ -1,11 +1,15 @@
 # coding: utf-8
+import os
 import json
+from flask import current_app
 from flask.ext.admin import Admin as _Admin, AdminIndexView
 from flask.ext.admin.menu import MenuView, MenuCategory, MenuLink
 from .formatters import *
 from .static import *
 from .views import *
 from .tools import *
+
+MENUS_JSON = """[{"id":"UserView"},{"id":"运营","children":[{"id":"QRCodeView"},{"id":"WeChatUserView"}]},{"id":"日志","children":[{"id":"UserLogView"},{"id":"LogView"},{"id":"TraceLogView"},{"id":"StatLogView"},{"id":"AdminUserLoginLogView"},{"id":"AdminChangeLogView"}]},{"id":"工具","children":[{"id":"WebStaticAdmin"},{"id":"ItemView"},{"id":"ViewView"},{"id":"AdminUserView"},{"id":"GroupView"}]}]"""
 
 
 class Admin(_Admin):
@@ -48,6 +52,19 @@ class Admin(_Admin):
     def _refresh(self):
         from chiki.contrib.common import Item, View
         menus = json.loads(Item.data('admin_menus', '[]', name='管理菜单'))
+
+        if not menus:
+            filename = self.app.get_data_path('admin.menus.json')
+            if os.path.isfile(filename):
+                try:
+                    with open(filename) as fd:
+                        menus = json.loads(fd.read())
+                except:
+                    pass
+
+            if not menus:
+                menus = json.loads(MENUS_JSON)
+
         if menus:
             views = dict()
             for view in View.objects.all():

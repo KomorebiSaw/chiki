@@ -14,10 +14,12 @@ def read(fname):
 
 file_text = read(fpath('chiki/__init__.py'))
 
+
 def grep(attrname):
     pattern = r"{0}\W*=\W*'([^']+)'".format(attrname)
     strval, = re.findall(pattern, file_text)
     return strval
+
 
 def get_data_files(*dirs):
     results = []

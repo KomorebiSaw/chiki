@@ -4,9 +4,11 @@ from chiki.contrib.common import Channel
 from chiki.contrib.users import admin, apis, forms, funcs, models, oauth, views
 from chiki.contrib.users.base import user_manager
 from chiki.contrib.users.oauth import wxauth_required
-from chiki.utils import AttrDict
+from chiki.utils import AttrDict, is_ajax, sign
 from chiki.verify import init_verify
-from flask.ext.login import LoginManager, current_user
+from flask import request, flash, current_app, redirect, abort as _abort
+from flask.ext.login import LoginManager, current_user, login_url
+from chiki.api.const import abort, LOGIN_REQUIRED
 
 __all__ = [
     'user_manager', 'um', 'UserManager', 'wxauth_required',
@@ -45,16 +47,44 @@ class UserManager(object):
 
         @self.login.user_loader
         def load_user(id):
-            if type(id) in (str, unicode):
-                if id.startswith('wechat:'):
-                    return um.models.WeChatUser.objects(id=id.split(':')[-1]).first()
-                elif id.startswith('qq:'):
-                    return um.models.QQUser.objects(id=id.split(':')[-1]).first()
-                elif id.startswith('weibo:'):
-                    return um.models.WeiBoUser.objects(id=id.split(':')[-1]).first()
-                elif id.startswith('channel:'):
-                    return Channel.objects(id=int(id.split(':')[-1])).first()
-            return um.models.User.objects(id=id).first()
+            id = str(id)
+            if id.startswith('wechat:'):
+                return um.models.WeChatUser.objects(id=id.split(':')[-1]).first()
+            elif id.startswith('qq:'):
+                return um.models.QQUser.objects(id=id.split(':')[-1]).first()
+            elif id.startswith('weibo:'):
+                return um.models.WeiBoUser.objects(id=id.split(':')[-1]).first()
+            elif id.startswith('channel:'):
+                return Channel.objects(id=int(id.split(':')[-1])).first()
+
+            try:
+                uid, s = id.rsplit(u'|', 1)
+                user = um.models.User.objects(id=int(uid)).first()
+                if user:
+                    key = current_app.config.get('SECRET_KEY')
+                    if s == sign(key, password=user.password):
+                        return user
+            except:
+                pass
+
+        # login = self.login
+        # @login.unauthorized_handler
+        # def unauthorized():
+        #     if is_ajax():
+        #         abort(LOGIN_REQUIRED)
+
+        #     if not login.login_view:
+        #         _abort(401)
+
+        #     if login.login_message:
+        #         if login.localize_callback is not None:
+        #             flash(login.localize_callback(login.login_message),
+        #                   category=login.login_message_category)
+        #         else:
+        #             flash(login.login_message,
+        #                   category=login.login_message_category)
+
+        #     return redirect(login_url(login.login_view, request.url))
 
     @property
     def need_email(self):
@@ -73,7 +103,7 @@ class UserManager(object):
         self.config.allow_redirect = config.get('allow_redirect', True)
         self.config.userinfo = config.get('userinfo', True)
         self.config.auto_heart = config.get('auto_heart', True)
-        self.config.auth_wxauth = config.get('auto_wxauth', True)
+        self.config.auto_wxauth = config.get('auto_wxauth', True)
         self.config.register_auto_login = config.get('register_auto_login', True)
         self.config.reset_password_auto_login = config.get('reset_password_auto_login', True)
         self.config.required_bind_password = config.get('required_bind_password', True)
@@ -82,7 +112,7 @@ class UserManager(object):
         self.config.allow_oauth_urls = config.get('allow_oauth_urls',
             ['users.logout', 'users.bind', 'bindphone', 'bindemail', 'bindauto',
                 'sendemailcode', 'authemailcode', 'sendphonecode', 'authphonecode',
-                'static', 'verify_code', 'uploads'])
+                'verify_code', 'uploads'])
         self.config.oauth_model = config.get('oauth_model', 'select')
         self.config.oauth_remember = config.get('oauth_remeber', True)
         self.config.oauth_auto_update = config.get('oauth_auto_update', False)

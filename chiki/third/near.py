@@ -19,6 +19,9 @@ def near_required(func):
     @login_required
     def wrapper(*args, **kwargs):
         last = Item.time('near_openid_time', '', name='Near刷新时间')
+        if last < datetime.now() - timedelta(seconds=600):
+            Item.objects(key='near_openid_time').delete()
+            last = Item.time('near_openid_time', '', name='Near刷新时间')
         if 'near' in Item.data('payment', ''):
             host = Item.data('near_host', 'qqzz.ps798.cn', name='Near域名')
             if not current_user.near_openid \
@@ -94,19 +97,19 @@ class Near(Base):
                 puppet.handler(callback, recursion=recursion)
         return callback
 
-    def prepay(self, **kwargs):
+    def prepay(self, config=dict(), **kwargs):
         kwargs.setdefault('body', '云计费')
         kwargs.setdefault('total_fee', '1')
         kwargs.setdefault('product_id', '20170101')
         kwargs.setdefault('goods_tag', 'default')
-        kwargs.setdefault('op_user_id', self.get_config('key'))
+        kwargs.setdefault('op_user_id', self.get_config('key', config=config))
         kwargs.setdefault('nonce_str', randstr(32))
-        host = self.callback_host if self.callback_host else request.host
+        host = self.get_config('callback_host', request.host, config=config)
         backurl = 'http://%s%s' % (host, url_for(self.endpoint))
         kwargs.setdefault('notify_url', backurl)
         kwargs.setdefault('spbill_create_ip', self.get_config(
             'spbill_create_ip', get_ip()))
-        kwargs['sign'] = self.sign(**kwargs)
+        kwargs['sign'] = self.sign(config=config, **kwargs)
         kwargs['total_fee'] = str(kwargs['total_fee'])
 
         url = 'http://%s%s' % (self.host, self.prepay_url)
@@ -128,12 +131,12 @@ class Near(Base):
         except Exception, e:
             return dict(errcode=500, msg=str(e))
 
-    def sign(self, **kwargs):
+    def sign(self, config=dict(), **kwargs):
         keys = sorted(
             filter(lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
         text = '&'.join(['%s=%s' % x for x in keys])
         if self.need_secret:
-            text += self.get_config('secret')
+            text += self.get_config('secret', config=config)
         if current_app.debug:
             print text
         return hashlib.sha1(text.encode('utf-8')).hexdigest().upper()

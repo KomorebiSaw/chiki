@@ -194,7 +194,7 @@ def get_ip():
 def is_ajax():
     return request.headers.get('X-Requested-With') == 'XMLHttpRequest' \
         or request.args.get('is_ajax', 'false') == 'true' \
-        or request.headers['Accept'].startswith('application/json')
+        or request.headers.get('Accept', '').startswith('application/json')
 
 
 def is_api():
@@ -297,9 +297,10 @@ def get_url_arg(url, key):
     return res[0] if res else None
 
 
-def create_short_url(key, url):
+def create_short_url(key, url, **kwargs):
     tpl = 'http://api.t.sina.com.cn/short_url/shorten.json?%s'
-    res = requests.get(tpl % urlencode(dict(source=key, url_long=url))).json()
+    res = requests.get(
+        tpl % urlencode(dict(source=key, url_long=url)), **kwargs).json()
     return res[0]['url_short'] if res[0]['type'] == 0 else url
 
 
@@ -329,7 +330,11 @@ def random_index(rate):
 
 
 def is_debug():
-    return current_app.debug or request.args.get('debug') == 'true'
+    return current_app.debug or \
+        request.args.get('debug') == 'true' or \
+        request.host.startswith('0.0.0.0') or \
+        request.host.startswith('127.0.') or \
+        request.host.startswith('192.168.')
 
 
 def sign(key, **kwargs):
@@ -342,7 +347,7 @@ def sign(key, **kwargs):
 
 def add_args(url, **kwargs):
     if '?' in url:
-        return url + urlencode(kwargs)
+        return url + '&' + urlencode(kwargs)
     return url + '?' + urlencode(kwargs)
 
 

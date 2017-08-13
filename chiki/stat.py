@@ -10,6 +10,7 @@ from .utils import json_success
 
 
 def get_date_ranger(date_start, date_end):
+    #
     dates = []
     start = datetime.strptime(date_start, '%Y-%m-%d')
     end = datetime.strptime(date_end, '%Y-%m-%d')
@@ -24,6 +25,7 @@ def get_date_ranger(date_start, date_end):
 
 
 def get_date(key='day'):
+    #
     day = request.args.get(key, '')
     try:
         datetime.strptime(day, '%Y-%m-%d')
@@ -33,6 +35,7 @@ def get_date(key='day'):
 
 
 def get_dates(stat=True, start_key='start', end_key='end', start='', end=''):
+    #
     if callable(start):
         start = start()
     if callable(end):
@@ -58,6 +61,7 @@ def get_dates(stat=True, start_key='start', end_key='end', start='', end=''):
 
 
 def get_value_list(key, days, tid=None):
+    #
     query = dict(key=key, day__in=days)
     if tid:
         query['tid'] = tid
@@ -71,6 +75,7 @@ def get_value_list(key, days, tid=None):
 
 
 def get_hour_list(key, day, tid=None, hour=23):
+    #
     query = dict(key=key, day=day)
     if tid:
         query['tid'] = tid
@@ -84,6 +89,7 @@ def get_hour_list(key, day, tid=None, hour=23):
 
 
 def hour_value_list(day, key, *args, **kwargs):
+    #
     return get_hour_list(key, day, **kwargs)
 
 
@@ -104,6 +110,7 @@ def get_value(value, value2, default=True):
 
 
 # 多个值打包成一个
+#
 def get_sum_value(data):
     values = zip
     for v in data:
@@ -112,6 +119,7 @@ def get_sum_value(data):
 
 
 # 获取一个key的值 或多个key 的和
+#
 def date_value(key, days):
     if isinstance(key, list):
         value_list = [get_value_list('date_%s' % x, days) for x in key]
@@ -120,6 +128,7 @@ def date_value(key, days):
 
 
 # 获取一个key的值 或多个key 的和
+#
 def hour_value(key, day):
     if isinstance(key, list):
         value_list = [get_hour_list('hour_%s' % x, day) for x in key]
@@ -128,6 +137,7 @@ def hour_value(key, day):
 
 
 # 获取 key, key2, type
+#
 def change_value_list(data, key, days):
     style = data.get('style', '/')
     key_data = date_value(data.get('key'), days)
@@ -140,6 +150,7 @@ def change_value_list(data, key, days):
 
 
 # 获取 key, key2, type
+#
 def hour_change_value_list(data, day, key, *args, **kwargs):
     style = data.get('style', '/')
     key_data = hour_value(data.get('key'), day)
@@ -151,7 +162,7 @@ def hour_change_value_list(data, day, key, *args, **kwargs):
     return list(map(lambda x: get_value(x[0], x[1], data.get('default', True)), zip(key_data, key2_data)))
 
 
-def init_stat(cls, key, subs, tpl, modal, **kwargs):
+def init_stat(cls, key, subs, tpl, projects, modal, **kwargs):
     """ 初始化统计 """
 
     @expose('/' if key == 'index' else '/%s' % key)
@@ -197,8 +208,17 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
             key = '%s%s' % (prefix, item.get('key'))
             if modal:
                 key = '%s_%s' % (key, request.args.get('id'))
-            # axis： 小时列表或者天列表
-            value = value_list(key, axis)
+            if projects:
+                # if set(['value_list', 'change']).intersection(item):
+                if 'hour_value_list' in item and prefix == 'hour_':
+                    value = value_list(key, projects)
+                elif 'value_list' in item and prefix == 'date_':
+                    value = value_list(key, axis, projects)
+                else:
+                    value = value_list(key, axis)
+            else:
+                # axis： 小时列表或者天列表
+                value = value_list(key, axis)
             handle = item.get('handle')
             if callable(handle):
                 value = [handle(x) for x in value]
@@ -246,14 +266,17 @@ def init_stat(cls, key, subs, tpl, modal, **kwargs):
     setattr(cls, '%s_data' % key, data)
 
 
-def statistics(tpl=None, modal=False, **kwargs):
+def statistics(tpl=None, modal=False, projects=None, **kwargs):
     def wrapper(cls):
         default = 'admin/stat-modal.html' if modal else 'admin/stat.html'
         datas = getattr(cls, 'datas', None)
+        # data = getattr(cls, 'data', None)
         if datas:
             for key, subs in datas.iteritems():
-                init_stat(cls, key, subs, tpl if tpl is not None else default, modal)
-
+                init_stat(cls, key, subs, tpl if tpl is not None else default, projects, modal)
+        # if data:
+        #     for key, subs in data.iteritems():
+        #         init_stat(cls, key, subs, tpl if tpl is not None else default, projects, modal)
         for p in dir(cls):
             attr = getattr(cls, p)
             if hasattr(attr, '_urls'):
