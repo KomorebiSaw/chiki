@@ -64,22 +64,23 @@ class MediaManager(object):
         return os.path.getmtime(path)
 
     def get_hash(self, name):
+        prefix = self.app.config.get('SITE_STATIC_PREFIX', '/static/')
+        if type(prefix) == list:
+            prefix = random.choice(prefix)
+
         xname = name.split('?')[0] if '?' in name else name
         path = os.path.join(self.app.static_folder, xname)
         if not os.path.isfile(path):
             xname = os.path.join('dist', xname)
             path = os.path.join(self.app.static_folder, xname)
             if not os.path.isfile(path):
-                return name
+                return prefix + name
             name = os.path.join('dist', name)
 
         with open(path) as fd:
             md5 = hashlib.md5(fd.read()).hexdigest()
 
         self.app.logger.info('Generate %s md5sum: %s' % (name, md5))
-        prefix = self.app.config.get('SITE_STATIC_PREFIX', '/static/')
-        if type(prefix) == list:
-            prefix = random.choice(prefix)
 
         tpl = '%s%s&amp;v=%s' if '?' in name else '%s%s?v=%s'
         return tpl % (prefix, name, md5[:4])
