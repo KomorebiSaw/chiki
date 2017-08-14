@@ -1,4 +1,5 @@
 # coding: utf-8
+import traceback
 from chiki.web import error
 from chiki.api.const import *
 from chiki.contrib.common import Item
@@ -26,6 +27,14 @@ def init_oauth(app):
             if 'channel' in str(current_user.get_id()):
                 return
 
+            um = current_app.user_manager
+            if current_user.is_user() and not current_user.inviter:
+                try:
+                    uid = request.args.get('uid', 0, int)
+                    um.funcs.on_invite(current_user, uid)
+                except:
+                    current_app.logger.error(traceback.format_exc())
+
             if current_user.is_user() and not current_user.active:
                 logout_user()
                 return error(msg=Item.data(
@@ -33,7 +42,6 @@ def init_oauth(app):
 
             config = current_app.user_manager.config
             if request.endpoint not in config.allow_oauth_urls:
-                um = current_app.user_manager
                 model = um.config.oauth_model
                 remember = um.config.oauth_remember
 
