@@ -118,8 +118,8 @@ class IPay(Base):
                     next = 'http://%s/%s' % (host, next[7:].split('/', 1)[1])
                 elif next.startswith('/'):
                     next = 'http://%s%s' % (host, next)
-                if request.args.get('token'):
-                    next = add_args(next, token=encode_cookie(unicode(user.id)))
+            if request.args.get('token'):
+                next = add_args(next, token=encode_cookie(unicode(user.id)))
             return redirect(next)
 
         @app.route(self.dash_oauth_callback_url,
