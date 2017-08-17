@@ -10,7 +10,7 @@ from chiki.verify import get_verify_code, validate_code
 from datetime import datetime
 from flask import current_app, request
 from flask.ext.login import current_user, login_required
-from flask.ext.login import login_user, logout_user
+from flask.ext.login import login_user, logout_user, encode_cookie
 from werkzeug.datastructures import FileStorage
 
 __all__ = [
@@ -121,6 +121,8 @@ def userinfo(user):
         debug=user.debug,
         registered=str(user.registered).split('.')[0],
     )
+    if request.args.get('token'):
+        info['token'] = encode_cookie(unicode(user.id))
     if hasattr(user, 'birthday'):
         info['birthday'] = user.birthday.strftime('%Y-%m-%d') if user.birthday else ''
     if hasattr(user, 'sex'):

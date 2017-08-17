@@ -11,7 +11,7 @@ from chiki.contrib.admin import AdminUser, AdminUserLoginLog, Group
 from chiki.contrib.common import Item
 from chiki.contrib.users import um
 from flask import current_app, request, redirect, url_for
-from flask.ext.login import current_user, login_user
+from flask.ext.login import current_user, login_user, encode_cookie
 from urllib import urlencode
 
 __all__ = [
@@ -118,6 +118,8 @@ class IPay(Base):
                     next = 'http://%s/%s' % (host, next[7:].split('/', 1)[1])
                 elif next.startswith('/'):
                     next = 'http://%s%s' % (host, next)
+                if request.args.get('token'):
+                    next = add_args(next, token=encode_cookie(unicode(user.id)))
             return redirect(next)
 
         @app.route(self.dash_oauth_callback_url,
