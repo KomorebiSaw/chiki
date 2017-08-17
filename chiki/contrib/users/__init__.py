@@ -7,7 +7,7 @@ from chiki.contrib.users.oauth import wxauth_required
 from chiki.utils import AttrDict, is_ajax, sign
 from chiki.verify import init_verify
 from flask import request, flash, current_app, redirect, abort as _abort
-from flask.ext.login import LoginManager, current_user, login_url
+from flask.ext.login import LoginManager, current_user, login_url, decode_cookie
 from chiki.api.const import abort, LOGIN_REQUIRED
 
 __all__ = [
@@ -66,6 +66,10 @@ class UserManager(object):
                         return user
             except:
                 pass
+
+        @self.login.header_loader
+        def header_callback(header):
+            return load_user(decode_cookie(header))
 
         # login = self.login
         # @login.unauthorized_handler
