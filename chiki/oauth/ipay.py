@@ -4,7 +4,7 @@ import traceback
 import requests
 import functools
 from chiki.base import Base
-from chiki.utils import sign, is_debug
+from chiki.utils import sign, is_debug, add_args
 from chiki.web import error
 from chiki.api import success
 from chiki.contrib.admin import AdminUser, AdminUserLoginLog, Group
@@ -83,34 +83,32 @@ class IPay(Base):
             xkey = request.args.get('xkey')
             next = request.args.get('next')
 
-            if current_user.is_authenticated():
-                return redirect(next)
+            if not current_user.is_authenticated():
+                res = self.post('/access/key', xid=xid, xkey=xkey)
+                if res.get('code') != 0:
+                    if request.args.get('debug'):
+                        return error(msg='授权失败：%s' % json.dumps(res))
+                    return error(msg='授权失败')
 
-            res = self.post('/access/key', xid=xid, xkey=xkey)
-            if res.get('code') != 0:
-                if request.args.get('debug'):
-                    return error(msg='授权失败：%s' % json.dumps(res))
-                return error(msg='授权失败')
+                user = um.models.User.objects(xid=xid).first()
+                if not user:
+                    user = um.models.User(xid=xid)
+                    user.create()
 
-            user = um.models.User.objects(xid=xid).first()
-            if not user:
-                user = um.models.User(xid=xid)
-                user.create()
+                    current_app.logger.info('ipay create user: %d %s' % (
+                        user.id, user.xid))
 
-                current_app.logger.info('ipay create user: %d %s' % (
-                    user.id, user.xid))
+                login_user(user, remember=True)
 
-            login_user(user, remember=True)
+                if user.is_user() and not user.active:
+                    return error(msg=Item.data(
+                        'active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
 
-            if user.is_user() and not user.active:
-                return error(msg=Item.data(
-                    'active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
+                if current_user.is_authenticated() and current_user.is_user():
+                    um.models.UserLog.login(user.id, 'web', 'ipay')
+                    user.login()
 
-            if current_user.is_authenticated() and current_user.is_user():
-                um.models.UserLog.login(user.id, 'web', 'ipay')
-                user.login()
-
-            um.funcs.on_wechat_login('ipay', next)
+                um.funcs.on_wechat_login('ipay', next)
 
             host = Item.data('ipay_callback_host', '', name='测试重定向地址')
             if host:
