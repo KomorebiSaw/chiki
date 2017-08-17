@@ -122,7 +122,7 @@ def userinfo(user):
         registered=str(user.registered).split('.')[0],
     )
     if request.args.get('token'):
-        info['token'] = encode_cookie(unicode(user.id))
+        info['token'] = encode_cookie(unicode(user.get_id()))
     if hasattr(user, 'birthday'):
         info['birthday'] = user.birthday.strftime('%Y-%m-%d') if user.birthday else ''
     if hasattr(user, 'sex'):
