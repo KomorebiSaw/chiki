@@ -123,16 +123,21 @@ class XFileField(BaseField):
     proxy_class = FileProxy
     default_allows = DEFAULT_ALLOWS
 
-    def __init__(self, max_size=2*1024*1024, auto_remove=True,
+    def __init__(self, max_size=2*1024*1024, auto_remove=None,
             rename=True, allows=None, config='UPLOADS',
             filename_generator=None, place='', **kwargs):
         self.max_size = max_size
-        self.auto_remove = auto_remove
         self.rename = rename
         self.allows = allows or self.default_allows
         self.config = config
         self._filename_generator = filename_generator
         self.place = place
+
+        conf = current_app.config.get(self.config)
+        self.auto_remove = auto_remove
+        if auto_remove is not None:
+            self.auto_remove = conf.get('auto_remove', True)
+
         super(XFileField, self).__init__(**kwargs)
 
     @property
