@@ -127,17 +127,12 @@ class XFileField(BaseField):
             rename=True, allows=None, config='UPLOADS',
             filename_generator=None, place='', **kwargs):
         self.max_size = max_size
+        self.auto_remove = auto_remove
         self.rename = rename
         self.allows = allows or self.default_allows
         self.config = config
         self._filename_generator = filename_generator
         self.place = place
-
-        conf = current_app.config.get(self.config)
-        self.auto_remove = auto_remove
-        if auto_remove is not None:
-            self.auto_remove = conf.get('auto_remove', True)
-
         super(XFileField, self).__init__(**kwargs)
 
     @property
@@ -158,6 +153,12 @@ class XFileField(BaseField):
             self._filename_generator = get_filename_generator(self.config, 
                 config['type'] == 'local', generator=self._filename_generator)
         return self._filename_generator
+
+    @property
+    def is_auto_remove(self):
+        if self.auto_remove is not None:
+            return self.auto_remove
+        return current_app.config.get(self.config).get('auto_remove', True)
 
     def get_path(self, filename):
         if filename:
@@ -182,7 +183,7 @@ class XFileField(BaseField):
         return filename
 
     def remove(self, filename):
-        if filename and self.auto_remove:
+        if filename and self.is_auto_remove:
             self.storage.remove(filename)
 
     def register_signals(self, instance):
@@ -192,7 +193,7 @@ class XFileField(BaseField):
 
     def pre_delete(self, sender, document, **kwargs):
         obj = document._data.get(self.name)
-        if isinstance(obj, self.proxy_class) and self.auto_remove:
+        if isinstance(obj, self.proxy_class) and self.is_auto_remove:
             obj.remove()
 
     def _get(self, instance):
@@ -316,11 +317,11 @@ class XListField(ListField):
                     value = getattr(obj, field)
                     if hasattr(value, 'remove') \
                             and isinstance(value, attr.proxy_class) \
-                            and attr.auto_remove:
+                            and attr.is_auto_remove:
                         value.remove()
             elif isinstance(self.field, XFileField) \
                     and isinstance(obj, self.field.proxy_class) \
-                    and self.field.auto_remove:
+                    and self.field.is_auto_remove:
                 obj.remove()
 
     def __set__(self, instance, value):
