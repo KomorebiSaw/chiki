@@ -11,7 +11,7 @@ from flask.ext.login import login_required, current_user
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask.ext.session import Session
-from chiki.base import db
+from chiki.base import db, cache
 from chiki.cool import cm
 from chiki.contrib.common import Item, Page, Choices, Menu, TraceLog, ImageItem
 from chiki.contrib.common import bp as common_bp
@@ -204,6 +204,7 @@ def init_app(init=None, config=None, pyfile=None,
 
     init_babel(app)
     init_redis(app)
+    cache.init_app(app)
 
     if app.config.get('SESSION_TYPE'):
         Session(app)

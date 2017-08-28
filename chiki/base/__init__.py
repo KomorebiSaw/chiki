@@ -2,9 +2,11 @@
 from flask import Blueprint, current_app
 from flask.ext.login import LoginManager
 from ..mongoengine import MongoEngine
+from flask.ext.cache import Cache
 
 db = MongoEngine()
 login = LoginManager()
+cache = Cache()
 page = Blueprint('page', __name__)
 
 

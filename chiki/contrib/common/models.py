@@ -5,7 +5,7 @@ import qrcode
 import random
 from PIL import Image, ImageFont, ImageDraw
 from StringIO import StringIO
-from chiki.base import db
+from chiki.base import db, cache
 from chiki.utils import today, retry
 from datetime import datetime, timedelta
 from flask import current_app
@@ -61,6 +61,7 @@ class Item(db.Document):
     }
 
     @staticmethod
+    @cache.memoize(timeout=130)
     def get(key, default=0, name=None):
         item = Item.objects(key=key).first()
         if item:
@@ -98,6 +99,7 @@ class Item(db.Document):
             return item.value + num
 
     @staticmethod
+    @cache.memoize(timeout=130)
     def data(key, default='', name=None):
         item = Item.objects(key=key).first()
         if item:
@@ -335,6 +337,31 @@ class StatLog(db.Document):
             return item.value + value
 
     @staticmethod
+    def cinc(key, tid='', day=lambda: today(), hour=-1, value=1):
+        if hasattr(current_app, 'redis'):
+            if callable(day):
+                day = day()
+            day = str(day)[:10]
+            cache_key = '|'.join(['StatLog', key, tid, day, str(hour)])
+            cache_value = current_app.redis.get(cache_key)
+            if cache_value:
+                incr_value = current_app.redis.incr(cache_key, value)
+                return int(incr_value + value)
+            else:
+                item = StatLog.objects(key=key, tid=tid, day=day, hour=hour).modify(
+                    inc__value=value,
+                    set__modified=datetime.now(),
+                )
+                if not item:
+                    StatLog(key=key, tid=tid, day=day, hour=hour, value=value).save()
+                    current_app.redis.set(cache_key, value)
+                    return value
+                else:
+                    current_app.redis.set(cache_key, item.value)
+                    return item.value + value
+        return StatLog.inc(key, tid, day, hour, value)
+
+    @staticmethod
     def get(key, tid='', day=lambda: today(), hour=-1, default=0, save=True):
         if callable(day):
             day = day()
@@ -346,6 +373,27 @@ class StatLog(db.Document):
         if save:
             StatLog(key=key, tid=tid, day=day, hour=hour, value=default).save()
         return default
+
+    @staticmethod
+    def cget(key, tid='', day=lambda: today(), hour=-1, default=0, save=True):
+        if hasattr(current_app, 'redis'):
+            if callable(day):
+                day = day()
+            day = str(day)[:10]
+            cache_key = '|'.join(['StatLog', key, tid, day, str(hour)])
+            cache_value = current_app.redis.get(cache_key)
+            if cache_value:
+                return int(cache_value)
+            else:
+                item = StatLog.objects(key=key, tid=tid, day=day, hour=hour).first()
+                if item:
+                    current_app.redis.set(cache_key, item.value)
+                    return item.value
+                if save:
+                    StatLog(key=key, tid=tid, day=day, hour=hour, value=default).save()
+                    current_app.redis.set(cache_key, default)
+                return default
+        return StatLog.get(key, tid, day, hour, default, save)
 
     @staticmethod
     def date_inc(key, tid='', label='', value=1, day=None):
