@@ -18,7 +18,9 @@ class Base(object):
         if key in app.config:
             return cls(app, key)
 
-    def __init__(self, app=None, key=None, config=None, holder=None):
+    def __init__(self, app=None, key=None, config=None, holder=None,
+                 name=None):
+        self.name = name or self.__class__.__name__.lower()
         self.key = key
         self.config = config
         self.holder = holder

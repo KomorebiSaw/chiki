@@ -204,6 +204,9 @@ def init_app(init=None, config=None, pyfile=None,
 
     init_babel(app)
     init_redis(app)
+
+    if not app.config.get('CACHE_TYPE'):
+        app.config['CACHE_TYPE'] = 'simple'
     cache.init_app(app)
 
     if app.config.get('SESSION_TYPE'):
