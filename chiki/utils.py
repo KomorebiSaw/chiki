@@ -2,6 +2,7 @@
 import re
 import os
 import sys
+import json
 import types
 import errno
 import random
@@ -24,7 +25,8 @@ __all__ = [
     'is_json', 'is_empty', 'randstr', 'AttrDict', 'url2image', 'retry',
     'tpl_data', 'get_module', 'rmb3', 'check_encode', 'url_with_user',
     'get_url_arg', 'create_short_url', 'ip_limit', 'random_index', 'is_debug',
-    'sign', 'add_args', 'import_file',
+    'sign', 'add_args', 'import_file', 'unicode2utf8', 'json2utf8',
+    'url_external',
 ]
 
 
@@ -363,3 +365,27 @@ def import_file(filename):
         e.strerror = 'Unable to load file (%s)' % e.strerror
         raise
     return d
+
+
+def unicode2utf8(obj):
+    u = unicode2utf8
+    if type(obj) == str:
+        return obj
+    if isinstance(obj, unicode):
+        return obj.encode('utf-8')
+    if isinstance(obj, dict):
+        return dict((u(k), u(v)) for k, v in obj.iteritems())
+    if isinstance(obj, list):
+        return [u(x) for x in obj]
+    return obj
+
+
+def json2utf8(ensure_ascii=False, indent=None, **kwargs):
+    return json.dumps(
+        unicode2utf8(kwargs), ensure_ascii=ensure_ascii, indent=indent)
+
+
+def url_external(url):
+    if url.startswith('/'):
+        return 'http://' + request.host + url
+    return url

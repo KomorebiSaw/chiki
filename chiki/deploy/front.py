@@ -47,11 +47,17 @@ def media(source='../media/web/dist', target=None, app='web', restart=True):
 
     for stage, e in env.envs.iteritems():
         if stage not in env.exclude_envs:
+            prefix = 'SITE_STATIC_PREFIX'
+            file = r'%s/etc/%s.py' % (stage, app)
+            line = r'%s = \"http://%s/%s/\"' % (prefix, env.cdn_host, target)
+
             tpl = (
-                r'sed -r -i "s#SITE_STATIC_PREFIX.*#SITE_STATIC_PREFI'
-                r'X = \"http://%s/%s/\"#" %s/etc/%s.py'
+                r'[[ ! `grep %(prefix)s %(file)s` ]] && '
+                r'echo "%(line)s" >> %(file)s || '
+                r'sed -r -i "s#%(prefix)s.*#%(line)s#" %(file)s'
             )
-            local(tpl % (env.cdn_host, target, stage, app))
+            print tpl % dict(prefix=prefix, file=file, line=line)
+            local(tpl % dict(prefix=prefix, file=file, line=line))
 
     with settings(stage='all'):
         execute(upload_etc, app)
