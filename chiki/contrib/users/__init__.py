@@ -11,19 +11,86 @@ from flask.ext.login import LoginManager, current_user, login_url, decode_cookie
 from chiki.api.const import abort, LOGIN_REQUIRED
 
 __all__ = [
-    'user_manager', 'um', 'UserManager', 'wxauth_required',
+    'BaseManager', 'user_manager', 'um', 'UserManager', 'wxauth_required',
 ]
 
 
-class UserManager(object):
-
-    def __init__(self, app=None):
+class BaseManager(object):
+    def __init__(self, name='', url_prefix=''):
+        self.name = name
+        self.url_prefix = url_prefix
+        self.managers = AttrDict()
         self.apis = AttrDict()
         self.models = AttrDict()
         self.forms = AttrDict()
         self.funcs = AttrDict()
         self.config = AttrDict()
         self.tpls = AttrDict()
+
+    def get(self, key):
+        if key not in self.managers:
+            self.managers[key] = BaseManager(key, url_prefix='/%s' % key)
+        return self.managers.get(key)
+
+    def add_model(self, model, name=None):
+        self.models[name or model.__name__] = model
+        return model
+
+    def add_form(self, form, name=None):
+        self.forms[name or form.__name__] = form
+        return form
+
+    def add_func(self, func, name=None):
+        self.funcs[name or func.__name__] = func
+        return func
+
+    def add_api(self, *args, **kwargs):
+        def wrapper(cls):
+            self.apis[cls.__name__] = (cls, args, kwargs)
+            return cls
+        return wrapper
+
+    def init_apis(self, api):
+        for cls, args, kwargs in self.apis.itervalues():
+            _web = kwargs.pop('_web', False)
+            _api = kwargs.pop('_api', True)
+            if _api is True:
+                if self.url_prefix:
+                    args = list(args)
+                    args[0] = self.url_prefix + args[0]
+                if self.name:
+                    kwargs.setdefault('endpoint', '%s_%s' % (
+                        self.name, cls.__name__.lower))
+                api.add_resource(cls, *args, **kwargs)
+            kwargs['_web'] = _web
+            kwargs['_api'] = _api
+
+        for manager in self.managers.itervalues():
+            manager.init_apis(api)
+
+    def init_wapis(self, api):
+        for cls, args, kwargs in self.apis.itervalues():
+            _web = kwargs.pop('_web', False)
+            _api = kwargs.pop('_api', True)
+            if _web is True:
+                if self.url_prefix:
+                    args = list(args)
+                    args[0] = self.url_prefix + args[0]
+                if self.name:
+                    kwargs.setdefault('endpoint', '%s_%s' % (
+                        self.name, cls.__name__.lower))
+                api.add_resource(cls, *args, **kwargs)
+            kwargs['_web'] = _web
+            kwargs['_api'] = _api
+
+        for manager in self.managers.itervalues():
+            manager.init_wapis(api)
+
+
+class UserManager(BaseManager):
+
+    def __init__(self, app=None):
+        super(UserManager, self).__init__()
         self.init_models()
         self.init_forms()
         self.init_funcs()
@@ -164,42 +231,6 @@ class UserManager(object):
 
     def context_processor(self):
         return dict(um=self)
-
-    def add_model(self, model, name=None):
-        self.models[name or model.__name__] = model
-        return model
-
-    def add_form(self, form, name=None):
-        self.forms[name or form.__name__] = form
-        return form
-
-    def add_func(self, func, name=None):
-        self.funcs[name or func.__name__] = func
-        return func
-
-    def add_api(self, *args, **kwargs):
-        def wrapper(cls):
-            self.apis[cls.__name__] = (cls, args, kwargs)
-            return cls
-        return wrapper
-
-    def init_apis(self, api):
-        for cls, args, kwargs in self.apis.itervalues():
-            _web = kwargs.pop('_web', False)
-            _api = kwargs.pop('_api', True)
-            if _api is True:
-                api.add_resource(cls, *args, **kwargs)
-            kwargs['_web'] = _web
-            kwargs['_api'] = _api
-
-    def init_wapis(self, api):
-        for cls, args, kwargs in self.apis.itervalues():
-            _web = kwargs.pop('_web', False)
-            _api = kwargs.pop('_api', True)
-            if _web is True:
-                api.add_resource(cls, *args, **kwargs)
-            kwargs['_web'] = _web
-            kwargs['_api'] = _api
 
     def init_web(self):
         self.app.register_blueprint(views.bp, url_prefix='/users')

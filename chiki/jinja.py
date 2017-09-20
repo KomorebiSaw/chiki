@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+from datetime import datetime
 from flask import current_app, get_flashed_messages
 from jinja2 import Markup
 from xml.sax.saxutils import escape
@@ -75,6 +76,7 @@ class JinjaManager(object):
         return dict(
             SITE_NAME=current_app.config.get('SITE_NAME'),
             VERSION=current_app.config.get('VERSION'),
+            YEAR=datetime.now().year,
             alert=self.alert_filter,
             is_ajax=is_ajax,
             current_app=current_app,

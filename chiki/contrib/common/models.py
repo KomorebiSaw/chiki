@@ -929,6 +929,35 @@ class Slide(db.Document):
         )
 
 
+class AD(db.Document):
+    """ 广告 """
+
+    MENU_ICON = 'paw'
+
+    name = db.StringField(verbose_name='名称')
+    image = db.XImageField(verbose_name='图片')
+    link = db.StringField(verbose_name='链接')
+    sort = db.IntField(verbose_name='排序')
+    module = choice(db.StringField(verbose_name='模块'), 'ad_module', '广告模块')
+    enable = db.StringField(default=Enable.ENABLED,
+                            choices=Enable.CHOICES, verbose_name='状态')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    TPL = '<a class="ad-image" href="%s" target="_blank"><img src="%s"></a>'
+
+    meta = dict(indexes=[('module', 'enable', '-created')])
+
+    def __nonzero__(self):
+        return bool(self.link.strip())
+
+    @property
+    def html(self):
+        if self.image.link:
+            return self.TPL % (self.link.strip(), self.image.link)
+        return self.link.strip()
+
+
 class UserImage(db.Document):
     """ 用户图片 """
 

@@ -27,11 +27,13 @@ class Pagination(_Pagination):
     def get_link(self, page):
         return url_for(self.endpoint, page=page, per_page=self.per_page, **self.kwargs)
 
-    def iter_links(self, pages=5, next=False, last=True):
+    def iter_links(self, pages=5, next=False, last=True,
+                   first_page='首页', prev_page='上页',
+                   last_page='尾页', next_page='下页'):
         if last:
-            yield '<<', self.get_link(1) if self.page > 1 else None
+            yield first_page, self.get_link(1) if self.page > 1 else None
         if next:
-            yield '<', self.get_link(self.prev_num) if self.has_prev else None
+            yield prev_page, self.get_link(self.prev_num) if self.has_prev else None
 
         start = max(1, self.page - (pages - 1) / 2)
         end = min(self.pages + 1, start + pages)
@@ -40,9 +42,9 @@ class Pagination(_Pagination):
             yield i, self.get_link(i)
 
         if next:
-            yield '>', self.get_link(self.next_num) if self.has_next else None
+            yield next_page, self.get_link(self.next_num) if self.has_next else None
         if last:
-            yield '>>', self.get_link(self.pages) if self.page < self.pages else None
+            yield last_page, self.get_link(self.pages) if self.page < self.pages else None
 
     def render(self, tpl, **kwargs):
         if is_ajax():
