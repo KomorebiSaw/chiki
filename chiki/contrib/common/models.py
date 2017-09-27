@@ -61,7 +61,7 @@ class Item(db.Document):
     }
 
     @staticmethod
-    @cache.memoize(timeout=130)
+    @cache.memoize(timeout=5)
     def get(key, default=0, name=None):
         item = Item.objects(key=key).first()
         if item:
@@ -99,7 +99,7 @@ class Item(db.Document):
             return item.value + num
 
     @staticmethod
-    @cache.memoize(timeout=130)
+    @cache.memoize(timeout=5)
     def data(key, default='', name=None):
         item = Item.objects(key=key).first()
         if item:
