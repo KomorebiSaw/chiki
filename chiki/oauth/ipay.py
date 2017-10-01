@@ -216,7 +216,13 @@ class IPay(Base):
         return 'http://%s/oauth/access?%s' % (host, query)
 
     def auth(self, next):
-        return redirect(self.auth_url(next))
+        url = self.auth_url(next)
+        return """
+        <title>加载中...</title>
+        <script type="text/javascript">
+        window.location.href = "%s";
+        </script>""" % url
+        # return redirect(self.auth_url(next))
 
     def dash_auth(self, next):
         return redirect(self.dash_auth_url(next))
