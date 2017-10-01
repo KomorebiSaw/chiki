@@ -11,6 +11,7 @@ from flask.ext.login import login_required, current_user
 from flask.ext.mail import Mail
 from flask.ext.debugtoolbar import DebugToolbarExtension
 from flask.ext.session import Session
+from chiki.admin.common import _document_registry
 from chiki.base import db, cache
 from chiki.cool import cm
 from chiki.contrib.common import Item, Page, Choices, Menu, TraceLog, ImageItem
@@ -54,6 +55,12 @@ DEBUG_TB_PANELS = (
 
 media = MediaManager()
 apps = dict()
+
+
+def init_db(db):
+    for name, doc in _document_registry.iteritems():
+        if not doc._meta['abstract'] and doc._is_document:
+            setattr(db, name, doc)
 
 
 def init_page(app):
@@ -105,7 +112,8 @@ def init_redis(app):
         app.config.setdefault('SESSION_TYPE', 'redis')
         app.config.setdefault('SESSION_REDIS', app.redis)
         app.config.setdefault('SESSION_USE_SIGNER', True)
-        app.config.setdefault('SESSION_KEY_PREFIX', conf.get('prefix', '') + '_sess_')
+        app.config.setdefault('SESSION_KEY_PREFIX',
+                              conf.get('prefix', '') + '_sess_')
 
 
 def init_error_handler(app):
@@ -134,7 +142,8 @@ def init_error_handler(app):
 #     if username and not (
 #             auth and auth.username == username and
 #             auth.password == password):
-#         return Response(u'请登陆', 401, {'WWW-Authenticate': 'Basic realm="login"'})
+#         return Response(u'请登陆', 401,
+#                         {'WWW-Authenticate': 'Basic realm="login"'})
 
 
 def before_request():
@@ -157,6 +166,8 @@ def init_app(init=None, config=None, pyfile=None,
         handler.setFormatter(logging.Formatter(DEBUG_LOG_FORMAT))
         app.logger.addHandler(handler)
         app.logger.setLevel(logging.DEBUG)
+
+    init_db(db)
 
     if config:
         app.config.from_object(config)
@@ -188,7 +199,8 @@ def init_app(init=None, config=None, pyfile=None,
     app.mail = Mail(app)
 
     def get_data_path(name):
-        return os.path.abspath(os.path.join(app.config.get('DATA_FOLDER'), name))
+        return os.path.abspath(
+            os.path.join(app.config.get('DATA_FOLDER'), name))
 
     if app.config.get('USER_AGENT_LIMIT'):
         @app.before_request
@@ -260,9 +272,11 @@ def init_app(init=None, config=None, pyfile=None,
                         nickname=app.config.get('SITE_NAME'))
                     user.tid = user.create_tid()
                     user.save()
-                if not user.avatar and os.path.exists(app.get_data_path('imgs/logo.jpg')):
+                if not user.avatar and os.path.exists(
+                        app.get_data_path('imgs/logo.jpg')):
                     with open(app.get_data_path('imgs/logo.jpg')) as fd:
-                        user.avatar = dict(stream=StringIO(fd.read()), format='jpg')
+                        user.avatar = dict(
+                            stream=StringIO(fd.read()), format='jpg')
                     user.save()
 
     @app.route('/1.gif')
@@ -289,6 +303,8 @@ def init_app(init=None, config=None, pyfile=None,
             value=request.form.get('value', ''),
         ).save()
         return json_success()
+
+    init_db(db)
 
     return app
 
