@@ -190,7 +190,7 @@ body {
         display: none;
     }
 
-    .pagination, .page-form hr + .form-group {
+    .wrapper .pagination, .page-form hr + .form-group {
         position: fixed;
         background: #fff;
         left: 200px;
