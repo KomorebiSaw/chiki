@@ -40,6 +40,10 @@ def init_oauth(app):
                 return error(msg=Item.data(
                     'active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
 
+            if current_user.is_user() and current_user.complaint:
+                return error(msg=Item.data(
+                    'complaint_alert_text', '网络异常，加载中！', name='封号提示'))
+
             config = current_app.user_manager.config
             if request.endpoint not in config.allow_oauth_urls:
                 model = um.config.oauth_model

@@ -225,6 +225,7 @@ class User(db.Document, UserMixin):
     resume = db.StringField(max_length=100, verbose_name='简介')
     debug = db.BooleanField(default=False, verbose_name='允许调试')
     active = db.BooleanField(default=True, verbose_name='激活')
+    complaint = db.BooleanField(default=False, verbose_name='投诉')
     inviter = db.ReferenceField('User', verbose_name='邀请者')
     inviter2 = db.ReferenceField('User', verbose_name='邀请者2')
     inviter3 = db.ReferenceField('User', verbose_name='邀请者3')

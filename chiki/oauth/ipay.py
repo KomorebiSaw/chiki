@@ -104,6 +104,10 @@ class IPay(Base):
                     return error(msg=Item.data(
                         'active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
 
+                if user.is_user() and user.complaint:
+                    return error(msg=Item.data(
+                        'complaint_alert_text', '网络异常，加载中！', name='投诉提示'))
+
                 if current_user.is_authenticated() and current_user.is_user():
                     um.models.UserLog.login(user.id, 'web', 'ipay')
                     user.login()

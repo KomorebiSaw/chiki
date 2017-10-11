@@ -12,7 +12,7 @@ from chiki.admin import get_span
 from chiki.jinja import markup
 from chiki.forms.fields import WangEditorField, DragSelectField
 from chiki.stat import statistics
-from chiki.utils import json_success
+from chiki.utils import json_success, json_error
 from datetime import datetime
 from wtforms.fields import TextAreaField, SelectField
 from flask import current_app, url_for, request
@@ -209,7 +209,7 @@ class ChannelView(ModelView):
             if not model.url:
                 data = dict(
                     action_name='QR_LIMIT_SCENE',
-                    action_info=dict(scene=dict(scene_id=model.id)),
+                    action_info=dictformatter_text(scene=dict(scene_id=model.id)),
                 )
                 model.url = current_app.wxclient.create_qrcode(**data).get('url')
                 model.image = create_qrcode(model.url)
@@ -632,3 +632,163 @@ class LogView(ModelView):
     )
 
     html = """<style>.popover {max-width: 800px;}</style>"""
+
+
+@formatter_model
+def get_handle(m):
+    html_one = ''
+    html_two = ''
+    html_three = ''
+    if not m.active:
+        html_one = """
+        <div class="nav-item btn-box" style='display:inline;'>
+            <a style="color:#fff" class="btn btn-primary btn-active-true"
+            data-id="true_%s" id="%s">封号</a>
+        </div>
+        """ % (m.user.id, m.user.id)
+    if m.active:
+        html_two = """
+        <div class="nav-item btn-box" style='display:inline;'>
+            <a style="color:#fff" class="btn btn-info btn-active-false"
+            data-id="false_%s" id="%s">解封</a>
+        </div>
+        """ % (m.user.id, m.user.id)
+    if m.result:
+        html_three = """
+            <div class="nav-item btn-box">
+                <a style="color:#fff" data-refresh="true" data-target="#simple-modal"
+                class="btn btn-success btn-sm" data-toggle="modal"
+                href="/admin/complaint/result?id=%s" target="_blank"
+                id="%s">结果</a>
+            </div>
+            """ % (m.id, m.id)
+    return html_one + html_two + html_three
+
+
+class ComplaintView(ModelView):
+
+    show_popover = True
+    column_labels = dict(handled='操作')
+    column_list = (
+        'user', 'id', 'type', 'content', 'active', 'handle',
+        'modified', 'created', 'handled')
+    column_center_list = column_list
+    column_filters = (
+        'user', 'id', 'type', 'content', 'active', 'result', 'handle',
+        'modified', 'created')
+    column_searchable_list = ('id', 'type', 'content', 'result')
+    column_formatters = dict(
+        content=formatter_popover(lambda m: m.content, max_len=10),
+        handled=get_handle,
+    )
+
+    script = """
+        $(function(){
+        var successAlert = '<div class="alert alert-success alert-dismissible fade in"　role="alert">' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">×</span></button>'
+        var errorAlert = '<div class="alert alert-danger alert-dismissible fade in" role="alert">' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">×</span></button>'
+
+            $('.btn-active-true').click(function() {
+                var id = $(this).data('id')
+                console.log(id)
+                $.post('/admin/complaint/handled', {id: id}, function(data){
+                    if(data.code==0) {
+                        $('#filter_form').before(successAlert + data.msg + '</div>')
+                        if(!!!data.hidden){
+                            $(data.id).hide()
+                        }
+                    }else {
+                        $('#filter_form').before(errorAlert + data.msg + '</div>')
+                        }
+                })
+            })
+            $('.btn-active-false').click(function() {
+                var id = $(this).data('id')
+                console.log(id)
+                $.post('/admin/complaint/handled', {id: id}, function(data){
+                    if(data.code==0) {
+                        $('#filter_form').before(successAlert + data.msg + '</div>')
+                        if(!!!data.hidden){
+                            $(data.id).hide()
+                        }
+                    }else {
+                        $('#filter_form').before(errorAlert + data.msg + '</div>')
+                        }
+                })
+            })
+
+        })
+        """
+
+    @expose('/handled', methods=['POST'])
+    def handled(self):
+        id = request.form.get('id')
+        if id.split('_')[0] == 'true':
+            complaints = self.model.objects(
+                user=id.split('_')[1], active=False).first()
+            if complaints and complaints.user.complaint:
+                complaints.active = True
+                complaints.save()
+                return json_error(msg='该用户之前已被封')
+
+            if complaints and not complaints.user.complaint:
+                complaints.user.complaint = True
+                complaints.active = True
+                complaints.result = '%s\n%s' % (
+                    dict(
+                        result='complaint success',
+                        num='%d' % len(complaints.result.split(
+                            '\n')) if complaints.result else '1'),
+                    complaints.result if complaints.result else '')
+                complaints.save()
+                complaints.user.save()
+            return json_success(msg='封号成功', id='#%s' % id.split('_')[1])
+
+        if id.split('_')[0] == 'false':
+            complaints = self.model.objects(
+                user=id.split('_')[1], active=True).first()
+            if complaints and not complaints.user.complaint:
+                complaints.active = False
+                complaints.save()
+                return json_error(msg='该用户未被封')
+
+            if complaints and complaints.user.complaint:
+                complaints.user.complaint = False
+                complaints.active = False
+                complaints.result = '%s\n%s' % (
+                    dict(
+                        result='complaint release',
+                        num='%d' % len(complaints.result.split(
+                            '\n')) if complaints.result else '1'),
+                    complaints.result if complaints.result else '')
+                complaints.save()
+                complaints.user.save()
+            return json_success(msg='解封成功', id='#%s' % id.split('_')[1])
+        return ''
+
+    @expose('/result')
+    def btnremark(self):
+        _id = request.args.get('id', None)
+        model = self.model.objects(id=_id).first()
+        result = model.result if model else ''
+        remark = model.remark if model else ''
+        return self.render(
+            'admin/result.html', result=result or '', id=_id,
+            remark=remark or '')
+
+    @expose('/saveresult', methods=['POST'])
+    def saveresult(self):
+        _id = request.form.get('id', None)
+        model = self.model.objects(id=_id).first()
+        if not model:
+            json_error(msg='无该记录')
+
+        result = request.form.get('result')
+        remark = request.form.get('remark')
+        model.result = result
+        model.remark = remark
+        model.save()
+        return json_success(msg='保存成功')

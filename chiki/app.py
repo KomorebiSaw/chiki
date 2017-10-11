@@ -14,6 +14,7 @@ from flask.ext.session import Session
 from chiki.base import db, cache
 from chiki.cool import cm
 from chiki.contrib.common import Item, Page, Choices, Menu, TraceLog, ImageItem
+from chiki.contrib.common import Complaint
 from chiki.contrib.common import bp as common_bp
 from chiki.contrib.users import um
 from chiki.contrib.admin import admin
@@ -289,6 +290,49 @@ def init_app(init=None, config=None, pyfile=None,
             value=request.form.get('value', ''),
         ).save()
         return json_success()
+
+    @app.route('/complaint/choose')
+    @login_required
+    def complaint_choose():
+        complaint = sorted(
+            Complaint.TYPE.DICT.iteritems(), key=lambda x: x[1], reverse=True)
+        return render_template('complaint/choose.html', type=complaint)
+
+    @app.route('/complaint/desc/')
+    @login_required
+    def complaint_desc():
+        types = request.args.get('type', '')
+        return render_template('complaint/desc.html', types=types)
+
+    @app.route('/complaint/refer', methods=['POST'])
+    @login_required
+    def complaint_refer():
+        types = request.form.get('type', '')
+        content = request.form.get('content', '')
+        complaints = Complaint(
+            user=current_user.id,
+            content=content,
+            type=types,
+            active=True,
+        )
+        complaints.create()
+        complaints.save()
+        return json_success(msg='success', num=complaints.id)
+
+    @app.route('/complaint/save/')
+    @login_required
+    def complaint_save():
+        num = request.args.get('num', '')
+        return render_template('complaint/refer.html', num=num)
+
+    @app.route('/complaint/active')
+    @login_required
+    def complaint_active():
+        complaints = Complaint.objects(user=current_user.id, active=True).first()
+        if complaints:
+            complaints.user.complaint = True
+            complaints.user.save()
+        return ''
 
     return app
 

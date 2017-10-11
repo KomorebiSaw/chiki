@@ -1279,3 +1279,36 @@ class Log(db.Document):
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=['-created', 'levelname', 'url', 'message', 'user_agent'])
+
+
+class Complaint(db.Document):
+    """ 投诉记录 """
+
+    TYPE = db.choices(
+        dec='欺骗', por='色情', pol='政治谣言', common='常识性谣言', share='分享诱导',
+        mal='恶意营销', other='其他侵权类（冒名，诽谤，抄袭')
+
+    user = db.ReferenceField('User', verbose_name='用户')
+    id = db.StringField(primary_key=True, verbose_name='ID')
+    type = db.StringField(
+        default=TYPE.OTHER, choices=TYPE.CHOICES, verbose_name='类型')
+    content = db.StringField(verbose_name='内容')
+    active = db.BooleanField(default=False, verbose_name='封号')
+    result = db.StringField(verbose_name='处理结果')
+    remark = db.StringField(verbose_name='备注')
+    handle = db.DateTimeField(default=datetime.now, verbose_name='处理时间')
+    modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = dict(indexes=[
+        ('user', '-created'),
+        '-created'
+    ])
+
+    def create(self):
+        """ 创建 """
+        if not self.id:
+            self.id = '{:%Y%m%d}{:0>8}'.format(
+                datetime.now(), StatLog.date_inc('complaint_id'))
+            self.save()
+        return self.id
