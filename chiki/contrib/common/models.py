@@ -963,9 +963,9 @@ class UserImage(db.Document):
 
     MENU_ICON = 'picture-o'
 
-    user = db.IntField(verbose_name='用户')
+    user = db.ReferenceField('User', verbose_name='用户')
     source = db.StringField(verbose_name='来源')
-    image = db.XImageField(config='USER_IMAGES', verbose_name='图片')
+    image = db.XImageField(verbose_name='图片')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 

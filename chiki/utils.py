@@ -309,13 +309,12 @@ def create_short_url(key, url, **kwargs):
 def ip_limit(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        from chiki.base import db
         ip = get_ip()
-        Item = current_app.cool_manager.models.get('Item')
-        User = current_app.cool_manager.models.get('User')
-        regx = Item.data('ip_regx', '^116\.23\.|^59\.41\.', name='IP正则')
-        limit = Item.get('ip_limit', 100, name='IP限制')
-        url = Item.data('ip_redirect', 'http://www.qq.com/', name='IP跳转')
-        if not re.match(regx, ip) and User.objects(ip=ip).count() >= limit:
+        regx = db.Item.data('ip_regx', '^116\.23\.|^59\.41\.', name='IP正则')
+        limit = db.Item.get('ip_limit', 100, name='IP限制')
+        url = db.Item.data('ip_redirect', 'http://www.qq.com/', name='IP跳转')
+        if not re.match(regx, ip) and db.User.objects(ip=ip).count() >= limit:
             return redirect(url)
         return func(*args, **kwargs)
     return wrapper

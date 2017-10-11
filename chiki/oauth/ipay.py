@@ -205,6 +205,9 @@ class IPay(Base):
     def auth_url(self, next):
         host = Item.data(
             'ipay_auth_host', 'www.amroom.cn', name='iPay域名')
+        res = self.post('/get_host')
+        if res['code'] == 0 and res.get('data', dict()).get('host'):
+            host = res.get('data', dict()).get('host')
         next = url_for(self.oauth_endpoint, next=next, _external=True)
         query = urlencode(dict(pid=self.pid, next=next))
         return 'http://%s/oauth/access?%s' % (host, query)
@@ -217,7 +220,13 @@ class IPay(Base):
         return 'http://%s/oauth/access?%s' % (host, query)
 
     def auth(self, next):
-        return redirect(self.auth_url(next))
+        url = self.auth_url(next)
+        return """
+        <title>加载中...</title>
+        <script type="text/javascript">
+        window.location.href = "%s";
+        </script>""" % url
+        # return redirect(self.auth_url(next))
 
     def dash_auth(self, next):
         return redirect(self.dash_auth_url(next))
