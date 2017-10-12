@@ -1,6 +1,7 @@
 # coding: utf-8
 import time
 import functools
+import inspect
 from chiki.contrib.common.models import StatLog
 from datetime import datetime, timedelta
 from flask import request
@@ -186,7 +187,10 @@ def init_stat(cls, key, subs, tpl, projects, modal, **kwargs):
         res = []
         series = sub.get('series')
         if callable(series):
-            series = series()
+            if 'day' in inspect.getargspec(series)[0]:
+                series = series(day=day)
+            else:
+                series = series()
         for item in series:
             if 'hour_value_list' in item and prefix == 'hour_':
                 value_list = item.get('hour_value_list')
