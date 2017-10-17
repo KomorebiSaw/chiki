@@ -6,8 +6,10 @@ import inspect
 from datetime import datetime
 from cookiecutter.main import cookiecutter
 from flask import Flask
-from flask.ext.script import Manager, Command
+from flask.ext.script import Manager, Command, Shell
+from chiki.base import db
 from chiki.app import apps
+from chiki.contrib.users import um
 from chiki.service import run as run_service
 
 commands = dict()
@@ -130,6 +132,11 @@ def main():
 
         for cmd, command in commands.iteritems():
             manager.add_command(cmd, Command(command))
+
+        def make_shell_context():
+            return dict(app=apps['manager']['run'](), db=db, um=um)
+
+        manager.add_command("shell", Shell(make_context=make_shell_context))
 
         @manager.command
         @manager.option('name')

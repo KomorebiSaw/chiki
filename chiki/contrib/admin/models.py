@@ -140,10 +140,13 @@ class AdminChangeLog(db.Document):
         before = dict(id=model.id)
         after = dict(id=model.id)
         if kwargs.get('form'):
-            for k, v in kwargs.get('form').data.iteritems():
-                if v != model[k]:
-                    before[k] = model[k]
-                    after[k] = v
+            try:
+                for k, v in kwargs.get('form').data.iteritems():
+                    if v != model[k]:
+                        before[k] = model[k]
+                        after[k] = v
+            except:
+                pass
         else:
             before = model.to_mongo()
         if kwargs.get('type') == 'delete':
