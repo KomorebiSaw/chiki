@@ -216,6 +216,8 @@ class IPay(Base):
             kwargs.setdefault('oid', current_user.id)
             kwargs.setdefault('xid', current_user.xid)
         kwargs.setdefault('next', request.url)
+        if kwargs['next'].startswith('/'):
+            kwargs['next'] = 'http://%s%s' % (request.host, kwargs['next'])
         return self.post('/access', **kwargs)
 
     def post(self, url, **kwargs):
