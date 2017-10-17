@@ -215,7 +215,7 @@ class IPay(Base):
         if current_user.is_authenticated():
             kwargs.setdefault('oid', current_user.id)
             kwargs.setdefault('xid', current_user.xid)
-            kwargs.setdefault('next', request.url)
+        kwargs.setdefault('next', request.url)
         return self.post('/access', **kwargs)
 
     def post(self, url, **kwargs):
