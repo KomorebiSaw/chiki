@@ -4,7 +4,7 @@ import traceback
 import requests
 import functools
 from chiki.base import Base
-from chiki.utils import sign, is_debug, add_args
+from chiki.utils import sign, is_debug, add_args, is_ajax
 from chiki.web import error
 from chiki.api import success
 from chiki.contrib.admin import AdminUser, AdminUserLoginLog, Group
@@ -24,15 +24,41 @@ def enable_oauth(link_path):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             if not current_user.is_authenticated():
-                return success(next=current_app.ipay.auth_url(link_path))
+                next = current_app.ipay.auth_url(link_path)
+                if is_ajax():
+                    return success(next=next)
+                return redirect(next)
 
             if not is_debug() and not current_user.debug:
                 res = current_app.ipay.access()
-                if res.get('data', dict()).get('need_access'):
-                    return success(next=current_app.ipay.auth_url(link_path))
+                url = res.get('data', dict()).get('url')
+                if url:
+                    if is_ajax():
+                        return success(next=url)
+                    return redirect(url)
             return func(*args, **kwargs)
         return wrapper
     return decorator
+
+
+def ipay_auth(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated():
+            next = current_app.ipay.auth_url(request.url)
+            if is_ajax():
+                return success(next=next)
+            return redirect(next)
+
+        if not is_debug() and not current_user.debug:
+            res = current_app.ipay.access()
+            url = res.get('data', dict()).get('url')
+            if url:
+                if is_ajax():
+                    return success(next=url)
+                return redirect(url)
+        return func(*args, **kwargs)
+    return wrapper
 
 
 class IPay(Base):
@@ -203,14 +229,17 @@ class IPay(Base):
             return dict(code=-1, key='ERROR', msg=str(e))
 
     def auth_url(self, next):
-        host = Item.data(
-            'ipay_auth_host', 'www.amroom.cn', name='iPay域名')
-        res = self.post('/get_host')
-        if res['code'] == 0 and res.get('data', dict()).get('host'):
-            host = res.get('data', dict()).get('host')
         next = url_for(self.oauth_endpoint, next=next, _external=True)
-        query = urlencode(dict(pid=self.pid, next=next))
-        return 'http://%s/oauth/access?%s' % (host, query)
+        if is_debug():
+            host = Item.data(
+                'ipay_auth_host', 'www.amroom.cn', name='iPay域名')
+            res = self.post('/get_host')
+            if res['code'] == 0 and res.get('data', dict()).get('host'):
+                host = res.get('data', dict()).get('host')
+            query = urlencode(dict(pid=self.pid, next=next))
+            return 'http://%s/oauth/access?%s' % (host, query)
+        return self.post(
+            '/get_wxauth', next=next).get('data', dict()).get('url')
 
     def dash_auth_url(self, next):
         host = Item.data(

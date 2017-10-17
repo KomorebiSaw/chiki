@@ -52,7 +52,7 @@ def login_from_account(next):
 @bp.route('/login.html')
 def login():
     """ 用户登录 """
-    next = request.args.get('next', um.config.login_next)
+    next = request.args.get('next', um.config.login_next or '/')
     if current_user.is_authenticated():
         return redirect(next)
 

@@ -239,7 +239,9 @@ class WXAuth(Base):
         scope = request.args.get('scope', self.SNSAPI_BASE)
         appid = request.args.get('appid', '')
 
-        if request.host not in next and next.startswith('http://'):
+        config = self.load_config(appid)
+        rh = self.get_config('replace_host', True, config=config)
+        if rh and request.host not in next and next.startswith('http://'):
             url = request.url.replace(
                 request.host, urlparse.urlparse(next).netloc)
             return redirect(url)
@@ -250,7 +252,6 @@ class WXAuth(Base):
         if not code:
             return self.error(self.AUTH_ERROR, action, next)
 
-        config = self.load_config(appid)
         access = self.access_token(action, code, config=config)
         if not access or 'openid' not in access:
             log = '%s\naccess error\naccess: %s\nurl: %s' \

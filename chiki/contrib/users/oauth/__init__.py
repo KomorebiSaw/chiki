@@ -58,8 +58,9 @@ def init_oauth(app):
                 elif current_user.phone or current_user.email or model == 'auto':
                     return
 
-            if is_json():
-                abort(NEED_BIND)
+            if not current_user.is_user():
+                if is_json():
+                    abort(NEED_BIND)
 
-            query = urlencode(dict(next=request.url))
-            return redirect('%s?%s' % (config.bind_url, query))
+                query = urlencode(dict(next=request.url))
+                return redirect('%s?%s' % (config.bind_url, query))
