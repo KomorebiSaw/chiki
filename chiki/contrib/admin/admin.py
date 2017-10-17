@@ -52,6 +52,7 @@ class AdminChangeLogView(ModelView):
     can_delete = False
     can_edit = False
     column_center_list = ('user', 'type', 'created')
+    column_filters = ('user', 'model')
 
     def __unicode__(self):
         return '管理员操作日志(%s)' % self.id
