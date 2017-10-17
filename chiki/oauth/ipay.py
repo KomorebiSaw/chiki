@@ -30,7 +30,7 @@ def enable_oauth(link_path):
                 return redirect(next)
 
             if not is_debug() and not current_user.debug:
-                res = current_app.ipay.access()
+                res = current_app.ipay.access(next=link_path)
                 url = res.get('data', dict()).get('url')
                 if url:
                     if is_ajax():
@@ -51,7 +51,7 @@ def ipay_auth(func):
             return redirect(next)
 
         if not is_debug() and not current_user.debug:
-            res = current_app.ipay.access()
+            res = current_app.ipay.access(next=request.url)
             url = res.get('data', dict()).get('url')
             if url:
                 if is_ajax():
@@ -215,6 +215,7 @@ class IPay(Base):
         if current_user.is_authenticated():
             kwargs.setdefault('oid', current_user.id)
             kwargs.setdefault('xid', current_user.xid)
+            kwargs.setdefault('next', request.url)
         return self.post('/access', **kwargs)
 
     def post(self, url, **kwargs):
