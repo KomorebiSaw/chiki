@@ -4,7 +4,7 @@ import traceback
 import requests
 import functools
 from chiki.base import Base
-from chiki.utils import sign, is_debug, add_args, is_ajax
+from chiki.utils import sign, is_debug, add_args, is_ajax, is_wechat
 from chiki.web import error
 from chiki.api import success
 from chiki.contrib.admin import AdminUser, AdminUserLoginLog, Group
@@ -233,7 +233,7 @@ class IPay(Base):
 
     def auth_url(self, next):
         next = url_for(self.oauth_endpoint, next=next, _external=True)
-        if is_debug():
+        if is_debug() or not is_wechat():
             host = Item.data(
                 'ipay_auth_host', 'www.amroom.cn', name='iPay域名')
             res = self.post('/get_host')

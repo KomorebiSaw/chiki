@@ -26,7 +26,7 @@ __all__ = [
     'tpl_data', 'get_module', 'rmb3', 'check_encode', 'url_with_user',
     'get_url_arg', 'create_short_url', 'ip_limit', 'random_index', 'is_debug',
     'sign', 'add_args', 'import_file', 'unicode2utf8', 'json2utf8',
-    'url_external',
+    'url_external', 'is_wechat',
 ]
 
 
@@ -198,6 +198,11 @@ def is_ajax():
         or request.args.get('is_ajax', 'false') == 'true' \
         or request.headers.get('Accept', '').startswith('application/json') \
         or 'application/json' in request.headers.get('Content-Type', '')
+
+
+def is_wechat():
+    ua = request.headers['User-Agent'].lower()
+    return 'micromessenger' in ua
 
 
 def is_api():
