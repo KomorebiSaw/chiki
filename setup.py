@@ -70,7 +70,6 @@ setup(
         'cookiecutter==1.1.0',
         'WeRoBot==0.6.1',
         'redis',
-        'watchdog',
         'WeRoBot==0.6.1',
         'Flask-WeRoBot==0.1.2',
         'xmltodict==0.9.2',
