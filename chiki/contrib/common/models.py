@@ -996,6 +996,13 @@ class ImageItem(db.Document):
             ).save()
         return image.image.get_link(*size) if image.image else ''
 
+    def create(self):
+        """ 创建用户 """
+        if not self.key:
+            self.key = '%s' % Item.inc('image_index', 1000)
+            self.save()
+        return self.id
+
 
 class Option(db.Document):
     """ 配置模型 """
