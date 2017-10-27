@@ -1001,7 +1001,7 @@ class ImageItem(db.Document):
         if not self.key:
             self.key = '%s' % Item.inc('image_index', 1000)
             self.save()
-        return self.id
+        return self.key
 
 
 class Option(db.Document):
