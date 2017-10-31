@@ -54,6 +54,9 @@ def auth_phone_code(phone, code, action):
 
     PhoneCode = um.models.PhoneCode
     item = PhoneCode.objects(phone=phone, action=action).first()
+    if hasattr(PhoneCode, 'STATUS'):
+        item = PhoneCode.objects(
+            phone=phone, action=action).order_by('-created').first()
     if not item:
         abort(PHONE_CODE_ERROR)
     elif item.code != code or item.error >= 10:
