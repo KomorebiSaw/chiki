@@ -1,6 +1,8 @@
 # coding: utf-8
 import re
 import urllib
+import urllib2
+import json
 import socket
 import traceback
 import ConfigParser
@@ -8,7 +10,7 @@ from flask import current_app
 from .CCPRestSDK import REST
 
 __all__ = [
-    'send_rong_sms', 'send_ihuyi_sms',
+    'send_rong_sms', 'send_ihuyi_sms', 'send_jisu_sms'
 ]
 
 
@@ -49,3 +51,24 @@ def send_ihuyi_sms(phone, text):
     if not re.search(r'<code>2</code>', res):
         current_app.logger.error('短信接口出错：' + str(res))
     return True if re.search(r'<code>2</code>', res) else False
+
+
+def send_jisu_sms(phone, text):
+    app = current_app.config.get('SMS_JISU')
+    data = dict(
+        appkey=app['appkey'],
+        mobile=phone,
+        content=text,
+    )
+    url_values = urllib.urlencode(data)
+    url = "http://api.jisuapi.com/sms/send" + "?" + url_values
+
+    request = urllib2.Request(url)
+    result = urllib2.urlopen(request)
+    jsonarr = json.loads(result.read())
+
+    res = jsonarr["status"]
+    if res != u"0":
+        return jsonarr["msg"]
+
+    return True if res == u"0" else False

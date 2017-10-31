@@ -3,7 +3,7 @@ import re
 import urllib
 from flask import current_app, url_for, render_template_string
 from flask.ext.mail import Message
-from chiki.sms import send_rong_sms, send_ihuyi_sms
+from chiki.sms import send_rong_sms, send_ihuyi_sms, send_jisu_sms
 
 
 __all__ = [
@@ -50,10 +50,12 @@ def send_sms(code):
         return
 
     tpl = current_app.config.get('SMS_TPL')
-    if not current_app.config.get('SMS_IHUYI'):
-        res = send_rong_sms(code.phone, [str(code.code)], tpl)
-    else:
+    if current_app.config.get('SMS_IHUYI'):
         res = send_ihuyi_sms(code.phone, tpl % code.code)
+    elif current_app.config.get('SMS_JISU'):
+        res = send_jisu_sms(code.phone, tpl % code.code)
+    else:
+        res = send_rong_sms(code.phone, [str(code.code)], tpl)
     return res
 
 
