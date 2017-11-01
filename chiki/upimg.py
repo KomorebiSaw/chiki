@@ -10,6 +10,6 @@ def init_upimg(app):
         proxy = request.files.get('file')
         image = ImageItem(image=proxy)
         if image.image:
-            image.save()
+            image.create()
             return image.image.link
         return ''

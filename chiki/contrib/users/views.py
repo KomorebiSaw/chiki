@@ -1,4 +1,5 @@
 # coding: utf-8
+from chiki.utils import json_error
 from chiki.web import error
 from chiki.contrib.users.base import user_manager as um
 from flask import Blueprint, request, render_template, redirect
@@ -58,6 +59,9 @@ def login():
 
     if next and not next.startswith('http://'):
         next = 'http://%s%s' % (request.host, next)
+
+    if current_app.config.get('WEB_LOGIN_RES_CODE', False):
+        return json_error(msg='请登录', login=False)
 
     if hasattr(current_app, 'ipay'):
         ipay = current_app.ipay

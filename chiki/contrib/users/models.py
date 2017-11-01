@@ -5,7 +5,7 @@ import string
 from chiki.base import db
 from chiki.contrib.common import Item
 from chiki.contrib.users.base import user_manager as um
-from chiki.utils import get_ip, get_spm, get_channel, url2image, sign
+from chiki.utils import get_ip, get_spm, get_channel, url2image, sign, today
 from datetime import datetime, timedelta
 from flask import current_app, request
 from flask.ext.login import current_user
@@ -630,6 +630,17 @@ class PhoneCode(db.Document):
     def registered(self):
         User = um.models.User
         return User.objects(phone=self.phone).count() > 0
+
+    @staticmethod
+    def code_hour(phone):
+        PhoneCode = um.models.PhoneCode
+        time = datetime.now() - timedelta(hours=1)
+        return PhoneCode.objects(phone=phone, created__gte=time).count()
+
+    @staticmethod
+    def code_day(phone):
+        PhoneCode = um.models.PhoneCode
+        return PhoneCode.objects(phone=phone, created__gte=today()).count()
 
     def make(self):
         self.created = datetime.now()
