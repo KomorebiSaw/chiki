@@ -167,6 +167,8 @@ class XFileField(BaseField):
 
     def get_link(self, filename, **kwargs):
         if filename:
+            if filename.startswith('http://'):
+                return filename
             return self.storage.get_link(filename, **kwargs)
         return ''
 

@@ -124,6 +124,7 @@ class IPay(Base):
                     current_app.logger.info('ipay create user: %d %s' % (
                         user.id, user.xid))
 
+                user.update_ipay(res['data'])
                 login_user(user, remember=True)
 
                 if user.is_user() and not user.active:

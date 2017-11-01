@@ -191,6 +191,11 @@ class UserMixin(object):
     def on_invite(self, user):
         pass
 
+    def update_ipay(self, user):
+        self.nickname = user['nickname']
+        self.avatar = user['avatar']
+        self.sex = user['sex']
+
 
 class User(db.Document, UserMixin):
     """ 用户模型 """
