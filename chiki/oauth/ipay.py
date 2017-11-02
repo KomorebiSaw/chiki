@@ -100,7 +100,7 @@ class IPay(Base):
                     res = self.callback(self, data)
 
                 if 'xid' in data:
-                    user = um.models.User.objects(xid=data['xid']).first()
+                    user = um.models.User.objects(xid=int(data['xid'])).first()
                     if user:
                         if data['action'] == 'subscribe':
                             user.on_subscribe()
@@ -232,7 +232,7 @@ class IPay(Base):
     def send_tpl(self, **kwargs):
         if current_user.is_authenticated():
             kwargs.setdefault('xid', current_user.xid)
-        kwargs.setdefault('url', '')
+        kwargs.setdefault('link', '')
         return self.post('/send-tpl-msg', **kwargs)
 
     def post(self, url, **kwargs):
