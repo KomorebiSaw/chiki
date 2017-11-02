@@ -198,14 +198,14 @@ class UserMixin(object):
             self.avatar = user['avatar']
         if not self.sex:
             self.sex = user['sex']
-        self.is_subscribe = user['subscribe']
+        self.subscribe = user['subscribe']
         self.save()
 
     def on_subscribe(self):
-        self.update(is_subscribe=True)
+        self.update(subscribe=True)
 
     def on_unsubscribe(self):
-        self.update(is_subscribe=False)
+        self.update(subscribe=False)
 
 
 class User(db.Document, UserMixin):
