@@ -63,6 +63,7 @@ class WXAuth(Base):
         self.success_callback = None
         self.error_callback = None
         self.config_callback = None
+        self.wxclients = dict()
         super(WXAuth, self).__init__(app, key, config, holder)
 
     def init_app(self, app):
@@ -112,6 +113,11 @@ class WXAuth(Base):
             return resp
 
         self.jssdk = JSSDK(app, self)
+
+    def get_wxclient(self, appid, secret):
+        if appid not in self.wxclients:
+            self.wxclients[appid] = werobot.client.Client(appid, secret)
+        return self.wxclients.get(appid)
 
     def quote(self, **kwargs):
         return dict((x, quote(y.encode('utf-8') if type(

@@ -98,6 +98,14 @@ class IPay(Base):
 
                 if self.callback:
                     res = self.callback(self, data)
+
+                if 'xid' in data:
+                    user = um.models.User.objects(xid=data['xid']).first()
+                    if user:
+                        if data['action'] == 'subscribe':
+                            user.subscribe()
+                        elif data['action'] == 'unsubscribe':
+                            user.unsubscribe()
             except:
                 current_app.logger.error(
                     'ipay callbck except: \n%s' % traceback.format_exc())
@@ -220,6 +228,12 @@ class IPay(Base):
         if kwargs['next'].startswith('/'):
             kwargs['next'] = 'http://%s%s' % (request.host, kwargs['next'])
         return self.post('/access', **kwargs)
+
+    def send_tpl(self, **kwargs):
+        if current_user.is_authenticated():
+            kwargs.setdefault('xid', current_user.xid)
+        kwargs.setdefault('url', '')
+        return self.post('/send-tpl-msg', **kwargs)
 
     def post(self, url, **kwargs):
         if not url.startswith('http://'):

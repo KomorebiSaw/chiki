@@ -20,7 +20,7 @@ class WXMenuView(ModelView):
     script = """
 $(function(){
     $(document).ready(function(){
-        var html = '<li class="this_go" style="float:right;"><div class="btn btn-primary" >更新菜单</div></li>';
+        var html = '<li class="this_go" style="float:right;"><div class="btn btn-primary">更新菜单</div></li>';
         $(".nav-tabs").append(html);
         $(".this_go").click(function(){
             var result = confirm('是否更新菜单')

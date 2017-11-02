@@ -192,9 +192,20 @@ class UserMixin(object):
         pass
 
     def update_ipay(self, user):
-        self.nickname = user['nickname']
-        self.avatar = user['avatar']
-        self.sex = user['sex']
+        if not self.nickname:
+            self.nickname = user['nickname']
+        if not self.avatar:
+            self.avatar = user['avatar']
+        if not self.sex:
+            self.sex = user['sex']
+        self.is_subscribe = user['subscribe']
+        self.save()
+
+    def subscribe(self):
+        self.update(is_subscribe=True)
+
+    def unsubscribe(self):
+        self.update(is_subscribe=False)
 
 
 class User(db.Document, UserMixin):
@@ -237,6 +248,7 @@ class User(db.Document, UserMixin):
     channel = db.IntField(verbose_name='注册渠道ID')
     spm = db.StringField(max_length=100, verbose_name='登录SPM')
     ip = db.StringField(max_length=20, verbose_name='登录IP')
+    subscribe = db.BooleanField(default=False, verbose_name='关注')
     generate = db.BooleanField(default=False, verbose_name='生成')
     error = db.IntField(default=0, verbose_name='登录错误次数')
     locked = db.DateTimeField(default=lambda: datetime(1970, 1, 1),
