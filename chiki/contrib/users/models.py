@@ -201,10 +201,10 @@ class UserMixin(object):
         self.is_subscribe = user['subscribe']
         self.save()
 
-    def subscribe(self):
+    def on_subscribe(self):
         self.update(is_subscribe=True)
 
-    def unsubscribe(self):
+    def on_unsubscribe(self):
         self.update(is_subscribe=False)
 
 

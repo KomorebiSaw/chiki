@@ -103,9 +103,9 @@ class IPay(Base):
                     user = um.models.User.objects(xid=data['xid']).first()
                     if user:
                         if data['action'] == 'subscribe':
-                            user.subscribe()
+                            user.on_subscribe()
                         elif data['action'] == 'unsubscribe':
-                            user.unsubscribe()
+                            user.on_unsubscribe()
             except:
                 current_app.logger.error(
                     'ipay callbck except: \n%s' % traceback.format_exc())
