@@ -1,10 +1,27 @@
 .. _oauth:
 
-第三方平台
+第三方接口
 ==========
 
-微信登录
---------
+微信网页授权
+------------
+
+代码位置：chiki/oauth/wxauth.py
+微信文档：https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842
+
+网页授权流程分为四步：
+
+    * 引导用户进入授权页面同意授权，获取code
+    * 通过code换取网页授权access_token（与基础支持中的access_token不同） 
+    * 如果需要，开发者可以刷新网页授权access_token，避免过期 
+    * 通过网页授权access_token和openid获取用户基本信息（支持UnionID机制）
+
+框架实现：
+    
+    * 重定向取授权：
+
+框架用法：
+
 微信登录有三种方式：公众号授权登录(mp)、扫码登录(qrcode)、手机登录(mobile)，
 只需相应加上配置，就支持相应的方式::
 
@@ -53,11 +70,7 @@
             :rtype: None或自定义Response
         """
 
-微信登录模块只需要设置配置就可以了，其他功能一般都在 `chiki.contrib.users` 中被封装。
 
-.. admonition:: 注意
-
-    微信登录需要在微信公众号中配置授权登录域名：接口权限->网页授权获取用户基本信息。
 
 
 

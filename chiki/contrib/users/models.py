@@ -95,6 +95,10 @@ class UserMixin(object):
         return self.get_avatar(64, 64)
 
     @property
+    def avatar_normal(self):
+        return self.get_avatar(128, 128)
+
+    @property
     def avatar_large(self):
         return self.get_avatar()
 
@@ -271,6 +275,16 @@ class User(db.Document, UserMixin):
     @property
     def sex_text(self):
         return self.SEX_DICT[self.sex]
+
+    @property
+    def birthday_text(self):
+        if self.birthday:
+            return self.birthday.strftime('%Y-%m-%d')
+        return '1995-01-01'
+
+    @property
+    def location_text(self):
+        return self.location.replace('|', ' ')
 
 
 class ThirdUserMixin(object):

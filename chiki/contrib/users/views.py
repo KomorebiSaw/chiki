@@ -147,3 +147,18 @@ def bind():
     phone_form = um.forms.BindPhoneForm()
     return render_template(
         um.tpls.bind, next=next, email_form=email_form, phone_form=phone_form)
+
+
+@bp.route('/wechat-test.html')
+def wechat_test():
+    wxuser = um.models.WeChatUser.objects(mp_openid='wechat-test').first()
+    if not wxuser:
+        wxuser = um.models.WeChatUser(mp_openid='wechat-test')
+        wxuser.save()
+    wxuser.user = None
+    wxuser.save()
+
+    login_user(wxuser)
+    next = request.args.get('next', um.config.login_next or '/')
+    return redirect(next)
+

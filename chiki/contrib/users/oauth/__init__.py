@@ -45,7 +45,7 @@ def init_oauth(app):
                     'complaint_alert_text', '网络异常，加载中！', name='封号提示'))
 
             config = current_app.user_manager.config
-            if request.endpoint not in config.allow_oauth_urls:
+            if request.endpoint and request.endpoint not in config.allow_oauth_urls and 'static' not in request.endpoint:
                 model = um.config.oauth_model
                 remember = um.config.oauth_remember
 
@@ -55,12 +55,11 @@ def init_oauth(app):
                         user = um.models.User.from_oauth(current_user)
                         login_user(user, remember=remember)
                         return
+
+                    if is_json():
+                        abort(NEED_BIND)
+
+                    query = urlencode(dict(next=request.url))
+                    return redirect('%s?%s' % (config.bind_url, query))
                 elif current_user.phone or current_user.email or model == 'auto':
                     return
-
-            if not current_user.is_user():
-                if is_json():
-                    abort(NEED_BIND)
-
-                query = urlencode(dict(next=request.url))
-                return redirect('%s?%s' % (config.bind_url, query))

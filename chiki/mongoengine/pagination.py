@@ -47,6 +47,7 @@ class Pagination(_Pagination):
             yield last_page, self.get_link(self.pages) if self.page < self.pages else None
 
     def render(self, tpl, **kwargs):
+        kwargs.update(self.kwargs)
         if is_ajax():
             return json_success(
                 html=render_template(tpl, pag=self, **kwargs),

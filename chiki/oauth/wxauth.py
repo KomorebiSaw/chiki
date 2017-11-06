@@ -32,6 +32,16 @@ class WXAuth(Base):
             mobile=dict(appid='', secret=''),
             qrcode=dict(appid='', secret=''),
         )
+
+    下面有不少方法中有config的参数，用于动态加载配置。配置示例：
+
+        dict(
+            mp=dict(
+                appid=self.appid,
+                secret=self.secret,
+            ),
+            callback_host=self.host,
+        )
     """
 
     ACTION_MP = 'mp'
@@ -86,10 +96,12 @@ class WXAuth(Base):
 
         @app.route(self.callback_url, endpoint=self.endpoint)
         def wxauth_callback():
+            """ 微信授权完成后的回调 """
             return self.callback()
 
         @app.route(self.js_url, endpoint=self.js_endpoint)
         def weixin_login():
+            """ PC网页版扫码登陆所需的js """
             qrcode = self.get_config(self.ACTION_QRCODE)
             js = ''
             if qrcode:
@@ -115,6 +127,7 @@ class WXAuth(Base):
         self.jssdk = JSSDK(app, self)
 
     def get_wxclient(self, appid, secret):
+        """ 生成werobot客户端，用于发送模版消息等 """
         if appid not in self.wxclients:
             self.wxclients[appid] = werobot.client.Client(appid, secret)
         return self.wxclients.get(appid)
@@ -124,6 +137,7 @@ class WXAuth(Base):
             y) is unicode else y)) for x, y in kwargs.iteritems())
 
     def get_access_url(self, action, code, config=None):
+        """ 生成获取access_token的链接 """
         config = self.get_config(action, config=config)
         query = dict(
             appid=config.get('appid'),
@@ -135,10 +149,12 @@ class WXAuth(Base):
 
     @err_logger
     def access_token(self, action, code, config=None):
+        """ 通过code换取网页授权access_token """
         url = self.get_access_url(action, code, config=config)
         return requests.get(url).json()
 
     def get_refresh_url(self, action, token, config=None):
+        """ 生成获取refresh_token的链接 """
         config = self.get_config(action, config=config)
         query = dict(
             appid=config.get('appid'),
@@ -149,21 +165,25 @@ class WXAuth(Base):
 
     @err_logger
     def refresh_token(self, action, token, config=None):
+        """ werobot.client需要refresh_token """
         url = self.get_refresh_url(action, token, config=config)
         return requests.get(url).json()
 
     def get_userinfo_url(self, token, openid, lang='zh_CN'):
+        """ access_token 获取用户信息的链接 """
         query = dict(access_token=token, openid=openid, lang=lang)
         return '%s?%s' % (self.USERINFO_URL, urlencode(query))
 
     @err_logger
     def get_userinfo(self, token, openid):
+        """ access_token 获取用户信息 """
         url = self.get_userinfo_url(token, openid)
         res = requests.get(url)
         return json.loads(res.content)
 
     @err_logger
     def get_user_info(self, openid):
+        """ 用openid获取用户信息 """
         try:
             return self.client.get_user_info(openid)
         except:
@@ -171,16 +191,26 @@ class WXAuth(Base):
             return self.client.get_user_info(openid)
 
     def get_check_url(self, token, openid):
+        """ 检测用户access_token是否过期的链接 """
         query = dict(access_token=token, openid=openid)
         return '%s?%s' % (self.CHECK_URL, urlencode(query))
 
     @err_logger
     def check_token(self, token, openid):
+        """ 检测用户access_token是否过期 """
         url = self.get_check_url(token, openid)
         return requests.get(url).json()['errcode'] == 0
 
     def get_auth_url(self, action, next, scope=SNSAPI_BASE, state='STATE',
                      config=None, **kwargs):
+        """ 生成微信网页授权链接。
+
+        :param action: 公众号授权登录(mp)、扫码登录(qrcode)
+        :param next: 授权后下一步链接
+        :param scope: snsapi_base|snsapi_userinfo
+        :param state: STATE
+        :param config: 自定义公众号配置(appid,secret等)
+        """
         if action == self.ACTION_QRCODE:
             scope = self.SNSAPI_LOGIN
 
@@ -335,5 +365,13 @@ class WXAuth(Base):
         return callback
 
     def config_handler(self, callback):
+        """配置加载回调，动态加载配置::
+
+            @app.wxauth.error_handler
+            def wxauth_config(appid=None):
+                return current_app.config.get("WXAUTH")
+
+        :param appid: 根据appid加载配置
+        """
         self.config_callback = callback
         return callback

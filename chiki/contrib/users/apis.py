@@ -589,8 +589,9 @@ class BindPhone(Bind):
                 ip=get_ip(),
             )
             user.create()
-        elif um.config.required_bind_password and user.password != args['password']:
-            abort(PASSWORD_ERROR)
+        elif um.config.required_bind_password:
+            user.password = args['password']
+            user.save()
         return user
 
     def validate(self, args):
