@@ -107,6 +107,16 @@ class UserMixin(object):
             return self.avatar.get_link(width, height)
         return current_app.config.get('DEFAULT_AVATAR')
 
+    @property
+    def phone_text(self):
+        if self.phone:
+            return '%s****%s' % (self.phone[:3], self.phone[-4:])
+        return ''
+
+    @property
+    def nick(self):
+        return self.nickname or self.phone_text
+
     def create_tid(self):
         res = []
         num = self.id
