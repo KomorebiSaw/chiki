@@ -3,5 +3,5 @@
 {% if page.bg %}{% block body_class %}" style="background:{{page.bg}}"{% endblock %}{% endif %}
 
 {% block body %}
-<div class="page-content" style="{% if page.padding %}padding: 0 15px;{% endif %}{{ page.style }}">{{ page.content | safe }}</div>
+<div class="page-content" style="{% if page.padding %}padding: 0 20px;{% endif %}{{ page.style }}">{{ page.content | safe }}</div>
 {% endblock %}
