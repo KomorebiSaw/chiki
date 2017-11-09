@@ -1048,6 +1048,8 @@ class Page(db.Document):
     id = db.IntField(primary_key=True, verbose_name='ID')
     key = db.StringField(verbose_name='键名')
     bg = db.StringField(verbose_name='背景颜色(#FFF)')
+    padding = db.BooleanField(default=False, verbose_name="内边距")
+    style = db.StringField(verbose_name="样式")
     name = db.StringField(verbose_name='名称')
     content = db.StringField(verbose_name='正文')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
