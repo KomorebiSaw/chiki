@@ -70,3 +70,15 @@ def nginx_puppet(update=False):
 def nginx_puppet_remove(name=None):
     name = name or ('%s.nginx.conf' % env.branch)
     run('rm -f /etc/nginx/sites-enabled/%s' % name)
+
+
+@roles('qing')
+@task
+def nginx_qing(update=False):
+    update = True if update in ['True', 'true', True] else False
+    if update:
+        run('sudo apt-get update && sudo apt-get install nginx -y')
+
+    xput('nginx/qing.nginx.conf',
+         '/etc/nginx/sites-enabled/%s.nginx.conf' % env.branch, sudo=True)
+    run('sudo service nginx reload')
