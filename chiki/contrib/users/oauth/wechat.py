@@ -79,17 +79,17 @@ def on_invite(user, uid):
                     x.inviter3 = user.inviter
                     x.save()
 
-        if not inviter and uid < 100000:
-            if not user.channel:
-                channel = Channel.objects(id=uid).first()
-                if channel:
-                    user.channel = channel.id
-                    user.inviter = um.models.User(id=100000)
-                    user.save()
-            else:
-                user.channel = 1000
-                user.inviter = um.models.User(id=100000)
-                user.save()
+        # if not inviter and uid < 100000:
+        #     if not user.channel:
+        #         channel = Channel.objects(id=uid).first()
+        #         if channel:
+        #             user.channel = channel.id
+        #             user.inviter = um.models.User(id=100000)
+        #             user.save()
+        #     else:
+        #         user.channel = 1000
+        #         user.inviter = um.models.User(id=100000)
+        #         user.save()
 
 
 def on_wechat_login(action, next):
