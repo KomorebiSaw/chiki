@@ -203,7 +203,7 @@ def init_app(init=None, config=None, pyfile=None,
         return os.path.abspath(
             os.path.join(app.config.get('DATA_FOLDER'), name))
 
-    if app.config.get('USER_AGENT_LIMIT'):
+    if app.config.get('USER_AGENT_LIMIT', False):
         @app.before_request
         def before_request():
             if request.path == current_app.config.get('WEROBOT_ROLE'):
