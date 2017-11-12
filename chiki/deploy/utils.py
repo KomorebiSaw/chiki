@@ -9,14 +9,14 @@ class FabricException(Exception):
     pass
 
 
-def xput(source, target):
+def xput(source, target, sudo=False):
     if not source.startswith('/'):
         filename = '%s/%s' % (env.stage, source)
         if os.path.isfile(filename):
             source = filename
         else:
             source = 'common/%s' % source
-    return put(source, target)
+    return put(source, target, use_sudo=sudo)
 
 
 def xrun(cmd, envs=''):
