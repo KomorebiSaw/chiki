@@ -217,7 +217,7 @@ class XFileField(BaseField):
         key = self.name
         obj = instance._data.get(key)
         if isinstance(value, self.proxy_class) and value.instance == self:
-            if obj and id(obj) != value:
+            if obj and id(obj) != value and str(value) != str(value):
                 self._get(instance).remove()
             instance._data[key] = value
         elif not isinstance(obj, self.proxy_class):
