@@ -31,7 +31,15 @@ def enable_oauth(link_path):
 
             if not is_debug() and not current_user.debug:
                 res = current_app.ipay.access(next=link_path)
-                url = res.get('data', dict()).get('url')
+                data = res.get('data', dict())
+
+                if res['code'] != 0:
+                    current_app.logger.error(json.dumps(res))
+
+                if not current_user.xid and 'xid' in data:
+                    current_user.update_ipay(data)
+
+                url = data.get('url')
                 if url:
                     if is_ajax():
                         return success(next=url)
@@ -52,7 +60,14 @@ def ipay_auth(func):
 
         if not is_debug() and not current_user.debug:
             res = current_app.ipay.access(next=request.url)
-            url = res.get('data', dict()).get('url')
+            if res['code'] != 0:
+                current_app.logger.error(json.dumps(res))
+
+            data = res.get('data', dict())
+            if not current_user.xid and 'xid' in data:
+                current_user.update_ipay(data)
+
+            url = data.get('url')
             if url:
                 if is_ajax():
                     return success(next=url)
@@ -223,7 +238,7 @@ class IPay(Base):
     def access(self, **kwargs):
         if current_user.is_authenticated():
             kwargs.setdefault('oid', current_user.id)
-            kwargs.setdefault('xid', current_user.xid)
+            kwargs.setdefault('xid', current_user.xid or 0)
         kwargs.setdefault('next', request.url)
         if kwargs['next'].startswith('/'):
             kwargs['next'] = 'http://%s%s' % (request.host, kwargs['next'])
@@ -241,6 +256,10 @@ class IPay(Base):
             url = 'http://%s%s' % (host, url)
         kwargs.setdefault('pid', self.pid)
         kwargs['sign'] = sign(self.secret, **kwargs)
+
+        if current_app.config.get('DUMP'):
+            current_app.logger.info('ipay post: %s\n%s' % (url, json.dumps(kwargs)))
+
         try:
             return requests.post(url, kwargs).json()
         except Exception, e:

@@ -206,13 +206,16 @@ class UserMixin(object):
         pass
 
     def update_ipay(self, user):
+        if not self.xid:
+            self.xid = user['xid']
         if not self.nickname:
             self.nickname = user['nickname']
         if not self.avatar:
             self.avatar = user['avatar']
         if not self.sex:
             self.sex = user['sex']
-        self.subscribe = user['subscribe']
+        if 'subscribe' in user:
+            self.subscribe = user['subscribe']
         self.save()
 
     def on_subscribe(self):
@@ -294,6 +297,8 @@ class User(db.Document, UserMixin):
 
     @property
     def location_text(self):
+        if self.location == '|':
+            return ''
         return self.location.replace('|', ' ')
 
 

@@ -346,7 +346,7 @@ def is_debug():
 
 def sign(key, **kwargs):
     keys = sorted(filter(
-        lambda x: x[1], kwargs.iteritems()), key=lambda x: x[0])
+        lambda x: x[1] is not None, kwargs.iteritems()), key=lambda x: x[0])
     text = '&'.join(['%s=%s' % x for x in keys])
     text += '&key=%s' % key
     return hashlib.md5(text.encode('utf-8')).hexdigest().upper()
