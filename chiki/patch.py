@@ -17,7 +17,7 @@ funcs = dict()
 def url_for(endpoint, **values):
     if current_user.is_authenticated():
         values.setdefault('uid', current_user.id)
-    if current_app.config.get('PATCH_URL'):
+    if current_app.config.get('PATCH_URL') or endpoint == 'users.register' and current_app.config.get('PATCH_REGISTER'):
         arg1 = hashlib.md5(request.host + endpoint).hexdigest()[:4]
         arg2 = hashlib.md5(request.host + endpoint).hexdigest()[:4]
         return old_url_for(endpoint, _arg1=arg1, _arg2=arg2, **values)
@@ -33,7 +33,7 @@ def add_url_rule(self, rule, endpoint=None, view_func=None, **options):
         rule2 += '/<_arg2>.html'
 
     func = view_func
-    if self.config.get('PATCH_URL') and func:
+    if self.config.get('PATCH_URL') and func or endpoint == 'users.register' and self.config.get('PATCH_REGISTER'):
         func = funcs.get(func, None)
         if not func:
             @wraps(view_func)

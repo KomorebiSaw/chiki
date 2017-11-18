@@ -15,6 +15,11 @@ def register():
     if current_user.is_authenticated():
         return redirect(next)
 
+    if current_app.config.get('REGISTER_WECHAT') and hasattr(current_app, 'wxauth'):
+        ua = request.headers.get('User-Agent', '').lower()
+        if 'micromessenger' in ua and '192.168' not in request.host:
+            return current_app.wxauth.auth(current_app.wxauth.ACTION_MP, next)
+
     email_form = um.forms.RegisterEmailForm()
     phone_form = um.forms.RegisterPhoneForm()
     return render_template(
