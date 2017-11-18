@@ -33,7 +33,7 @@ def add_url_rule(self, rule, endpoint=None, view_func=None, **options):
         rule2 += '/<_arg2>.html'
 
     func = view_func
-    if self.config.get('PATCH_URL') and func or endpoint == 'users.register' and self.config.get('PATCH_REGISTER'):
+    if (self.config.get('PATCH_URL') or endpoint == 'users.register' and self.config.get('PATCH_REGISTER')) and func:
         func = funcs.get(func, None)
         if not func:
             @wraps(view_func)
@@ -47,7 +47,7 @@ def add_url_rule(self, rule, endpoint=None, view_func=None, **options):
 
     res = old_add_url_rule(self, rule, endpoint=endpoint,
                            view_func=func, **options)
-    if self.config.get('PATCH_URL'):
+    if self.config.get('PATCH_URL') or endpoint == 'users.register' and self.config.get('PATCH_REGISTER'):
         options.setdefault('defaults', {'_arg1': '', '_arg2': ''})
         return old_add_url_rule(self, rule2, endpoint=endpoint,
                                 view_func=func, **options)
