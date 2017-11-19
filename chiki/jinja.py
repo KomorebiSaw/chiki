@@ -20,7 +20,7 @@ regex = re.compile(
     r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
     r'(?::\d+)?' # optional port
     r'(?:[a-zA-Z0-9\-\/._~%!$&()*+]+)?'
-    r'(?:\?[a-zA-Z0-9&%=.\-!@^*+]+)?)', re.IGNORECASE)
+    r'(?:\?[a-zA-Z0-9&%=.\-!@^*+-_]+)?)', re.IGNORECASE)
 
 
 def markup(html):
