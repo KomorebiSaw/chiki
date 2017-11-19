@@ -1,5 +1,7 @@
 # coding: utf-8
+import re
 import json
+import traceback
 from datetime import datetime
 from flask import current_app, get_flashed_messages
 from jinja2 import Markup
@@ -10,6 +12,15 @@ __all__ = [
     'markup', 'markupper', 'first_error', 'text2html',
     'JinjaManager', 'init_jinja',
 ]
+
+regex = re.compile(
+    r'((?:http|ftp)s?://' # http:// or https://
+    r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+    r'localhost|' #localhost...
+    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+    r'(?::\d+)?' # optional port
+    r'(?:[a-zA-Z0-9\-\/._~%!$&()*+]+)?'
+    r'(?:\?[a-zA-Z0-9&%=.]+)?)', re.IGNORECASE)
 
 
 def markup(html):
@@ -29,14 +40,25 @@ def first_error(form):
                 return field.errors[0]
 
 
+def replace_link(link):
+    if link.startswith('http://') or link.startswith('https://'):
+        return '<a class="link" href="%s">%s</a>' % (escape(link), escape(link))
+    return escape(link)
+
+
 def text2html(text):
-    out = ['']
-    for line in text.splitlines():
-        if not line.strip():
-            out.append('')
-            continue
-        out[-1] += escape(line) + '<br>'
-    return ''.join(u'<p>%s</p>' % x for x in filter(lambda x: x.strip, out))
+    try:
+        out = ['']
+        for line in text.splitlines():
+            if not line.strip():
+                out.append('')
+                continue
+            texts = [replace_link(x) for x in regex.split(line)]
+            out[-1] += ''.join(texts) + '<br>'
+        return ''.join(u'<p>%s</p>' % x for x in filter(lambda x: x.strip, out))
+    except:
+        traceback.print_exc()
+        return escape(text)
 
 
 class JinjaManager(object):
