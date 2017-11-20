@@ -31,9 +31,12 @@ __all__ = [
 
 
 def down(url, source=None):
-    if source:
-        return StringIO(requests.get(url, headers=dict(Referer=source)).content)
-    return StringIO(requests.get(url).content)
+    try:
+        if source:
+            return StringIO(requests.get(url, headers=dict(Referer=source)).content)
+        return StringIO(requests.get(url).content)
+    except:
+        pass
 
 
 def get_format(image):
