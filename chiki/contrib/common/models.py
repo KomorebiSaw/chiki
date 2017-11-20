@@ -982,10 +982,14 @@ class ImageItem(db.Document):
 
     MENU_ICON = 'picture-o'
 
-    key = db.StringField(verbose_name='key', primary_key=True)
+    key = db.StringField(verbose_name='key')
     name = db.StringField(verbose_name='名称')
     image = db.XImageField(verbose_name='图片')
+    type = choice(db.StringField(verbose_name='模块'), 'image_module', '图片模块')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    def __unicode__(self):
+        return '%s-%s' % (self.key, self.name)
 
     @staticmethod
     def get(key, name='默认', size=tuple()):
@@ -995,6 +999,17 @@ class ImageItem(db.Document):
                 key=key, name=name
             ).save()
         return image.image.get_link(*size) if image.image else ''
+
+    @staticmethod
+    def get_type_qrcodes(_type='other'):
+        return list(ImageItem.objects(type=_type).all())
+
+    @staticmethod
+    def get_type_qrcode(_type='other'):
+        images = ImageItem.get_type_qrcodes(_type)
+        if not images:
+            return None
+        return random.choice(images)
 
     def create(self):
         """ 创建用户 """
