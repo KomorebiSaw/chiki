@@ -151,8 +151,7 @@ class IPay(Base):
                 login_user(user, remember=True)
 
                 if user.is_user() and not user.active:
-                    return error(msg=Item.data(
-                        'active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
+                    return error(msg='您的帐号[%s]已被封号处理！' % user.tid)
 
                 if user.is_user() and user.complaint:
                     return error(msg=Item.data(

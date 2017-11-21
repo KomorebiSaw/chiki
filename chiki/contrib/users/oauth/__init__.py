@@ -38,7 +38,7 @@ def init_oauth(app):
             if current_user.is_user() and not current_user.active:
                 logout_user()
                 return error(msg=Item.data(
-                    'active_alert_text', '你的帐号已被封号处理！', name='封号提示'))
+                    'active_alert_text', '您的帐号已被封号处理！', name='封号提示'))
 
             if current_user.is_user() and current_user.complaint:
                 return error(msg=Item.data(
