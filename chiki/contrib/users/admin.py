@@ -99,11 +99,12 @@ class WeiBoUserView(ModelView):
 class UserLogView(ModelView):
     column_center_list = ('user', 'type', 'key', 'device', 'spm', 'ip', 'ua', 'created')
     column_searchable_list = ('key', 'device', 'spm', 'ip')
-    column_filters = ('key', 'user', 'device', 'created')
+    column_filters = ('key', 'user', 'device', 'ip', 'ua', 'created')
 
 
 class PhoneCodeView(ModelView):
     column_center_list = ('phone', 'action', 'code', 'ip', 'ua', 'error', 'created')
+    column_filters = ('phone', 'action', 'code', 'ip', 'ua', 'error', 'created')
     column_searchable_list = ('phone',)
 
 
