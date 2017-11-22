@@ -6,6 +6,7 @@ from chiki.base import db
 from chiki.contrib.common import Item
 from chiki.contrib.users.base import user_manager as um
 from chiki.utils import get_ip, get_spm, get_channel, url2image, sign, today
+from chiki.iptools import parse_ip
 from datetime import datetime, timedelta
 from flask import current_app, request
 from flask.ext.login import current_user
@@ -138,6 +139,7 @@ class UserMixin(object):
         self.logined = datetime.now()
         self.ip = get_ip()
         self.spm = request.args.get('spm', self.spm)
+        self.ip_area = parse_ip(get_ip())
         self.save()
 
     def login_error(self):
@@ -265,6 +267,7 @@ class User(db.Document, UserMixin):
     channel = db.IntField(verbose_name='注册渠道ID')
     spm = db.StringField(max_length=100, verbose_name='登录SPM')
     ip = db.StringField(max_length=20, verbose_name='登录IP')
+    ip_area = db.StringField(max_length=20, verbose_name='IP地区')
     subscribe = db.BooleanField(default=False, verbose_name='关注')
     generate = db.BooleanField(default=False, verbose_name='生成')
     error = db.IntField(default=0, verbose_name='登录错误次数')
