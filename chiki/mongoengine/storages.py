@@ -95,7 +95,8 @@ class OSSFile(BaseFile):
         if height != 0:
             attrs.append('h_%d' % height)
         if attrs:
-            attrs.append('m_fill')
+            if width and height:
+                attrs.append('m_fill')
             attrs.append('limit_0')
         if attrs:
             return link + '?x-oss-process=image/resize,' + ','.join(attrs) + '/format,' + format
