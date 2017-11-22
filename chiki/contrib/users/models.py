@@ -573,6 +573,7 @@ class UserLog(db.Document):
     device = db.StringField(max_length=100, verbose_name='设备ID')
     spm = db.StringField(max_length=100, verbose_name='SPM')
     ip = db.StringField(max_length=20, verbose_name='IP')
+    ua = db.StringField(verbose_name='UA')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = {
@@ -587,11 +588,12 @@ class UserLog(db.Document):
         return '%d - %s' % (self.user, self.type)
 
     @staticmethod
-    def log(type, id, device, key='', spm=None, ip=None):
+    def log(type, id, device, key='', spm=None, ip=None, ua=None):
         spm = spm if spm else get_spm()
         ip = ip if ip else get_ip()
+        ua = ua if ua else request.headers.get('User-Agent', '')
         um.models.UserLog(user=id, type=type, device=device,
-                          key=key, spm=spm, ip=ip).save()
+                          key=key, spm=spm, ip=ip, ua=ua).save()
 
     @staticmethod
     def active(id, device='', key='', spm=None, ip=None):
@@ -649,6 +651,8 @@ class PhoneCode(db.Document):
     phone = db.StringField(max_length=20, verbose_name='手机')
     action = db.StringField(choices=ACTION_CHOICES, verbose_name='类型')
     code = db.StringField(max_length=40, verbose_name='验证码')
+    ip = db.StringField(max_length=20, verbose_name='IP')
+    ua = db.StringField(verbose_name='UA')
     error = db.IntField(default=0, verbose_name='错误次数')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 

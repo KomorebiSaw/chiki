@@ -174,7 +174,9 @@ class SendPhoneCode(Resource):
             if code.timelimit:
                 abort(PHONE_CODE_TIME_LIMIT)
         else:
-            code = PhoneCode(phone=args['phone'], action=action)
+            ip = get_ip()
+            ua = request.headers.get('User-Agent', '')
+            code = PhoneCode(phone=args['phone'], action=action, ip=ip, ua=ua)
 
         if code.action in PhoneCode.REGISTERED_ACTIONS and code.registered:
             abort(PHONE_REGISTERED)
