@@ -18,6 +18,14 @@ __all__ = [
 def init_oauth(app):
     init_wxauth(app)
 
+    @app.after_request
+    def after_request(resp):
+        uid = request.args.get('uid', 0, int)
+        if not request.cookies.get('inviter') and uid and (
+                not current_user.is_authenticated() or current_user.id != uid):
+            resp.set_cookie('inviter', str(uid))
+        return resp
+
     @app.before_request
     def before_request():
         if current_app.is_admin:
