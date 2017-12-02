@@ -38,7 +38,7 @@ def init_oauth(app):
             um = current_app.user_manager
             if current_user.is_user() and not current_user.inviter:
                 try:
-                    uid = request.args.get('uid', 0, int) or request.cookies.get('inviter', 0, int)
+                    uid = request.cookies.get('inviter', 0, int) or request.args.get('uid', 0, int)
                     um.funcs.on_invite(current_user, uid)
                 except:
                     current_app.logger.error(traceback.format_exc())
