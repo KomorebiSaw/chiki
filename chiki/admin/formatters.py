@@ -44,11 +44,15 @@ def get_link(text, link, max_len=20, blank=True, html=False, **kwargs):
     return ''
 
 
-def popover(content, short=None, title=None, placement='right'):
+def popover(content, short=None, title=None, placement='right', html=False):
     short = title if short is None else short
+    if not html:
+        short = escape(short)
+    else:
+        short = (short,)
     return '<a href="javascript:;" data-container="body" data-toggle="popover" ' \
         'data-trigger="focus" data-placement=%s title=%s data-content=%s data-html="true">%s</a>' % (
-            quote(placement, title or '', content) + escape(short))
+            quote(placement, title or '', content) + short)
 
 
 def formatter(func):
@@ -208,13 +212,25 @@ def type_best(view, t):
 
 @markupper
 def type_image(view, image):
+    return format_image(image)
+
+
+def format_image(image, link=True):
+    if link:
+        tpl = u'''
+            <a href=%s target="_blank" style="text-decoration:none">
+                <img src=%s style="max-height: 40px; margin: -6px 0">
+            </a>
+        '''
+        if image and image.link:
+            return tpl % quote(image.link, image.get_link(40, 40))
+        return ''
+
     tpl = u'''
-        <a href=%s target="_blank" style="text-decoration:none">
-            <img src=%s style="max-height: 40px; margin: -6px 0">
-        </a>
+        <img src=%s style="max-height: 40px; margin: -6px 0">
     '''
     if image and image.link:
-        return tpl % quote(image.link, image.get_link(50, 40))
+        return tpl % quote(image.get_link(40, 40))
     return ''
 
 
