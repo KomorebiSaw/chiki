@@ -343,6 +343,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
     mp_openid = db.StringField(verbose_name='公众号ID')
     mobile_openid = db.StringField(verbose_name='手机ID')
     qrcode_openid = db.StringField(verbose_name='二维码ID')
+    mini_openid = db.StringField(verbose_name='小程序ID')
     nickname = db.StringField(verbose_name='昵称')
     sex = db.IntField(verbose_name='性别')
     country = db.StringField(verbose_name='国家')
@@ -360,6 +361,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
     expires_in = db.DateTimeField(verbose_name='过期时间')
     refresh_token = db.StringField(verbose_name='令牌刷新')
     updated = db.DateTimeField(default=datetime.now, verbose_name='更新时间')
+    session_key = db.StringField(verbose_name='Session Key')
     modified = db.DateTimeField(default=datetime.now, verbose_name='修改时间')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
@@ -431,7 +433,9 @@ class WeChatUser(db.Document, ThirdUserMixin):
         if not userinfo:
             return
 
-        setattr(self, action + '_openid', userinfo['openid'])
+        openid = userinfo.get('openid')
+        if openid:
+            setattr(self, action + '_openid', openid)
         self.unionid = userinfo.get('unionid', '')
         self.nickname = userinfo.get('nickname', self.nickname)
         self.sex = userinfo.get('sex', self.sex)
@@ -440,6 +444,12 @@ class WeChatUser(db.Document, ThirdUserMixin):
         self.country = userinfo.get('country', self.country)
         self.headimgurl = userinfo.get('headimgurl', self.headimgurl)
         self.privilege = userinfo.get('privilege', self.privilege)
+
+        self.nickname = userinfo.get('nickName', self.nickname)
+        self.sex = userinfo.get('gender', self.sex)
+        self.headimgurl = userinfo.get('avatarUrl', self.headimgurl)
+        self.session_key = userinfo.get('session_key', self.session_key)
+
         if userinfo.get('subscribe') == 1:
             self.remark = userinfo.get('remark', self.remark)
             self.language = userinfo.get('language', self.language)

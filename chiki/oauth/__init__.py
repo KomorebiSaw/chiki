@@ -6,6 +6,7 @@ from .ipay import *
 from .jssdk import *
 from .robot import *
 from .wxmsg import *
+from .mini import *
 
 
 def init_oauth(app):
@@ -14,3 +15,4 @@ def init_oauth(app):
     WXAuth.init(app)
     WXPay.init(app)
     IPay.init(app)
+    Mini.init(app)

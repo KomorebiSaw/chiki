@@ -957,6 +957,14 @@ class AD(db.Document):
             return self.TPL % (self.link.strip(), self.image.link)
         return self.link.strip()
 
+    @property
+    def json(self):
+        return dict(
+            name=self.name,
+            image=self.image.link,
+            link=self.link,
+        )
+
 
 class UserImage(db.Document):
     """ 用户图片 """

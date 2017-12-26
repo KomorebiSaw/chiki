@@ -18,6 +18,9 @@ from StringIO import StringIO
 from flask import jsonify, current_app, request, redirect
 from flask.ext.login import current_user
 
+import urllib3
+urllib3.disable_warnings()
+
 __all__ = [
     'strip', 'json_success', 'json_error', 'datetime2best', 'time2best',
     'today', 'err_logger', 'parse_spm', 'get_spm', 'get_version', 'get_os',
@@ -33,10 +36,11 @@ __all__ = [
 def down(url, source=None):
     try:
         if source:
-            return StringIO(requests.get(url, headers=dict(Referer=source)).content)
-        return StringIO(requests.get(url).content)
+            return StringIO(requests.get(
+                url, headers=dict(Referer=source), verify=False).content)
+        return StringIO(requests.get(url, verify=False).content)
     except:
-        pass
+        current_app.logger.error(traceback.format_exc())
 
 
 def get_format(image):
