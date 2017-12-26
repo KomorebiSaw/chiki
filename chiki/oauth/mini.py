@@ -51,7 +51,7 @@ class Mini(Base):
         return '%s?%s' % (self.JSCODE_URL, urlencode(query))
 
     def jscode(self):
-        form = request.get_json()
+        form = request.form
         code = form.get('code')
         if code:
             url = self.get_jscode_url(code)
