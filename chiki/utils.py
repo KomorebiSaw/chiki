@@ -52,8 +52,8 @@ def get_format(image):
     return ''
 
 
-def url2image(url, source=None):
-    return dict(stream=down(url, source=source), format=get_format(url)) if url else None
+def url2image(url, source=None, format=''):
+    return dict(stream=down(url, source=source), format=get_format(url) or format) if url else None
 
 
 class AttrDict(dict):

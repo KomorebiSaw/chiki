@@ -406,7 +406,7 @@ class WeChatUser(db.Document, ThirdUserMixin):
         if not user.nickname or force:
             user.nickname = self.nickname
         if not user.avatar or force:
-            user.avatar = url2image(self.headimgurl)
+            user.avatar = url2image(self.headimgurl, format='png')
         if not user.sex or force:
             user.sex = user.SEX_FROM_WECHAT.get(self.sex, user.SEX_UNKNOWN)
         if hasattr(user, 'country') and not user.country or force:
