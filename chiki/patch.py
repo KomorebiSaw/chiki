@@ -15,7 +15,7 @@ funcs = dict()
 
 
 def url_for(endpoint, **values):
-    if current_user.is_authenticated():
+    if current_user.is_authenticated() and current_app.config.get('PATCH_URL'):
         values.setdefault('uid', current_user.id)
     if current_app.config.get('PATCH_URL') or endpoint == 'users.register' and current_app.config.get('PATCH_REGISTER'):
         arg1 = hashlib.md5(request.host + endpoint).hexdigest()[:4]
