@@ -55,8 +55,8 @@ def patch_monkey():
             current_app.logger.error('robot send_tpl error: %s' % json.dumps(res))
             return False
 
-        def send_mini_tpl(self, openid, tpl, url='', data=dict(), retry=True):
-            data = json.dumps(dict(touser=openid, data=data, template_id=tpl, page=url))
+        def send_mini_tpl(self, openid, tpl, form_id='', url='', data=dict(), retry=True):
+            data = json.dumps(dict(touser=openid, data=data, template_id=tpl, page=url, form_id=form_id))
             xurl = '%s?%s' % (self.SEND_TPL_URL, urlencode(dict(access_token=self.token)))
             res = requests.post(xurl, data=data).json()
             if res['errcode'] == 0:
