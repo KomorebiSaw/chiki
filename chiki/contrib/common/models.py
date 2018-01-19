@@ -3,6 +3,7 @@ import json
 import time
 import qrcode
 import random
+import traceback
 from PIL import Image, ImageFont, ImageDraw
 from StringIO import StringIO
 from chiki.base import db, cache
@@ -1357,7 +1358,7 @@ class MiniShareLog(db.Document):
     url = db.StringField(verbose_name='链接')
     image = db.StringField(verbose_name='图片')
     status = db.StringField(verbose_name='状态', choices=STATUS.CHOICES)
-    openGId = db.StringField(verbose_name='GId')
+    openGId = db.ListField(db.StringField(), verbose_name='GId')
     infos = db.StringField(verbose_name='infos')
     shareTickets = db.StringField(verbose_name='tickets')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
@@ -1371,17 +1372,17 @@ class MiniShareLog(db.Document):
     }
 
     def decrypte(self):
-        if not self.user or not self.user.wechat_user():
+        if not self.user or not self.user.wechat_user:
             return
 
-        session_key = self.user.wechat_user().session_key
+        session_key = self.user.wechat_user.session_key
 
-        data = json.loads(self.infos)
-        encryptedData = data.get('encryptedData', None)
-        iv = data.get('iv', None)
-        if not encryptedData or not iv:
-            return
+        datas = json.loads(self.infos)
+        for data in datas:
+            encryptedData = data.get('encryptedData', None)
+            iv = data.get('iv', None)
+            if not encryptedData or not iv:
+                continue
 
-        re = current_app.mini.decrypte(session_key, encryptedData, iv)
-        self.openGId = re.get('openGId', '')
-        self.save()
+            re = current_app.mini.decrypte(session_key, encryptedData, iv)
+            self.openGId.append(re.get('openGId', ''))
