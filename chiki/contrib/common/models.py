@@ -1344,3 +1344,44 @@ class Complaint(db.Document):
                 datetime.now(), StatLog.date_inc('complaint_id'))
             self.save()
         return self.id
+
+
+class MiniShareLog(db.Document):
+    """ 小程序分享日志 """
+
+    STATUS = db.choices(success='成功', cancel='取消', error='错误')
+
+    user = db.ReferenceField('User', verbose_name='用户')
+    title = db.StringField(verbose_name='标题')
+    desc = db.StringField(verbose_name='描述')
+    url = db.StringField(verbose_name='链接')
+    image = db.StringField(verbose_name='图片')
+    status = db.StringField(verbose_name='状态', choices=STATUS.CHOICES)
+    openGId = db.StringField(verbose_name='GId')
+    infos = db.StringField(verbose_name='infos')
+    shareTickets = db.StringField(verbose_name='tickets')
+    created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
+
+    meta = {
+        'indexes': [
+            'user',
+            'url',
+            '-created',
+        ]
+    }
+
+    def decrypte(self):
+        if not self.user or not self.user.wechat_user():
+            return
+
+        session_key = self.user.wechat_user().session_key
+
+        data = json.loads(self.infos)
+        encryptedData = data.get('encryptedData', None)
+        iv = data.get('iv', None)
+        if not encryptedData or not iv:
+            return
+
+        re = current_app.mini.decrypte(session_key, encryptedData, iv)
+        self.openGId = re.get('openGId', '')
+        self.save()
