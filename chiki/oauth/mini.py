@@ -1,10 +1,12 @@
 # coding: utf-8
 import json
+import base64
 import inspect
 import requests
 import urlparse
 import werobot.client
 import functools
+from Crypto.Cipher import AES
 from chiki.utils import json_error, json_success
 from chiki.base import Base
 from chiki.contrib.users import um
@@ -97,3 +99,21 @@ class Mini(Base):
             user.login()
 
         return json_success(data=um.funcs.userinfo(user))
+
+    def decrypt(self, sessionKey, encryptedData, iv):
+        # base64 decode
+        sessionKey = base64.b64decode(sessionKey)
+        encryptedData = base64.b64decode(encryptedData)
+        iv = base64.b64decode(iv)
+
+        cipher = AES.new(sessionKey, AES.MODE_CBC, iv)
+
+        decrypted = json.loads(self._unpad(cipher.decrypt(encryptedData)))
+
+        # if decrypted['watermark']['appid'] != appId:
+        #     raise Exception('Invalid Buffer')
+
+        return decrypted
+
+    def _unpad(self, s):
+        return s[:-ord(s[len(s)-1:])]
