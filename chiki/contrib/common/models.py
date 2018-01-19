@@ -1369,3 +1369,19 @@ class MiniShareLog(db.Document):
             '-created',
         ]
     }
+
+    def decrypte(self):
+        if not self.user or not self.user.wechat_user():
+            return
+
+        session_key = self.user.wechat_user().session_key
+
+        data = json.loads(self.infos)
+        encryptedData = data.get('encryptedData', None)
+        iv = data.get('iv', None)
+        if not encryptedData or not iv:
+            return
+
+        re = current_app.mini.decrypte(session_key, encryptedData, iv)
+        self.openGId = re.get('openGId', '')
+        self.save()
