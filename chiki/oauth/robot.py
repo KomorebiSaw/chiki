@@ -19,6 +19,7 @@ def patch_monkey():
     class Client(werobot.client.Client):
 
         SEND_TPL_URL = 'https://api.weixin.qq.com/cgi-bin/message/template/send'
+        SEND_MINI_TPL_URL = 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send'
 
         key = 'default'
 
@@ -42,6 +43,20 @@ def patch_monkey():
 
         def send_tpl(self, openid, tpl, url='', data=dict(), retry=True):
             data = json.dumps(dict(touser=openid, data=data, template_id=tpl, url=url))
+            xurl = '%s?%s' % (self.SEND_TPL_URL, urlencode(dict(access_token=self.token)))
+            res = requests.post(xurl, data=data).json()
+            if res['errcode'] == 0:
+                return True
+
+            if retry and 'access_token' in res['errmsg']:
+                self.refresh_token()
+                self.send_tpl(openid, tpl, url, data, False)
+
+            current_app.logger.error('robot send_tpl error: %s' % json.dumps(res))
+            return False
+
+        def send_mini_tpl(self, openid, tpl, url='', data=dict(), retry=True):
+            data = json.dumps(dict(touser=openid, data=data, template_id=tpl, page=url))
             xurl = '%s?%s' % (self.SEND_TPL_URL, urlencode(dict(access_token=self.token)))
             res = requests.post(xurl, data=data).json()
             if res['errcode'] == 0:
