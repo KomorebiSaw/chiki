@@ -280,7 +280,8 @@ class ShareLog(db.Document):
     """ 分享日志 """
 
     STATUS = db.choices(success='成功', cancel='取消', error='错误')
-    MEDIA = db.choices(timeline='朋友圈', message='消息', qq='QQ', qzone='qzone')
+    MEDIA = db.choices(
+        timeline='朋友圈', message='消息', qq='QQ', qzone='qzone', mini='小程序')
 
     user = db.ReferenceField('User', verbose_name='用户')
     media = db.StringField(verbose_name='平台', choices=MEDIA.CHOICES)
@@ -289,6 +290,10 @@ class ShareLog(db.Document):
     link = db.StringField(verbose_name='链接')
     image = db.StringField(verbose_name='图片')
     status = db.StringField(verbose_name='状态', choices=STATUS.CHOICES)
+    # 小程序内容
+    openGId = db.ListField(db.StringField(), verbose_name='GId')
+    infos = db.StringField(verbose_name='infos')
+    shareTickets = db.StringField(verbose_name='tickets')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = {
@@ -298,6 +303,24 @@ class ShareLog(db.Document):
             '-created',
         ]
     }
+
+    # 小程序解密专用
+    def decrypte(self):
+        if not self.user or not self.user.wechat_user:
+            return
+
+        session_key = self.user.wechat_user.session_key
+
+        datas = json.loads(self.infos)
+        for data in datas:
+            encryptedData = data.get('encryptedData', None)
+            iv = data.get('iv', None)
+            if not encryptedData or not iv:
+                continue
+
+            re = current_app.mini.decrypte(session_key, encryptedData, iv)
+            self.openGId.append(re.get('openGId', ''))
+        self.save()
 
 
 class StatLog(db.Document):
@@ -1347,42 +1370,19 @@ class Complaint(db.Document):
         return self.id
 
 
-class MiniShareLog(db.Document):
-    """ 小程序分享日志 """
+class MiniTPLLog(db.Document):
+    """ 小程序模板消息日志 """
 
-    STATUS = db.choices(success='成功', cancel='取消', error='错误')
-
-    user = db.ReferenceField('User', verbose_name='用户')
-    title = db.StringField(verbose_name='标题')
-    desc = db.StringField(verbose_name='描述')
-    url = db.StringField(verbose_name='链接')
-    image = db.StringField(verbose_name='图片')
-    status = db.StringField(verbose_name='状态', choices=STATUS.CHOICES)
-    openGId = db.ListField(db.StringField(), verbose_name='GId')
-    infos = db.StringField(verbose_name='infos')
-    shareTickets = db.StringField(verbose_name='tickets')
+    user = db.ReferenceField('User', verbose_name='接收者')
+    template_id = db.StringField(verbose_name='模板id')
+    page = db.StringField(verbose_name='跳转url')
+    form_id = db.StringField(verbose_name='订单')
+    data = db.StringField(verbose_name='内容')
+    color = db.StringField(verbose_name='字体颜色')
+    emphasis_keyword = db.StringField(verbose_name='关键词')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
-    meta = {
-        'indexes': [
-            'user',
-            'url',
-            '-created',
-        ]
-    }
-
-    def decrypte(self):
-        if not self.user or not self.user.wechat_user:
-            return
-
-        session_key = self.user.wechat_user.session_key
-
-        datas = json.loads(self.infos)
-        for data in datas:
-            encryptedData = data.get('encryptedData', None)
-            iv = data.get('iv', None)
-            if not encryptedData or not iv:
-                continue
-
-            re = current_app.mini.decrypte(session_key, encryptedData, iv)
-            self.openGId.append(re.get('openGId', ''))
+    meta = dict(indexes=[
+        ('user', '-created'),
+        '-created'
+    ])
