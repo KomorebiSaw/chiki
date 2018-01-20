@@ -22,11 +22,12 @@ def patch_monkey():
         SEND_MINI_TPL_URL = 'https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send'
 
         key = 'default'
+        TYPE = 'wxauth'
 
         @property
         def token(self):
             now = time.time()
-            key = 'wxauth:access_token_%s' % self.key
+            key = '%s:access_token_%s' % (self.TYPE, self.key)
             token = json.loads(Item.data(key, '{}'))
             if not token or token['deadline'] <= now:
                 token = self.grant_token()
@@ -36,7 +37,7 @@ def patch_monkey():
 
         def refresh_token(self):
             now = time.time()
-            key = 'wxauth:access_token'
+            key = '%s:access_token' % self.TYPE
             token = self.grant_token()
             token['deadline'] = now + token['expires_in']
             Item.set_data(key, json.dumps(token))
@@ -57,7 +58,7 @@ def patch_monkey():
 
         def send_mini_tpl(self, openid, tpl, form_id='', url='', data=dict(), retry=True):
             data = json.dumps(dict(touser=openid, data=data, template_id=tpl, page=url, form_id=form_id))
-            xurl = '%s?%s' % (self.SEND_TPL_URL, urlencode(dict(access_token=self.token)))
+            xurl = '%s?%s' % (self.SEND_MINI_TPL_URL, urlencode(dict(access_token=self.token)))
             res = requests.post(xurl, data=data).json()
             if res['errcode'] == 0:
                 return True
