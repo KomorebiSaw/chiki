@@ -1393,8 +1393,10 @@ class MiniTPLLog(db.Document):
     ])
 
     @staticmethod
-    def send_tpl(user, tpl, url, form_id, data):
-        openid = user.wechat_user.mini_openid
+    def send_tpl(user, tpl, form_id, url, data):
+        openid = ''
+        if user.wechat_user:
+            openid = user.wechat_user.mini_openid
         mini = MiniTPLLog(
             user=user,
             template_id=tpl,
@@ -1402,7 +1404,7 @@ class MiniTPLLog(db.Document):
             form_id=form_id,
             data=json.dumps(data),
         )
-        res = current_app.mini.client.send_mini_tpl(openid, tpl, url, form_id, data)
+        res = current_app.mini.client.send_mini_tpl(openid, tpl, form_id, url, data)
         mini.msg = json.dumps(res)
         if res['errcode'] == 0:
             mini.status = MiniTPLLog.STATUS.SUCCESS
