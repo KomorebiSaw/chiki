@@ -1,4 +1,4 @@
-# coding: utf-8
+﻿# coding: utf-8
 import json
 import time
 import qrcode
@@ -294,6 +294,7 @@ class ShareLog(db.Document):
     openGId = db.ListField(db.StringField(), verbose_name='GId')
     infos = db.StringField(verbose_name='infos')
     shareTickets = db.StringField(verbose_name='tickets')
+    session_key = db.StringField(verbose_name='session_key')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = {
@@ -305,21 +306,21 @@ class ShareLog(db.Document):
     }
 
     # 小程序解密专用
-    def decrypte(self):
+    def decrypt(self):
         if not self.user or not self.user.wechat_user:
             return
 
-        session_key = self.user.wechat_user.session_key
-
         datas = json.loads(self.infos)
         for data in datas:
-            encryptedData = data.get('encryptedData', None)
-            iv = data.get('iv', None)
+            encryptedData = data['encryptedData']
+            iv = data['iv']
             if not encryptedData or not iv:
                 continue
 
-            re = current_app.mini.decrypte(session_key, encryptedData, iv)
-            self.openGId.append(re.get('openGId', ''))
+            re = current_app.mini.decrypt(self.session_key, encryptedData, iv)
+            print 're: ', re
+            if re['openGId']:
+                self.openGId.append(re['openGId'])
         self.save()
 
 

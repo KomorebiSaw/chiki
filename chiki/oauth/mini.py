@@ -109,10 +109,10 @@ class Mini(Base):
         sessionKey = base64.b64decode(sessionKey)
         encryptedData = base64.b64decode(encryptedData)
         iv = base64.b64decode(iv)
-
         cipher = AES.new(sessionKey, AES.MODE_CBC, iv)
 
-        decrypted = json.loads(self._unpad(cipher.decrypt(encryptedData)))
+        dec = cipher.decrypt(encryptedData)
+        decrypted = json.loads(self._unpad(dec))
 
         # if decrypted['watermark']['appid'] != appId:
         #     raise Exception('Invalid Buffer')
