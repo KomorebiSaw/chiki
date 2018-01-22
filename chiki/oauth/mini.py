@@ -85,6 +85,12 @@ class Mini(Base):
             )
 
             user = um.funcs.create_wechat_user(userinfo, 'mini')
+        else:
+            user.modify(
+                unionid=access.get('unionid', ''),
+                session_key=access.get('session_key'),
+                modified=datetime.now(),
+            )
 
         um.funcs.wechat_login(user)
 
