@@ -1373,6 +1373,7 @@ class Complaint(db.Document):
 
 class MiniTPLLog(db.Document):
     """ 小程序模板消息日志 """
+    STATUS = db.choices(success='成功', error='错误')
 
     user = db.ReferenceField('User', verbose_name='接收者')
     template_id = db.StringField(verbose_name='模板id')
@@ -1381,9 +1382,29 @@ class MiniTPLLog(db.Document):
     data = db.StringField(verbose_name='内容')
     color = db.StringField(verbose_name='字体颜色')
     emphasis_keyword = db.StringField(verbose_name='关键词')
+    status = db.StringField(default=STATUS.ERROR, verbose_name='状态',
+                            choices=STATUS.CHOICES)
+    msg = db.StringField(verbose_name='错误信息')
     created = db.DateTimeField(default=datetime.now, verbose_name='创建时间')
 
     meta = dict(indexes=[
         ('user', '-created'),
         '-created'
     ])
+
+    @staticmethod
+    def send_tpl(user, tpl, url, form_id, data):
+        openid = user.wechat_user.mini_openid
+        mini = MiniTPLLog(
+            user=user,
+            template_id=tpl,
+            page=url,
+            form_id=form_id,
+            data=json.dumps(data),
+        )
+        res = current_app.mini.client.send_mini_tpl(openid, tpl, url, form_id, data)
+        mini.msg = json.dumps(res)
+        if res['errcode'] == 0:
+            mini.status = MiniTPLLog.STATUS.SUCCESS
+        mini.save()
+        return mini.id

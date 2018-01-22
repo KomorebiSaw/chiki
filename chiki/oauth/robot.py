@@ -3,7 +3,7 @@ import json
 import time
 import requests
 import werobot.client
-from chiki.contrib.common import Item
+from chiki.contrib.common import Item, MiniTPLLog
 from flask import current_app
 from flask.ext.werobot import WeRoBot
 from werobot.messages import handle_for_type, WeChatMessage
@@ -61,14 +61,15 @@ def patch_monkey():
             xurl = '%s?%s' % (self.SEND_MINI_TPL_URL, urlencode(dict(access_token=self.token)))
             res = requests.post(xurl, data=data).json()
             if res['errcode'] == 0:
-                return True
+                return res
+            #     return True
 
             if retry and 'access_token' in res['errmsg']:
                 self.refresh_token()
-                self.send_tpl(openid, tpl, url, data, False)
+                self.send_mini_tpl(openid, tpl, form_id, url, data, False)
 
             current_app.logger.error('robot send_tpl error: %s' % json.dumps(res))
-            return False
+            return res
 
     werobot.client.Client = Client
 
